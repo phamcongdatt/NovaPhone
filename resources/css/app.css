@@ -3,7 +3,148 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* Dark mode điều khiển bằng class .dark trên thẻ <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Bảng màu thương hiệu NovaPhone - xanh dương hiện đại */
+    --color-brand-50: #eff6ff;
+    --color-brand-100: #dbeafe;
+    --color-brand-200: #bfdbfe;
+    --color-brand-300: #93c5fd;
+    --color-brand-400: #60a5fa;
+    --color-brand-500: #3b82f6;
+    --color-brand-600: #2563eb;
+    --color-brand-700: #1d4ed8;
+    --color-brand-800: #1e40af;
+    --color-brand-900: #1e3a8a;
+    --color-brand-950: #172554;
+
+    /* Màu nền & chữ chủ đạo */
+    --color-ink: #111827;
+    --color-surface: #f8f9fa;
+
+    /* Nền tối chủ đạo (dark-luxury theme) */
+    --color-night: #0a0c12;       /* nền trang */
+    --color-night-soft: #0f1219;  /* nền section / footer */
+    --color-night-card: #12151d;  /* nền card sản phẩm */
+}
+
+/* ===== Fade-in khi cuộn trang (IntersectionObserver gắn class .revealed) ===== */
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+        opacity 0.6s ease-out,
+        transform 0.6s ease-out;
+}
+.reveal.revealed {
+    opacity: 1;
+    transform: none;
+}
+/* Stagger nhẹ cho các item trong cùng một lưới */
+.reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+        opacity 0.55s ease-out,
+        transform 0.55s ease-out;
+}
+.reveal-stagger.revealed > * {
+    opacity: 1;
+    transform: none;
+}
+.reveal-stagger.revealed > *:nth-child(2) { transition-delay: 0.07s; }
+.reveal-stagger.revealed > *:nth-child(3) { transition-delay: 0.14s; }
+.reveal-stagger.revealed > *:nth-child(4) { transition-delay: 0.21s; }
+.reveal-stagger.revealed > *:nth-child(5) { transition-delay: 0.28s; }
+.reveal-stagger.revealed > *:nth-child(6) { transition-delay: 0.35s; }
+.reveal-stagger.revealed > *:nth-child(7) { transition-delay: 0.42s; }
+.reveal-stagger.revealed > *:nth-child(8) { transition-delay: 0.49s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .reveal-stagger > * {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
+
+/* ===== Skeleton loading (shimmer) ===== */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: #1f2937;
+}
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    animation: shimmer 1.6s infinite;
+}
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ===== Carousel logo thương hiệu (marquee vô tận) ===== */
+.marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+.marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 28s linear infinite;
+}
+.marquee:hover .marquee-track {
+    animation-play-state: paused;
+}
+@keyframes marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* ===== Hero: vầng sáng trang trí ===== */
+.hero-glow {
+    background:
+        radial-gradient(600px 300px at 80% 20%, rgba(37, 99, 235, 0.35), transparent 70%),
+        radial-gradient(500px 260px at 15% 85%, rgba(37, 99, 235, 0.18), transparent 70%);
+}
+
+/* Hiệu ứng điện thoại lơ lửng trong Hero */
+.float-slow {
+    animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-16px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .float-slow,
+    .marquee-track {
+        animation: none;
+    }
+}
+
+/* Ẩn scrollbar cho các hàng cuộn ngang nhưng vẫn cuộn được */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
