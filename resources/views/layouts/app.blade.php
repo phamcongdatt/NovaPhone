@@ -42,11 +42,10 @@
         <div class="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:h-[68px] lg:gap-8">
 
             {{-- Logo --}}
-            <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2.5">
-                <span class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white shadow-lg shadow-brand-600/30">N</span>
-                <span class="hidden text-lg font-extrabold tracking-tight sm:block">
-                    Nova<span class="text-brand-500">Phone</span>
-                </span>
+            <a href="{{ route('home') }}" class="flex shrink-0 items-center">
+                <img src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                     alt="NovaPhone"
+                     class="h-12 w-auto max-w-[190px] object-contain">
             </a>
 
             {{-- Ô tìm kiếm trung tâm --}}
@@ -126,12 +125,10 @@
 
             {{-- Cột 1: Giới thiệu --}}
             <div class="lg:col-span-2 lg:pr-10">
-                <a href="{{ route('home') }}" class="mb-4 flex items-center gap-2.5">
-                    <span class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white">N</span>
-                    <span>
-                        <span class="block text-lg font-extrabold leading-tight tracking-tight">Nova<span class="text-brand-500">Phone</span></span>
-                        <span class="block text-[10px] font-medium uppercase tracking-widest text-gray-500">Premium Mobile Experience</span>
-                    </span>
+                <a href="{{ route('home') }}" class="mb-4 inline-flex">
+                    <img src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                         alt="NovaPhone"
+                         class="h-16 w-auto max-w-[260px] object-contain">
                 </a>
                 <p class="text-sm leading-relaxed text-gray-400">
                     NovaPhone — Hệ thống bán lẻ điện thoại, máy tính bảng và phụ kiện chính hãng. Cam kết sản phẩm chất lượng, giá tốt nhất thị trường và dịch vụ hậu mãi tận tâm.
