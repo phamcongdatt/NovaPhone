@@ -4,27 +4,44 @@
 
 @php
     // Dữ liệu tĩnh mô phỏng (sẽ thay bằng dữ liệu từ Controller/API khi làm Backend)
+    $productImages = [
+        'iPhone 15 Pro Max 256GB' => 'iphone-15-pro-max-256gb.jpg',
+        'Samsung Galaxy S24 Ultra 256GB' => 'samsung-galaxy-s24-ultra-256gb.webp',
+        'Xiaomi 14T Pro 512GB' => 'xiaomi-14t-pro-512gb.jpg',
+        'OPPO Find X7 Ultra 256GB' => 'oppo-find-x7-ultra.webp',
+        'Vivo X100 Pro 256GB' => 'vivo-x100-pro.webp',
+        'Realme GT 6 512GB' => 'realme-gt-6-512gb.webp',
+        'Samsung Galaxy S24 Ultra' => 'samsung-galaxy-s24-ultra.jpg',
+        'iPhone 15 128GB' => 'iphone-15-128gb.webp',
+        'Xiaomi Redmi Note 13 Pro' => 'xiaomi-redmi-note-13-pro.webp',
+        'iPhone 16 128GB' => 'iphone-16-128gb.webp',
+        'Samsung Galaxy Z Flip6' => 'samsung-galaxy-z-flip6.webp',
+        'Xiaomi 14 Ultra' => 'xiaomi-14-ultra.webp',
+        'OPPO Reno12 Pro' => 'oppo-reno12-pro.webp',
+    ];
+    $productImage = fn ($name) => asset('images/products/'.($productImages[$name] ?? 'iphone-15-pro-max-256gb.jpg'));
+
     $flashSale = [
-        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=iPhone+15+Pro+Max', 'price' => 28990000, 'oldPrice' => 34990000, 'discount' => 17, 'sold' => '128', 'soldPercent' => 72],
-        ['name' => 'Samsung Galaxy S24 Ultra 256GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Galaxy+S24+Ultra', 'price' => 25990000, 'oldPrice' => 31990000, 'discount' => 19, 'sold' => '96', 'soldPercent' => 58],
-        ['name' => 'Xiaomi 14T Pro 512GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Xiaomi+14T+Pro', 'price' => 14990000, 'oldPrice' => 18990000, 'discount' => 21, 'sold' => '215', 'soldPercent' => 85],
-        ['name' => 'OPPO Find X7 Ultra 256GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Find+X7+Ultra', 'price' => 16990000, 'oldPrice' => 21990000, 'discount' => 23, 'sold' => '54', 'soldPercent' => 40],
-        ['name' => 'Vivo X100 Pro 256GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Vivo+X100+Pro', 'price' => 17990000, 'oldPrice' => 21990000, 'discount' => 18, 'sold' => '64', 'soldPercent' => 47],
-        ['name' => 'Realme GT 6 512GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Realme+GT+6', 'price' => 11990000, 'oldPrice' => 14990000, 'discount' => 20, 'sold' => '47', 'soldPercent' => 35],
+        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => $productImage('iPhone 15 Pro Max 256GB'), 'price' => 28990000, 'oldPrice' => 34990000, 'discount' => 17, 'sold' => '128', 'soldPercent' => 72],
+        ['name' => 'Samsung Galaxy S24 Ultra 256GB', 'image' => $productImage('Samsung Galaxy S24 Ultra 256GB'), 'price' => 25990000, 'oldPrice' => 31990000, 'discount' => 19, 'sold' => '96', 'soldPercent' => 58],
+        ['name' => 'Xiaomi 14T Pro 512GB', 'image' => $productImage('Xiaomi 14T Pro 512GB'), 'price' => 14990000, 'oldPrice' => 18990000, 'discount' => 21, 'sold' => '215', 'soldPercent' => 85],
+        ['name' => 'OPPO Find X7 Ultra 256GB', 'image' => $productImage('OPPO Find X7 Ultra 256GB'), 'price' => 16990000, 'oldPrice' => 21990000, 'discount' => 23, 'sold' => '54', 'soldPercent' => 40],
+        ['name' => 'Vivo X100 Pro 256GB', 'image' => $productImage('Vivo X100 Pro 256GB'), 'price' => 17990000, 'oldPrice' => 21990000, 'discount' => 18, 'sold' => '64', 'soldPercent' => 47],
+        ['name' => 'Realme GT 6 512GB', 'image' => $productImage('Realme GT 6 512GB'), 'price' => 11990000, 'oldPrice' => 14990000, 'discount' => 20, 'sold' => '47', 'soldPercent' => 35],
     ];
 
     $bestSeller = [
-        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => 'https://placehold.co/600x600/12151d/e5e7eb?text=iPhone+15+PM', 'price' => 28990000, 'rating' => 4.9, 'sold' => '2,3k'],
-        ['name' => 'Samsung Galaxy S24 Ultra', 'image' => 'https://placehold.co/600x600/12151d/e5e7eb?text=S24+Ultra', 'price' => 25990000, 'rating' => 4.8, 'sold' => '1,8k'],
-        ['name' => 'iPhone 15 128GB', 'image' => 'https://placehold.co/600x600/12151d/e5e7eb?text=iPhone+15', 'price' => 20990000, 'rating' => 4.8, 'sold' => '1,6k'],
-        ['name' => 'Xiaomi Redmi Note 13 Pro', 'image' => 'https://placehold.co/600x600/12151d/e5e7eb?text=Redmi+Note+13', 'price' => 6990000, 'rating' => 4.6, 'sold' => '1,2k'],
+        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => $productImage('iPhone 15 Pro Max 256GB'), 'price' => 28990000, 'rating' => 4.9, 'sold' => '2,3k'],
+        ['name' => 'Samsung Galaxy S24 Ultra', 'image' => $productImage('Samsung Galaxy S24 Ultra'), 'price' => 25990000, 'rating' => 4.8, 'sold' => '1,8k'],
+        ['name' => 'iPhone 15 128GB', 'image' => $productImage('iPhone 15 128GB'), 'price' => 20990000, 'rating' => 4.8, 'sold' => '1,6k'],
+        ['name' => 'Xiaomi Redmi Note 13 Pro', 'image' => $productImage('Xiaomi Redmi Note 13 Pro'), 'price' => 6990000, 'rating' => 4.6, 'sold' => '1,2k'],
     ];
 
     $newArrival = [
-        ['name' => 'iPhone 16 128GB', 'image' => 'https://placehold.co/600x600/1a1330/c4b5fd?text=iPhone+16', 'price' => 22990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'Samsung Galaxy Z Flip6', 'image' => 'https://placehold.co/600x600/1a1330/c4b5fd?text=Z+Flip6', 'price' => 26990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'Xiaomi 14 Ultra', 'image' => 'https://placehold.co/600x600/1a1330/c4b5fd?text=Xiaomi+14+Ultra', 'price' => 24990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'OPPO Reno12 Pro', 'image' => 'https://placehold.co/600x600/1a1330/c4b5fd?text=Reno12+Pro', 'price' => 12990000, 'rating' => 5.0, 'badge' => 'Mới'],
+        ['name' => 'iPhone 16 128GB', 'image' => $productImage('iPhone 16 128GB'), 'price' => 22990000, 'rating' => 5.0, 'badge' => 'Mới'],
+        ['name' => 'Samsung Galaxy Z Flip6', 'image' => $productImage('Samsung Galaxy Z Flip6'), 'price' => 26990000, 'rating' => 5.0, 'badge' => 'Mới'],
+        ['name' => 'Xiaomi 14 Ultra', 'image' => $productImage('Xiaomi 14 Ultra'), 'price' => 24990000, 'rating' => 5.0, 'badge' => 'Mới'],
+        ['name' => 'OPPO Reno12 Pro', 'image' => $productImage('OPPO Reno12 Pro'), 'price' => 12990000, 'rating' => 5.0, 'badge' => 'Mới'],
     ];
 
     $brands = [

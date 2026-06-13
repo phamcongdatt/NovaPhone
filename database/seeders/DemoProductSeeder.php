@@ -92,25 +92,27 @@ class DemoProductSeeder extends Seeder
     private function products(): array
     {
         return [
-            ['name' => 'iPhone 15 Pro Max 256GB', 'brand' => 'Apple', 'price' => 28990000, 'old_price' => 34990000, 'image' => 'https://placehold.co/900x900/12151d/93c5fd?text=iPhone+15+Pro+Max', 'sku' => 'IP15PM256', 'variant' => '256GB - Titan Den', 'storage' => '256GB', 'color' => 'Titan Den', 'color_code' => '#2c2c2e', 'stock' => 50, 'sold_count' => 238, 'rating' => 5],
-            ['name' => 'Samsung Galaxy S24 Ultra 256GB', 'brand' => 'Samsung', 'price' => 25990000, 'old_price' => 31990000, 'image' => 'https://placehold.co/900x900/12151d/93c5fd?text=Galaxy+S24+Ultra', 'sku' => 'SGS24U256', 'variant' => '256GB - Titanium Gray', 'storage' => '256GB', 'color' => 'Titanium Gray', 'color_code' => '#8f8f8f', 'stock' => 44, 'sold_count' => 196, 'rating' => 5],
-            ['name' => 'Xiaomi 14T Pro 512GB', 'brand' => 'Xiaomi', 'price' => 14990000, 'old_price' => 18990000, 'image' => 'https://placehold.co/900x900/12151d/93c5fd?text=Xiaomi+14T+Pro', 'sku' => 'XM14TP512', 'variant' => '512GB - Black', 'storage' => '512GB', 'color' => 'Black', 'color_code' => '#111827', 'stock' => 72, 'sold_count' => 215, 'rating' => 5],
-            ['name' => 'OPPO Find X7 Ultra 256GB', 'brand' => 'OPPO', 'price' => 16990000, 'old_price' => 21990000, 'image' => 'https://placehold.co/900x900/12151d/93c5fd?text=Find+X7+Ultra', 'sku' => 'OPFX7U256', 'variant' => '256GB - Blue', 'storage' => '256GB', 'color' => 'Blue', 'color_code' => '#2563eb', 'stock' => 28, 'sold_count' => 54, 'rating' => 4],
-            ['name' => 'Vivo X100 Pro 256GB', 'brand' => 'Vivo', 'price' => 17990000, 'old_price' => 21990000, 'image' => 'https://placehold.co/900x900/12151d/93c5fd?text=Vivo+X100+Pro', 'sku' => 'VVX100P256', 'variant' => '256GB - Startrail Blue', 'storage' => '256GB', 'color' => 'Blue', 'color_code' => '#1d4ed8', 'stock' => 31, 'sold_count' => 64, 'rating' => 4],
-            ['name' => 'Realme GT 6 512GB', 'brand' => 'Realme', 'price' => 11990000, 'old_price' => 14990000, 'image' => 'https://placehold.co/900x900/12151d/93c5fd?text=Realme+GT+6', 'sku' => 'RMGT6512', 'variant' => '512GB - Silver', 'storage' => '512GB', 'color' => 'Silver', 'color_code' => '#d1d5db', 'stock' => 35, 'sold_count' => 47, 'rating' => 4],
-            ['name' => 'Samsung Galaxy S24 Ultra', 'brand' => 'Samsung', 'price' => 25990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/12151d/e5e7eb?text=S24+Ultra', 'sku' => 'SGS24U', 'variant' => '256GB - Titanium Gray', 'storage' => '256GB', 'color' => 'Titanium Gray', 'color_code' => '#8f8f8f', 'stock' => 40, 'sold_count' => 1800, 'rating' => 5],
-            ['name' => 'iPhone 15 128GB', 'brand' => 'Apple', 'price' => 20990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/12151d/e5e7eb?text=iPhone+15', 'sku' => 'IP15128', 'variant' => '128GB - Blue', 'storage' => '128GB', 'color' => 'Blue', 'color_code' => '#93c5fd', 'stock' => 64, 'sold_count' => 1600, 'rating' => 5],
-            ['name' => 'Xiaomi Redmi Note 13 Pro', 'brand' => 'Xiaomi', 'price' => 6990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/12151d/e5e7eb?text=Redmi+Note+13', 'sku' => 'RDN13P', 'variant' => '256GB - Black', 'storage' => '256GB', 'color' => 'Black', 'color_code' => '#111827', 'stock' => 88, 'sold_count' => 1200, 'rating' => 4],
-            ['name' => 'iPhone 16 128GB', 'brand' => 'Apple', 'price' => 22990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/1a1330/c4b5fd?text=iPhone+16', 'sku' => 'IP16128', 'variant' => '128GB - Ultramarine', 'storage' => '128GB', 'color' => 'Ultramarine', 'color_code' => '#3b82f6', 'stock' => 36, 'sold_count' => 15, 'rating' => 5],
-            ['name' => 'Samsung Galaxy Z Flip6', 'brand' => 'Samsung', 'price' => 26990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/1a1330/c4b5fd?text=Z+Flip6', 'sku' => 'SGZFLIP6', 'variant' => '256GB - Mint', 'storage' => '256GB', 'color' => 'Mint', 'color_code' => '#99f6e4', 'stock' => 22, 'sold_count' => 10, 'rating' => 5],
-            ['name' => 'Xiaomi 14 Ultra', 'brand' => 'Xiaomi', 'price' => 24990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/1a1330/c4b5fd?text=Xiaomi+14+Ultra', 'sku' => 'XM14U', 'variant' => '512GB - White', 'storage' => '512GB', 'color' => 'White', 'color_code' => '#f8fafc', 'stock' => 18, 'sold_count' => 8, 'rating' => 5],
-            ['name' => 'OPPO Reno12 Pro', 'brand' => 'OPPO', 'price' => 12990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/1a1330/c4b5fd?text=Reno12+Pro', 'sku' => 'OPR12P', 'variant' => '512GB - Nebula Silver', 'storage' => '512GB', 'color' => 'Silver', 'color_code' => '#d1d5db', 'stock' => 26, 'sold_count' => 12, 'rating' => 5],
+            ['name' => 'iPhone 15 Pro Max 256GB', 'brand' => 'Apple', 'price' => 28990000, 'old_price' => 34990000, 'image' => $this->productImage('iphone-15-pro-max-256gb.jpg'), 'sku' => 'IP15PM256', 'variant' => '256GB - Titan Den', 'storage' => '256GB', 'color' => 'Titan Den', 'color_code' => '#2c2c2e', 'stock' => 50, 'sold_count' => 238, 'rating' => 5],
+            ['name' => 'Samsung Galaxy S24 Ultra 256GB', 'brand' => 'Samsung', 'price' => 25990000, 'old_price' => 31990000, 'image' => $this->productImage('samsung-galaxy-s24-ultra-256gb.webp'), 'sku' => 'SGS24U256', 'variant' => '256GB - Titanium Gray', 'storage' => '256GB', 'color' => 'Titanium Gray', 'color_code' => '#8f8f8f', 'stock' => 44, 'sold_count' => 196, 'rating' => 5],
+            ['name' => 'Xiaomi 14T Pro 512GB', 'brand' => 'Xiaomi', 'price' => 14990000, 'old_price' => 18990000, 'image' => $this->productImage('xiaomi-14t-pro-512gb.jpg'), 'sku' => 'XM14TP512', 'variant' => '512GB - Black', 'storage' => '512GB', 'color' => 'Black', 'color_code' => '#111827', 'stock' => 72, 'sold_count' => 215, 'rating' => 5],
+            ['name' => 'OPPO Find X7 Ultra 256GB', 'brand' => 'OPPO', 'price' => 16990000, 'old_price' => 21990000, 'image' => $this->productImage('oppo-find-x7-ultra.webp'), 'sku' => 'OPFX7U256', 'variant' => '256GB - Blue', 'storage' => '256GB', 'color' => 'Blue', 'color_code' => '#2563eb', 'stock' => 28, 'sold_count' => 54, 'rating' => 4],
+            ['name' => 'Vivo X100 Pro 256GB', 'brand' => 'Vivo', 'price' => 17990000, 'old_price' => 21990000, 'image' => $this->productImage('vivo-x100-pro.webp'), 'sku' => 'VVX100P256', 'variant' => '256GB - Startrail Blue', 'storage' => '256GB', 'color' => 'Blue', 'color_code' => '#1d4ed8', 'stock' => 31, 'sold_count' => 64, 'rating' => 4],
+            ['name' => 'Realme GT 6 512GB', 'brand' => 'Realme', 'price' => 11990000, 'old_price' => 14990000, 'image' => $this->productImage('realme-gt-6-512gb.webp'), 'sku' => 'RMGT6512', 'variant' => '512GB - Silver', 'storage' => '512GB', 'color' => 'Silver', 'color_code' => '#d1d5db', 'stock' => 35, 'sold_count' => 47, 'rating' => 4],
+            ['name' => 'Samsung Galaxy S24 Ultra', 'brand' => 'Samsung', 'price' => 25990000, 'old_price' => null, 'image' => $this->productImage('samsung-galaxy-s24-ultra.jpg'), 'sku' => 'SGS24U', 'variant' => '256GB - Titanium Gray', 'storage' => '256GB', 'color' => 'Titanium Gray', 'color_code' => '#8f8f8f', 'stock' => 40, 'sold_count' => 1800, 'rating' => 5],
+            ['name' => 'iPhone 15 128GB', 'brand' => 'Apple', 'price' => 20990000, 'old_price' => null, 'image' => $this->productImage('iphone-15-128gb.webp'), 'sku' => 'IP15128', 'variant' => '128GB - Blue', 'storage' => '128GB', 'color' => 'Blue', 'color_code' => '#93c5fd', 'stock' => 64, 'sold_count' => 1600, 'rating' => 5],
+            ['name' => 'Xiaomi Redmi Note 13 Pro', 'brand' => 'Xiaomi', 'price' => 6990000, 'old_price' => null, 'image' => $this->productImage('xiaomi-redmi-note-13-pro.webp'), 'sku' => 'RDN13P', 'variant' => '256GB - Black', 'storage' => '256GB', 'color' => 'Black', 'color_code' => '#111827', 'stock' => 88, 'sold_count' => 1200, 'rating' => 4],
+            ['name' => 'iPhone 16 128GB', 'brand' => 'Apple', 'price' => 22990000, 'old_price' => null, 'image' => $this->productImage('iphone-16-128gb.webp'), 'sku' => 'IP16128', 'variant' => '128GB - Ultramarine', 'storage' => '128GB', 'color' => 'Ultramarine', 'color_code' => '#3b82f6', 'stock' => 36, 'sold_count' => 15, 'rating' => 5],
+            ['name' => 'Samsung Galaxy Z Flip6', 'brand' => 'Samsung', 'price' => 26990000, 'old_price' => null, 'image' => $this->productImage('samsung-galaxy-z-flip6.webp'), 'sku' => 'SGZFLIP6', 'variant' => '256GB - Mint', 'storage' => '256GB', 'color' => 'Mint', 'color_code' => '#99f6e4', 'stock' => 22, 'sold_count' => 10, 'rating' => 5],
+            ['name' => 'Xiaomi 14 Ultra', 'brand' => 'Xiaomi', 'price' => 24990000, 'old_price' => null, 'image' => $this->productImage('xiaomi-14-ultra.webp'), 'sku' => 'XM14U', 'variant' => '512GB - White', 'storage' => '512GB', 'color' => 'White', 'color_code' => '#f8fafc', 'stock' => 18, 'sold_count' => 8, 'rating' => 5],
+            ['name' => 'OPPO Reno12 Pro', 'brand' => 'OPPO', 'price' => 12990000, 'old_price' => null, 'image' => $this->productImage('oppo-reno12-pro.webp'), 'sku' => 'OPR12P', 'variant' => '512GB - Nebula Silver', 'storage' => '512GB', 'color' => 'Silver', 'color_code' => '#d1d5db', 'stock' => 26, 'sold_count' => 12, 'rating' => 5],
         ];
     }
 
     private function syncProductImages(Product $product, array $item): void
     {
-        foreach ($this->productImages($item) as $sortOrder => $imageUrl) {
+        $images = $this->productImages($item);
+
+        foreach ($images as $sortOrder => $imageUrl) {
             ProductImage::updateOrCreate(
                 ['product_id' => $product->id, 'sort_order' => $sortOrder],
                 [
@@ -119,20 +121,21 @@ class DemoProductSeeder extends Seeder
                 ],
             );
         }
+
+        ProductImage::where('product_id', $product->id)
+            ->where('sort_order', '>=', count($images))
+            ->delete();
     }
 
     private function productImages(array $item): array
     {
         return [
             $item['image'],
-            $this->placeholderImage($item['name'], 'Mat truoc'),
-            $this->placeholderImage($item['name'], $item['color']),
-            $this->placeholderImage($item['brand'], $item['storage']),
         ];
     }
 
-    private function placeholderImage(string $title, string $detail): string
+    private function productImage(string $filename): string
     {
-        return 'https://placehold.co/900x900/0f172a/c4b5fd?text='.urlencode($title."\n".$detail);
+        return '/images/products/'.$filename;
     }
 }
