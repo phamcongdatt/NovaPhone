@@ -81,7 +81,7 @@
 @section('content')
 
 {{-- ===================== 1. Hero Banner ===================== --}}
-<section class="relative overflow-hidden">
+<section class="relative overflow-hidden" data-hero-slider>
     <div class="hero-glow absolute inset-0"></div>
     <div class="absolute inset-0 opacity-[0.05]" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 28px 28px;"></div>
 
@@ -91,13 +91,13 @@
                 <span class="size-1.5 animate-pulse rounded-full bg-brand-400"></span>
                 Sản phẩm mới ra mắt
             </span>
-            <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 data-hero-title class="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
                 iPhone <span class="bg-gradient-to-r from-brand-400 to-cyan-300 bg-clip-text text-transparent">17 Pro Max</span>
             </h1>
-            <p class="mt-4 text-lg font-medium text-gray-300">Titanium. Mạnh mẽ. Đẳng cấp.</p>
+            <p data-hero-subtitle class="mt-4 text-lg font-medium text-gray-300">Titanium. Mạnh mẽ. Đẳng cấp.</p>
 
             {{-- Chips tính năng nổi bật --}}
-            <div class="mt-6 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start">
+            <div data-hero-chips class="mt-6 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start">
                 @foreach (['A19 Pro Chip', 'Camera 48MP', 'Pin cả ngày'] as $chip)
                     <span class="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-gray-300 backdrop-blur">{{ $chip }}</span>
                 @endforeach
@@ -105,10 +105,12 @@
 
             <div class="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                 <a href="{{ route('products.show', 'iphone-17-pro-max') }}"
+                   data-hero-buy
                    class="rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-3.5 text-sm font-bold text-gray-900 shadow-lg shadow-amber-500/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/35 active:translate-y-0">
                     Mua ngay
                 </a>
                 <a href="{{ route('products.show', 'iphone-17-pro-max') }}"
+                   data-hero-detail
                    class="rounded-2xl border border-white/15 bg-white/5 px-8 py-3.5 text-sm font-bold text-white backdrop-blur transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-white/10">
                     Xem chi tiết
                 </a>
@@ -120,23 +122,24 @@
             <div class="absolute inset-0 m-auto h-72 w-[34rem] rounded-full bg-brand-600/25 blur-3xl"></div>
             <img src="{{ $productImage('iPhone 17 Pro Max') }}"
                  alt="iPhone 17 Pro Max — flagship mới nhất tại NovaPhone"
+                 data-hero-image
                  class="float-slow relative aspect-[16/9] w-[36rem] rounded-[2rem] border border-white/10 object-cover shadow-2xl shadow-black/60">
         </div>
     </div>
 
     {{-- Điều hướng slider --}}
-    <button aria-label="Banner trước" class="absolute left-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex">
+    <button type="button" data-hero-prev aria-label="Banner trước" class="absolute left-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex">
         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
     </button>
-    <button aria-label="Banner sau" class="absolute right-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex">
+    <button type="button" data-hero-next aria-label="Banner sau" class="absolute right-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex">
         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
     </button>
     {{-- Chấm chuyển slide --}}
     <div class="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
-        <span class="h-1.5 w-6 rounded-full bg-brand-500"></span>
-        <span class="size-1.5 rounded-full bg-white/25"></span>
-        <span class="size-1.5 rounded-full bg-white/25"></span>
-        <span class="size-1.5 rounded-full bg-white/25"></span>
+        <button type="button" data-hero-dot="0" aria-label="Chuyển đến banner 1" class="h-1.5 w-6 rounded-full bg-brand-500 transition-all duration-200"></button>
+        <button type="button" data-hero-dot="1" aria-label="Chuyển đến banner 2" class="size-1.5 rounded-full bg-white/25 transition-all duration-200"></button>
+        <button type="button" data-hero-dot="2" aria-label="Chuyển đến banner 3" class="size-1.5 rounded-full bg-white/25 transition-all duration-200"></button>
+        <button type="button" data-hero-dot="3" aria-label="Chuyển đến banner 4" class="size-1.5 rounded-full bg-white/25 transition-all duration-200"></button>
     </div>
 </section>
 
