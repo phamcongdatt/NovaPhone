@@ -104,7 +104,7 @@
             </div>
 
             <div class="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-                <a href="#flash-sale"
+                <a href="{{ route('products.show', 'iphone-17-pro-max') }}"
                    class="rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-3.5 text-sm font-bold text-gray-900 shadow-lg shadow-amber-500/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/35 active:translate-y-0">
                     Mua ngay
                 </a>
