@@ -100,7 +100,6 @@
                 ['label' => 'Vivo', 'href' => route('home', ['brand' => 'vivo']).'#san-pham'],
                 ['label' => 'Realme', 'href' => route('home', ['brand' => 'realme']).'#san-pham'],
                 ['label' => 'Flagship', 'href' => route('home', ['features' => ['featured']]).'#san-pham'],
-                ['label' => 'Phụ kiện', 'href' => route('home', ['q' => 'phụ kiện']).'#san-pham'],
             ];
         @endphp
 
