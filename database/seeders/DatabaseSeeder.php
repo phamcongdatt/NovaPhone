@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         // Admin account
         User::create([
             'name'     => 'Admin NovaPhone',
-            'email'    => 'admin@novaphone.vn',
+            'email'    => 'mailnikke276@gmail.com',
             'phone'    => '0900000001',
             'role'     => 'admin',
             'status'   => 'active',

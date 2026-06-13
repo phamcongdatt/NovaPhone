@@ -4,10 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
-    return view('home
-    ');
-});
-
+    return view('home');
+})->name('home');
 // ─── Guest routes (chưa đăng nhập) ───────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/register',                     [AuthController::class, 'showRegister'])->name('register');
