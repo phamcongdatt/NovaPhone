@@ -92,6 +92,7 @@ class DemoProductSeeder extends Seeder
     private function products(): array
     {
         return [
+            ['name' => 'iPhone 17 Pro Max', 'brand' => 'Apple', 'price' => 39990000, 'old_price' => null, 'image' => $this->productImage('iphone-17-pro-max-product.jpg'), 'sku' => 'IP17PM', 'variant' => '256GB - Cosmic Orange', 'storage' => '256GB', 'color' => 'Cosmic Orange', 'color_code' => '#f97316', 'stock' => 24, 'sold_count' => 0, 'rating' => 5],
             ['name' => 'iPhone 15 Pro Max 256GB', 'brand' => 'Apple', 'price' => 28990000, 'old_price' => 34990000, 'image' => $this->productImage('iphone-15-pro-max-256gb.jpg'), 'sku' => 'IP15PM256', 'variant' => '256GB - Titan Den', 'storage' => '256GB', 'color' => 'Titan Den', 'color_code' => '#2c2c2e', 'stock' => 50, 'sold_count' => 238, 'rating' => 5],
             ['name' => 'Samsung Galaxy S24 Ultra 256GB', 'brand' => 'Samsung', 'price' => 25990000, 'old_price' => 31990000, 'image' => $this->productImage('samsung-galaxy-s24-ultra-256gb.webp'), 'sku' => 'SGS24U256', 'variant' => '256GB - Titanium Gray', 'storage' => '256GB', 'color' => 'Titanium Gray', 'color_code' => '#8f8f8f', 'stock' => 44, 'sold_count' => 196, 'rating' => 5],
             ['name' => 'Xiaomi 14T Pro 512GB', 'brand' => 'Xiaomi', 'price' => 14990000, 'old_price' => 18990000, 'image' => $this->productImage('xiaomi-14t-pro-512gb.jpg'), 'sku' => 'XM14TP512', 'variant' => '512GB - Black', 'storage' => '512GB', 'color' => 'Black', 'color_code' => '#111827', 'stock' => 72, 'sold_count' => 215, 'rating' => 5],
