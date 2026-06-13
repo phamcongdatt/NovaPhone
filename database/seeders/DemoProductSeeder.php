@@ -58,18 +58,7 @@ class DemoProductSeeder extends Seeder
                 ],
             );
 
-            ProductImage::updateOrCreate(
-                ['product_id' => $product->id, 'sort_order' => 0],
-                ['image_url' => $item['image'], 'is_primary' => true],
-            );
-
-            ProductImage::updateOrCreate(
-                ['product_id' => $product->id, 'sort_order' => 1],
-                [
-                    'image_url' => 'https://placehold.co/900x900/0f172a/c4b5fd?text='.urlencode($item['brand']),
-                    'is_primary' => false,
-                ],
-            );
+            $this->syncProductImages($product, $item);
 
             $variant = ProductVariant::updateOrCreate(
                 ['sku' => $item['sku'].'-STD'],
@@ -117,5 +106,33 @@ class DemoProductSeeder extends Seeder
             ['name' => 'Xiaomi 14 Ultra', 'brand' => 'Xiaomi', 'price' => 24990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/1a1330/c4b5fd?text=Xiaomi+14+Ultra', 'sku' => 'XM14U', 'variant' => '512GB - White', 'storage' => '512GB', 'color' => 'White', 'color_code' => '#f8fafc', 'stock' => 18, 'sold_count' => 8, 'rating' => 5],
             ['name' => 'OPPO Reno12 Pro', 'brand' => 'OPPO', 'price' => 12990000, 'old_price' => null, 'image' => 'https://placehold.co/900x900/1a1330/c4b5fd?text=Reno12+Pro', 'sku' => 'OPR12P', 'variant' => '512GB - Nebula Silver', 'storage' => '512GB', 'color' => 'Silver', 'color_code' => '#d1d5db', 'stock' => 26, 'sold_count' => 12, 'rating' => 5],
         ];
+    }
+
+    private function syncProductImages(Product $product, array $item): void
+    {
+        foreach ($this->productImages($item) as $sortOrder => $imageUrl) {
+            ProductImage::updateOrCreate(
+                ['product_id' => $product->id, 'sort_order' => $sortOrder],
+                [
+                    'image_url' => $imageUrl,
+                    'is_primary' => $sortOrder === 0,
+                ],
+            );
+        }
+    }
+
+    private function productImages(array $item): array
+    {
+        return [
+            $item['image'],
+            $this->placeholderImage($item['name'], 'Mat truoc'),
+            $this->placeholderImage($item['name'], $item['color']),
+            $this->placeholderImage($item['brand'], $item['storage']),
+        ];
+    }
+
+    private function placeholderImage(string $title, string $detail): string
+    {
+        return 'https://placehold.co/900x900/0f172a/c4b5fd?text='.urlencode($title."\n".$detail);
     }
 }
