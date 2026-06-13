@@ -18,6 +18,7 @@
         'Samsung Galaxy Z Flip6' => 'samsung-galaxy-z-flip6.webp',
         'Xiaomi 14 Ultra' => 'xiaomi-14-ultra.webp',
         'OPPO Reno12 Pro' => 'oppo-reno12-pro.webp',
+        'iPhone 17 Pro Max' => 'iphone-17-pro-max.jpg',
     ];
     $productImage = fn ($name) => asset('images/products/'.($productImages[$name] ?? 'iphone-15-pro-max-256gb.jpg'));
 
@@ -69,7 +70,7 @@
     ];
 
     $news = [
-        ['title' => 'iPhone 17 Pro Max: Thiết kế titanium mới, nâng cấp đột phá', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=iPhone+17+Pro+Max', 'date' => '12/06/2026'],
+        ['title' => 'iPhone 17 Pro Max: Thiết kế titanium mới, nâng cấp đột phá', 'image' => $productImage('iPhone 17 Pro Max'), 'date' => '12/06/2026'],
         ['title' => 'Galaxy S24 Ultra sau 3 tháng: Có còn đáng mua?', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Galaxy+S24+Ultra', 'date' => '10/06/2026'],
         ['title' => 'Xiaomi 15 Ultra chính thức ra mắt tại Việt Nam', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Xiaomi+15+Ultra', 'date' => '08/06/2026'],
         ['title' => 'iPhone 15 Pro Max vs Galaxy S24 Ultra: Đâu là vua Android?', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Flagship+Battle', 'date' => '06/06/2026'],
@@ -116,10 +117,10 @@
 
         {{-- Ảnh sản phẩm hero --}}
         <div class="relative hidden justify-center lg:flex">
-            <div class="absolute inset-0 m-auto size-80 rounded-full bg-brand-600/25 blur-3xl"></div>
-            <img src="https://placehold.co/460x540/0d1017/3b82f6?text=iPhone+17+Pro+Max"
+            <div class="absolute inset-0 m-auto h-72 w-[34rem] rounded-full bg-brand-600/25 blur-3xl"></div>
+            <img src="{{ $productImage('iPhone 17 Pro Max') }}"
                  alt="iPhone 17 Pro Max — flagship mới nhất tại NovaPhone"
-                 class="float-slow relative w-[26rem] rounded-[2.5rem] border border-white/10 shadow-2xl shadow-black/60">
+                 class="float-slow relative aspect-[16/9] w-[36rem] rounded-[2rem] border border-white/10 object-cover shadow-2xl shadow-black/60">
         </div>
     </div>
 
