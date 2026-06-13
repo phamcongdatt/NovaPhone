@@ -12,25 +12,25 @@ class HomeController extends Controller
     public function index(Request $request): View
     {
         $priceRanges = [
-            'duoi-10-trieu' => 'Duoi 10 trieu',
-            '10-20-trieu' => '10 - 20 trieu',
-            '20-30-trieu' => '20 - 30 trieu',
-            'tren-30-trieu' => 'Tren 30 trieu',
+            'duoi-10-trieu' => 'Dưới 10 triệu',
+            '10-20-trieu' => '10 - 20 triệu',
+            '20-30-trieu' => '20 - 30 triệu',
+            'tren-30-trieu' => 'Trên 30 triệu',
         ];
         $featureFilters = [
-            'sale' => 'Dang giam gia',
-            'featured' => 'Noi bat',
-            'in-stock' => 'Con hang',
-            'storage-128' => 'Bo nho 128GB',
-            'storage-256' => 'Bo nho 256GB',
-            'storage-512' => 'Bo nho 512GB',
+            'sale' => 'Đang giảm giá',
+            'featured' => 'Nổi bật',
+            'in-stock' => 'Còn hàng',
+            'storage-128' => 'Bộ nhớ 128GB',
+            'storage-256' => 'Bộ nhớ 256GB',
+            'storage-512' => 'Bộ nhớ 512GB',
         ];
         $sortOptions = [
-            'featured' => 'Noi bat',
-            'newest' => 'Moi nhat',
-            'price-asc' => 'Gia thap den cao',
-            'price-desc' => 'Gia cao den thap',
-            'best-selling' => 'Ban chay',
+            'featured' => 'Nổi bật',
+            'newest' => 'Mới nhất',
+            'price-asc' => 'Giá thấp đến cao',
+            'price-desc' => 'Giá cao đến thấp',
+            'best-selling' => 'Bán chạy',
         ];
 
         $selectedPriceRange = $request->string('price')->toString();

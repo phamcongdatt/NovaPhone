@@ -208,51 +208,77 @@
     </div>
 </section>
 
-{{-- ===================== 5. Dien thoai / Loc theo gia, thuong hieu, tinh nang ===================== --}}
+{{-- ===================== 5. Điện thoại / Lọc theo giá, thương hiệu, tính năng ===================== --}}
 <section id="san-pham" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
-    <div class="reveal mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-            <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">Dien thoai</h2>
-            <p class="mt-1 text-sm text-gray-500">Loc nhanh san pham theo gia, thuong hieu va tinh nang ban can.</p>
+    <div class="reveal mb-6">
+        <div class="mb-5">
+            <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">Điện thoại</h2>
+            <p class="mt-1 text-sm text-gray-500">Lọc nhanh sản phẩm theo giá, thương hiệu và tính năng bạn cần.</p>
         </div>
 
-        <form method="GET" action="{{ route('home') }}#san-pham" class="grid gap-2 sm:grid-cols-2 lg:flex lg:items-center">
-            <div class="flex flex-col gap-1">
-                <label for="search-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Tu khoa</label>
-                <input id="search-filter" name="q" type="search" value="{{ $selectedSearchQuery }}"
-                       placeholder="Ten, SKU..."
-                       class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+        <form method="GET" action="{{ route('home') }}#san-pham"
+              class="rounded-2xl border border-white/5 bg-night-soft p-4 shadow-xl shadow-black/20">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-12">
+                <div class="flex flex-col gap-1.5 xl:col-span-3">
+                    <label for="search-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Từ khóa</label>
+                    <input id="search-filter" name="q" type="search" value="{{ $selectedSearchQuery }}"
+                           placeholder="Tên, SKU..."
+                           class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                </div>
+
+                <div class="flex flex-col gap-1.5 xl:col-span-2">
+                    <label for="price-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Khoảng giá</label>
+                    <select id="price-filter" name="price"
+                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                        <option value="">Tất cả mức giá</option>
+                        @foreach ($priceRanges as $value => $label)
+                            <option value="{{ $value }}" @selected($selectedPriceRange === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1.5 xl:col-span-2">
+                    <label for="brand-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Thương hiệu</label>
+                    <select id="brand-filter" name="brand"
+                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                        <option value="">Tất cả thương hiệu</option>
+                        @foreach ($filterBrands as $brand)
+                            <option value="{{ $brand->slug }}" @selected($selectedBrandSlug === $brand->slug)>
+                                {{ $brand->name }} ({{ $brand->products_count }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1.5 xl:col-span-2">
+                    <label for="sort-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sắp xếp</label>
+                    <select id="sort-filter" name="sort"
+                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                        @foreach ($sortOptions as $value => $label)
+                            <option value="{{ $value }}" @selected($selectedSort === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex items-end gap-2 xl:col-span-3">
+                    <button type="submit"
+                            class="h-12 flex-1 rounded-xl bg-brand-600 px-5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
+                        Lọc
+                    </button>
+                    @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedFeatures)
+                        <a href="{{ route('home') }}#san-pham"
+                           class="flex h-12 items-center justify-center rounded-xl border border-white/10 px-5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
+                            Xóa lọc
+                        </a>
+                    @endif
+                </div>
             </div>
 
-            <div class="flex flex-col gap-1">
-                <label for="price-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Khoang gia</label>
-                <select id="price-filter" name="price"
-                        class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                    <option value="">Tat ca muc gia</option>
-                    @foreach ($priceRanges as $value => $label)
-                        <option value="{{ $value }}" @selected($selectedPriceRange === $value)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="flex flex-col gap-1">
-                <label for="brand-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Thuong hieu</label>
-                <select id="brand-filter" name="brand"
-                        class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                    <option value="">Tat ca thuong hieu</option>
-                    @foreach ($filterBrands as $brand)
-                        <option value="{{ $brand->slug }}" @selected($selectedBrandSlug === $brand->slug)>
-                            {{ $brand->name }} ({{ $brand->products_count }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <fieldset class="flex flex-col gap-2">
-                <legend class="text-xs font-semibold uppercase tracking-wider text-gray-500">Tinh nang</legend>
-                <div class="grid gap-2 rounded-xl border border-white/10 bg-night-card p-3 sm:grid-cols-2">
+            <fieldset class="mt-4">
+                <legend class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Tính năng</legend>
+                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                     @foreach ($featureFilters as $value => $label)
-                        <label class="flex items-center gap-2 text-xs font-semibold text-gray-300">
+                        <label class="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-night-card px-3 text-sm font-semibold text-gray-300 transition-colors duration-200 hover:border-brand-500/50 hover:text-white">
                             <input type="checkbox" name="features[]" value="{{ $value }}" @checked(in_array($value, $selectedFeatures, true))
                                    class="size-4 rounded border-white/20 bg-white/5 text-brand-600 focus:ring-brand-500">
                             <span>{{ $label }}</span>
@@ -260,27 +286,6 @@
                     @endforeach
                 </div>
             </fieldset>
-
-            <div class="flex flex-col gap-1">
-                <label for="sort-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sap xep</label>
-                <select id="sort-filter" name="sort"
-                        class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                    @foreach ($sortOptions as $value => $label)
-                        <option value="{{ $value }}" @selected($selectedSort === $value)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <button type="submit"
-                    class="self-end rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
-                Loc
-            </button>
-            @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedFeatures)
-                <a href="{{ route('home') }}#san-pham"
-                   class="self-end rounded-xl border border-white/10 px-5 py-2.5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
-                    Xoa loc
-                </a>
-            @endif
         </form>
     </div>
 
@@ -304,8 +309,8 @@
             />
         @empty
             <div class="col-span-full rounded-2xl border border-white/5 bg-night-soft p-8 text-center">
-                <p class="text-sm font-semibold text-white">Chua co san pham phu hop.</p>
-                <p class="mt-1 text-xs text-gray-500">Thu tim tu khoa khac hoac chon lai bo loc de xem them dien thoai.</p>
+                <p class="text-sm font-semibold text-white">Chưa có sản phẩm phù hợp.</p>
+                <p class="mt-1 text-xs text-gray-500">Thử tìm từ khóa khác hoặc chọn lại bộ lọc để xem thêm điện thoại.</p>
             </div>
         @endforelse
     </div>
