@@ -300,6 +300,12 @@
             </div>
         @endforelse
     </div>
+
+    @if ($catalogProducts->hasPages())
+        <div class="mt-8">
+            {{ $catalogProducts->links() }}
+        </div>
+    @endif
 </section>
 
 {{-- ===================== 5. Best Seller + New Arrival ===================== --}}

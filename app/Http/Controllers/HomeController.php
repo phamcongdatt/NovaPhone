@@ -70,8 +70,9 @@ class HomeController extends Controller
                 fn ($brandQuery) => $brandQuery->where('slug', $selectedBrandSlug)
             ))
             ->tap(fn ($query) => $this->applySort($query, $selectedSort))
-            ->take(12)
-            ->get();
+            ->paginate(12)
+            ->withQueryString()
+            ->fragment('san-pham');
 
         return view('home', [
             'catalogProducts' => $catalogProducts,
