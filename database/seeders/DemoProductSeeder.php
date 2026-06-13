@@ -20,13 +20,13 @@ class DemoProductSeeder extends Seeder
     {
         $category = Category::firstOrCreate(
             ['slug' => 'dien-thoai-thong-minh'],
-            ['name' => 'Dien thoai thong minh', 'is_active' => true, 'sort_order' => 1],
+            ['name' => 'Điện thoại thông minh', 'is_active' => true, 'sort_order' => 1],
         );
 
         $user = User::firstOrCreate(
             ['email' => 'demo@novaphone.vn'],
             [
-                'name' => 'Khach hang NovaPhone',
+                'name' => 'Khách hàng NovaPhone',
                 'phone' => '0900000999',
                 'role' => 'user',
                 'status' => 'active',
@@ -44,8 +44,8 @@ class DemoProductSeeder extends Seeder
                 ['slug' => Str::slug($item['name'])],
                 [
                     'name' => $item['name'],
-                    'description' => $item['description'] ?? $item['name'].' chinh hang tai NovaPhone.',
-                    'content' => $item['content'] ?? $item['name'].' co thiet ke hien dai, hieu nang on dinh, camera chat luong va thoi luong pin phu hop nhu cau hang ngay. San pham duoc bao hanh chinh hang va ho tro tra gop tai NovaPhone.',
+                    'description' => $item['description'] ?? $item['name'].' chính hãng tại NovaPhone.',
+                    'content' => $item['content'] ?? $item['name'].' có thiết kế hiện đại, hiệu năng ổn định, camera chất lượng và thời lượng pin phù hợp nhu cầu hằng ngày. Sản phẩm được bảo hành chính hãng và hỗ trợ trả góp tại NovaPhone.',
                     'category_id' => $category->id,
                     'brand_id' => $brand->id,
                     'price' => $item['old_price'] ?? $item['price'],
@@ -82,7 +82,7 @@ class DemoProductSeeder extends Seeder
                 ['user_id' => $user->id, 'product_id' => $product->id],
                 [
                     'rating' => $item['rating'],
-                    'comment' => 'San pham hien thi dung thong tin, hinh anh ro va gia tot trong tam gia.',
+                    'comment' => 'Sản phẩm hiển thị đúng thông tin, hình ảnh rõ và giá tốt trong tầm giá.',
                     'is_visible' => true,
                 ],
             );
