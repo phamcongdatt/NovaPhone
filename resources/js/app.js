@@ -63,3 +63,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ---------- 4. Hiển thị mật khẩu ----------
+document.addEventListener('click', (e) => {
+    const toggleBtn = e.target.closest('[data-toggle-password]');
+    if (!toggleBtn) return;
+    
+    const input = toggleBtn.parentElement.querySelector('input');
+    if (input && (input.type === 'password' || input.type === 'text')) {
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        
+        const iconEye = toggleBtn.querySelector('.icon-eye');
+        const iconEyeSlash = toggleBtn.querySelector('.icon-eye-slash');
+        
+        if (iconEye && iconEyeSlash) {
+            iconEye.classList.toggle('hidden', isPassword);
+            iconEyeSlash.classList.toggle('hidden', !isPassword);
+        }
+    }
+});
