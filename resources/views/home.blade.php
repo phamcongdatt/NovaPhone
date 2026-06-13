@@ -57,6 +57,7 @@
         ['title' => 'Xiaomi 15 Ultra chính thức ra mắt tại Việt Nam', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Xiaomi+15+Ultra', 'date' => '08/06/2026'],
         ['title' => 'iPhone 15 Pro Max vs Galaxy S24 Ultra: Đâu là vua Android?', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Flagship+Battle', 'date' => '06/06/2026'],
     ];
+    $detailHref = fn ($name) => route('products.show', \Illuminate\Support\Str::slug($name));
 @endphp
 
 @section('content')
@@ -89,7 +90,7 @@
                    class="rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-3.5 text-sm font-bold text-gray-900 shadow-lg shadow-amber-500/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/35 active:translate-y-0">
                     Mua ngay
                 </a>
-                <a href="#"
+                <a href="{{ route('products.show', 'iphone-15-pro-max-256gb') }}"
                    class="rounded-2xl border border-white/15 bg-white/5 px-8 py-3.5 text-sm font-bold text-white backdrop-blur transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-white/10">
                     Xem chi tiết
                 </a>
@@ -200,6 +201,7 @@
                 <x-product-card
                     :name="$p['name']" :image="$p['image']" :price="$p['price']" :old-price="$p['oldPrice']"
                     :discount="$p['discount']" :sold="$p['sold']" :sold-percent="$p['soldPercent']"
+                    :href="$detailHref($p['name'])"
                 />
             @endforeach
         </div>
@@ -231,6 +233,7 @@
                         <x-product-card
                             :name="$p['name']" :image="$p['image']" :price="$p['price']"
                             :rating="$p['rating']" :sold="$p['sold'] ?? null" :badge="$p['badge'] ?? null"
+                            :href="$detailHref($p['name'])"
                         />
                     @endforeach
                 </div>
