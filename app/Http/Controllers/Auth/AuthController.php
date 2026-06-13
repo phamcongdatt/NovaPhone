@@ -10,9 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-/**
- * Quản lý luồng đăng ký tài khoản (session-based, không dùng API/JWT).
- */
+
 class AuthController extends Controller
 {
     /**
@@ -33,12 +31,17 @@ class AuthController extends Controller
             [
                 'name'     => ['required', 'string', 'max:255'],
                 'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
+                'phone'    => ['nullable', 'string', 'max:15', 'unique:users,phone'],
                 'password' => ['required', 'confirmed', 'min:8'],
+                'terms'    => ['accepted'],
             ],
-            [], // dùng message mặc định
+            [
+                'terms.accepted' => 'Bạn cần đồng ý với điều khoản sử dụng.',
+            ],
             [
                 'name'     => 'họ tên',
                 'email'    => 'email',
+                'phone'    => 'số điện thoại',
                 'password' => 'mật khẩu',
             ]
         );
@@ -48,6 +51,7 @@ class AuthController extends Controller
         $user = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
+            'phone'    => $validated['phone'] ?? null,
             'password' => $validated['password'],
             'role'     => 'user',
         ]);
