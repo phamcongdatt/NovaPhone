@@ -25,6 +25,13 @@ class HomeController extends Controller
             'storage-256' => 'Bo nho 256GB',
             'storage-512' => 'Bo nho 512GB',
         ];
+        $sortOptions = [
+            'featured' => 'Noi bat',
+            'newest' => 'Moi nhat',
+            'price-asc' => 'Gia thap den cao',
+            'price-desc' => 'Gia cao den thap',
+            'best-selling' => 'Ban chay',
+        ];
 
         $selectedPriceRange = $request->string('price')->toString();
         if (! array_key_exists($selectedPriceRange, $priceRanges)) {
@@ -34,6 +41,11 @@ class HomeController extends Controller
         $selectedFeature = $request->string('feature')->toString();
         if (! array_key_exists($selectedFeature, $featureFilters)) {
             $selectedFeature = null;
+        }
+
+        $selectedSort = $request->string('sort')->toString();
+        if (! array_key_exists($selectedSort, $sortOptions)) {
+            $selectedSort = 'featured';
         }
 
         $filterBrands = Brand::query()
@@ -57,8 +69,7 @@ class HomeController extends Controller
                 'brand',
                 fn ($brandQuery) => $brandQuery->where('slug', $selectedBrandSlug)
             ))
-            ->orderByDesc('is_featured')
-            ->latest()
+            ->tap(fn ($query) => $this->applySort($query, $selectedSort))
             ->take(12)
             ->get();
 
@@ -70,6 +81,8 @@ class HomeController extends Controller
             'selectedBrandSlug' => $selectedBrandSlug,
             'selectedFeature' => $selectedFeature,
             'selectedPriceRange' => $selectedPriceRange,
+            'selectedSort' => $selectedSort,
+            'sortOptions' => $sortOptions,
         ]);
     }
 
@@ -100,6 +113,19 @@ class HomeController extends Controller
             'storage-256' => $query->whereHas('variants', fn ($variantQuery) => $variantQuery->where('is_active', true)->where('storage', '256GB')),
             'storage-512' => $query->whereHas('variants', fn ($variantQuery) => $variantQuery->where('is_active', true)->where('storage', '512GB')),
             default => $query,
+        };
+    }
+
+    private function applySort($query, string $sort)
+    {
+        $priceColumn = 'COALESCE(sale_price, price)';
+
+        return match ($sort) {
+            'newest' => $query->latest(),
+            'price-asc' => $query->orderByRaw("$priceColumn asc")->latest(),
+            'price-desc' => $query->orderByRaw("$priceColumn desc")->latest(),
+            'best-selling' => $query->orderByDesc('sold_count')->latest(),
+            default => $query->orderByDesc('is_featured')->latest(),
         };
     }
 }

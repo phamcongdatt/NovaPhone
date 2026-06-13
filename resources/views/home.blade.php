@@ -252,6 +252,16 @@
                 </select>
             </div>
 
+            <div class="flex flex-col gap-1">
+                <label for="sort-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sap xep</label>
+                <select id="sort-filter" name="sort"
+                        class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                    @foreach ($sortOptions as $value => $label)
+                        <option value="{{ $value }}" @selected($selectedSort === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <button type="submit"
                     class="self-end rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
                 Loc
