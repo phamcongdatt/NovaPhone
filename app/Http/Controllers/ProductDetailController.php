@@ -1,0 +1,139 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
+
+class ProductDetailController extends Controller
+{
+    public function show(Product $product): View
+    {
+        abort_unless($product->is_active, 404);
+
+        $product->increment('view_count');
+
+        return view('products.show', [
+            'product' => $product->refresh()->loadMissing($this->relations()),
+            'detail' => $this->detailPayload($product),
+        ]);
+    }
+
+    public function apiShow(Product $product): JsonResponse
+    {
+        abort_unless($product->is_active, 404);
+
+        return response()->json([
+            'data' => $this->detailPayload($product->loadMissing($this->relations())),
+        ]);
+    }
+
+    private function relations(): array
+    {
+        return [
+            'brand',
+            'category',
+            'images' => fn ($query) => $query->orderByDesc('is_primary')->orderBy('sort_order'),
+            'variants.inventory',
+            'inventory',
+            'reviews' => fn ($query) => $query->where('is_visible', true)->latest()->with('user:id,name'),
+        ];
+    }
+
+    private function detailPayload(Product $product): array
+    {
+        $images = $product->images
+            ->map(fn ($image) => [
+                'url' => $image->image_url,
+                'is_primary' => $image->is_primary,
+                'sort_order' => $image->sort_order,
+            ])
+            ->values();
+
+        if ($images->isEmpty()) {
+            $images = collect([[
+                'url' => $product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name),
+                'is_primary' => true,
+                'sort_order' => 0,
+            ]]);
+        }
+
+        $reviews = $product->reviews;
+        $averageRating = round((float) $reviews->avg('rating'), 1);
+
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'slug' => $product->slug,
+            'sku' => $product->sku,
+            'description' => $product->description,
+            'content' => $product->content,
+            'brand' => $product->brand?->only(['id', 'name', 'slug']),
+            'category' => $product->category?->only(['id', 'name', 'slug']),
+            'price' => (float) $product->price,
+            'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
+            'effective_price' => $product->effective_price,
+            'discount_percent' => $this->discountPercent($product),
+            'images' => $images,
+            'variants' => $product->variants
+                ->where('is_active', true)
+                ->map(fn ($variant) => [
+                    'id' => $variant->id,
+                    'name' => $variant->name,
+                    'storage' => $variant->storage,
+                    'color' => $variant->color,
+                    'color_code' => $variant->color_code,
+                    'additional_price' => (float) $variant->additional_price,
+                    'sku' => $variant->sku,
+                    'available_quantity' => $variant->inventory?->available_quantity ?? 0,
+                ])
+                ->values(),
+            'specifications' => $this->specifications($product),
+            'rating' => [
+                'average' => $averageRating,
+                'count' => $reviews->count(),
+                'breakdown' => collect(range(5, 1))->mapWithKeys(
+                    fn ($star) => [$star => $reviews->where('rating', $star)->count()]
+                ),
+            ],
+            'reviews' => $reviews
+                ->map(fn ($review) => [
+                    'id' => $review->id,
+                    'rating' => $review->rating,
+                    'comment' => $review->comment,
+                    'images' => $review->images ?? [],
+                    'user' => $review->user?->only(['id', 'name']),
+                    'created_at' => $review->created_at?->toDateString(),
+                ])
+                ->values(),
+            'inventory' => [
+                'available_quantity' => $product->inventory?->available_quantity
+                    ?? $product->variants->sum(fn ($variant) => $variant->inventory?->available_quantity ?? 0),
+            ],
+            'sold_count' => $product->sold_count,
+            'view_count' => $product->view_count,
+        ];
+    }
+
+    private function specifications(Product $product): array
+    {
+        return [
+            ['label' => 'Thương hiệu', 'value' => $product->brand?->name ?? 'Đang cập nhật'],
+            ['label' => 'Danh mục', 'value' => $product->category?->name ?? 'Đang cập nhật'],
+            ['label' => 'Mã sản phẩm', 'value' => $product->sku ?? 'Đang cập nhật'],
+            ['label' => 'Bộ nhớ', 'value' => $product->variants->pluck('storage')->filter()->unique()->join(', ') ?: 'Đang cập nhật'],
+            ['label' => 'Màu sắc', 'value' => $product->variants->pluck('color')->filter()->unique()->join(', ') ?: 'Đang cập nhật'],
+            ['label' => 'Tình trạng', 'value' => $product->is_active ? 'Đang kinh doanh' : 'Ngừng kinh doanh'],
+        ];
+    }
+
+    private function discountPercent(Product $product): ?int
+    {
+        if (! $product->sale_price || $product->sale_price >= $product->price) {
+            return null;
+        }
+
+        return (int) round((($product->price - $product->sale_price) / $product->price) * 100);
+    }
+}
