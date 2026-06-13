@@ -218,6 +218,13 @@
 
         <form method="GET" action="{{ route('home') }}#san-pham" class="grid gap-2 sm:grid-cols-2 lg:flex lg:items-center">
             <div class="flex flex-col gap-1">
+                <label for="search-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Tu khoa</label>
+                <input id="search-filter" name="q" type="search" value="{{ $selectedSearchQuery }}"
+                       placeholder="Ten, SKU..."
+                       class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+            </div>
+
+            <div class="flex flex-col gap-1">
                 <label for="price-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Khoang gia</label>
                 <select id="price-filter" name="price"
                         class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
@@ -266,7 +273,7 @@
                     class="self-end rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
                 Loc
             </button>
-            @if ($selectedPriceRange || $selectedBrandSlug || $selectedFeature)
+            @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedFeature)
                 <a href="{{ route('home') }}#san-pham"
                    class="self-end rounded-xl border border-white/10 px-5 py-2.5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
                     Xoa loc
@@ -296,7 +303,7 @@
         @empty
             <div class="col-span-full rounded-2xl border border-white/5 bg-night-soft p-8 text-center">
                 <p class="text-sm font-semibold text-white">Chua co san pham phu hop.</p>
-                <p class="mt-1 text-xs text-gray-500">Thu chon khoang gia, thuong hieu hoac tinh nang khac de xem them dien thoai.</p>
+                <p class="mt-1 text-xs text-gray-500">Thu tim tu khoa khac hoac chon lai bo loc de xem them dien thoai.</p>
             </div>
         @endforelse
     </div>

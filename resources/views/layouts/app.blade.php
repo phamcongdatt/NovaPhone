@@ -50,14 +50,16 @@
             </a>
 
             {{-- Ô tìm kiếm trung tâm --}}
-            <div class="relative min-w-0 flex-1">
+            <form method="GET" action="{{ route('home') }}#san-pham" class="relative min-w-0 flex-1">
                 <input
                     type="search"
+                    name="q"
+                    value="{{ request('q') }}"
                     placeholder="Bạn cần tìm gì hôm nay?"
                     class="w-full rounded-full border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-500/25"
                 >
                 <svg class="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
-            </div>
+            </form>
 
             {{-- Cụm hành động bên phải --}}
             <div class="flex shrink-0 items-center gap-1 sm:gap-2">

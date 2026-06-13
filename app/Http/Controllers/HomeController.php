@@ -48,6 +48,11 @@ class HomeController extends Controller
             $selectedSort = 'featured';
         }
 
+        $selectedSearchQuery = trim($request->string('q')->toString());
+        if ($selectedSearchQuery === '') {
+            $selectedSearchQuery = null;
+        }
+
         $filterBrands = Brand::query()
             ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
             ->where('is_active', true)
@@ -63,6 +68,7 @@ class HomeController extends Controller
             ->with('brand')
             ->withAvg(['reviews as rating_average' => fn ($query) => $query->where('is_visible', true)], 'rating')
             ->where('is_active', true)
+            ->when($selectedSearchQuery, fn ($query) => $this->applySearchQuery($query, $selectedSearchQuery))
             ->when($selectedPriceRange, fn ($query) => $this->applyPriceRange($query, $selectedPriceRange))
             ->when($selectedFeature, fn ($query) => $this->applyFeatureFilter($query, $selectedFeature))
             ->when($selectedBrandSlug, fn ($query) => $query->whereHas(
@@ -82,9 +88,22 @@ class HomeController extends Controller
             'selectedBrandSlug' => $selectedBrandSlug,
             'selectedFeature' => $selectedFeature,
             'selectedPriceRange' => $selectedPriceRange,
+            'selectedSearchQuery' => $selectedSearchQuery,
             'selectedSort' => $selectedSort,
             'sortOptions' => $sortOptions,
         ]);
+    }
+
+    private function applySearchQuery($query, string $searchQuery)
+    {
+        $keyword = "%{$searchQuery}%";
+
+        return $query->where(function ($searchBuilder) use ($keyword) {
+            $searchBuilder
+                ->where('name', 'like', $keyword)
+                ->orWhere('sku', 'like', $keyword)
+                ->orWhere('description', 'like', $keyword);
+        });
     }
 
     private function applyPriceRange($query, string $priceRange)
