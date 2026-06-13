@@ -248,16 +248,18 @@
                 </select>
             </div>
 
-            <div class="flex flex-col gap-1">
-                <label for="feature-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Tinh nang</label>
-                <select id="feature-filter" name="feature"
-                        class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                    <option value="">Tat ca tinh nang</option>
+            <fieldset class="flex flex-col gap-2">
+                <legend class="text-xs font-semibold uppercase tracking-wider text-gray-500">Tinh nang</legend>
+                <div class="grid gap-2 rounded-xl border border-white/10 bg-night-card p-3 sm:grid-cols-2">
                     @foreach ($featureFilters as $value => $label)
-                        <option value="{{ $value }}" @selected($selectedFeature === $value)>{{ $label }}</option>
+                        <label class="flex items-center gap-2 text-xs font-semibold text-gray-300">
+                            <input type="checkbox" name="features[]" value="{{ $value }}" @checked(in_array($value, $selectedFeatures, true))
+                                   class="size-4 rounded border-white/20 bg-white/5 text-brand-600 focus:ring-brand-500">
+                            <span>{{ $label }}</span>
+                        </label>
                     @endforeach
-                </select>
-            </div>
+                </div>
+            </fieldset>
 
             <div class="flex flex-col gap-1">
                 <label for="sort-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sap xep</label>
@@ -273,7 +275,7 @@
                     class="self-end rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
                 Loc
             </button>
-            @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedFeature)
+            @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedFeatures)
                 <a href="{{ route('home') }}#san-pham"
                    class="self-end rounded-xl border border-white/10 px-5 py-2.5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
                     Xoa loc

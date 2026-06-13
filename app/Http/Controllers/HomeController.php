@@ -38,10 +38,7 @@ class HomeController extends Controller
             $selectedPriceRange = null;
         }
 
-        $selectedFeature = $request->string('feature')->toString();
-        if (! array_key_exists($selectedFeature, $featureFilters)) {
-            $selectedFeature = null;
-        }
+        $selectedFeatures = $this->selectedFeatures($request, $featureFilters);
 
         $selectedSort = $request->string('sort')->toString();
         if (! array_key_exists($selectedSort, $sortOptions)) {
@@ -70,7 +67,7 @@ class HomeController extends Controller
             ->where('is_active', true)
             ->when($selectedSearchQuery, fn ($query) => $this->applySearchQuery($query, $selectedSearchQuery))
             ->when($selectedPriceRange, fn ($query) => $this->applyPriceRange($query, $selectedPriceRange))
-            ->when($selectedFeature, fn ($query) => $this->applyFeatureFilter($query, $selectedFeature))
+            ->when($selectedFeatures, fn ($query) => $this->applyFeatureFilters($query, $selectedFeatures))
             ->when($selectedBrandSlug, fn ($query) => $query->whereHas(
                 'brand',
                 fn ($brandQuery) => $brandQuery->where('slug', $selectedBrandSlug)
@@ -86,7 +83,7 @@ class HomeController extends Controller
             'filterBrands' => $filterBrands,
             'priceRanges' => $priceRanges,
             'selectedBrandSlug' => $selectedBrandSlug,
-            'selectedFeature' => $selectedFeature,
+            'selectedFeatures' => $selectedFeatures,
             'selectedPriceRange' => $selectedPriceRange,
             'selectedSearchQuery' => $selectedSearchQuery,
             'selectedSort' => $selectedSort,
@@ -106,6 +103,26 @@ class HomeController extends Controller
         });
     }
 
+    private function selectedFeatures(Request $request, array $featureFilters): array
+    {
+        $selectedFeatures = $request->input('features', []);
+
+        if (! is_array($selectedFeatures)) {
+            $selectedFeatures = [$selectedFeatures];
+        }
+
+        $legacyFeature = $request->string('feature')->toString();
+        if ($legacyFeature !== '') {
+            $selectedFeatures[] = $legacyFeature;
+        }
+
+        return collect($selectedFeatures)
+            ->filter(fn ($feature) => is_string($feature) && array_key_exists($feature, $featureFilters))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     private function applyPriceRange($query, string $priceRange)
     {
         $priceColumn = 'COALESCE(sale_price, price)';
@@ -117,6 +134,15 @@ class HomeController extends Controller
             'tren-30-trieu' => $query->whereRaw("$priceColumn > ?", [30000000]),
             default => $query,
         };
+    }
+
+    private function applyFeatureFilters($query, array $features)
+    {
+        foreach ($features as $feature) {
+            $this->applyFeatureFilter($query, $feature);
+        }
+
+        return $query;
     }
 
     private function applyFeatureFilter($query, string $feature)
