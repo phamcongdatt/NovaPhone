@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,11 +23,26 @@ class HomeController extends Controller
             $selectedPriceRange = null;
         }
 
+        $filterBrands = Brand::query()
+            ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $selectedBrandSlug = $request->string('brand')->toString();
+        if (! $filterBrands->contains('slug', $selectedBrandSlug)) {
+            $selectedBrandSlug = null;
+        }
+
         $catalogProducts = Product::query()
             ->with('brand')
             ->withAvg(['reviews as rating_average' => fn ($query) => $query->where('is_visible', true)], 'rating')
             ->where('is_active', true)
             ->when($selectedPriceRange, fn ($query) => $this->applyPriceRange($query, $selectedPriceRange))
+            ->when($selectedBrandSlug, fn ($query) => $query->whereHas(
+                'brand',
+                fn ($brandQuery) => $brandQuery->where('slug', $selectedBrandSlug)
+            ))
             ->orderByDesc('is_featured')
             ->latest()
             ->take(12)
@@ -34,7 +50,9 @@ class HomeController extends Controller
 
         return view('home', [
             'catalogProducts' => $catalogProducts,
+            'filterBrands' => $filterBrands,
             'priceRanges' => $priceRanges,
+            'selectedBrandSlug' => $selectedBrandSlug,
             'selectedPriceRange' => $selectedPriceRange,
         ]);
     }

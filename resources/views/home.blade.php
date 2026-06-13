@@ -208,30 +208,46 @@
     </div>
 </section>
 
-{{-- ===================== 5. Dien thoai / Loc theo gia ===================== --}}
+{{-- ===================== 5. Dien thoai / Loc theo gia, thuong hieu ===================== --}}
 <section id="san-pham" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
     <div class="reveal mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">Dien thoai</h2>
-            <p class="mt-1 text-sm text-gray-500">Loc nhanh san pham theo khoang gia ban can.</p>
+            <p class="mt-1 text-sm text-gray-500">Loc nhanh san pham theo khoang gia va thuong hieu ban can.</p>
         </div>
 
-        <form method="GET" action="{{ route('home') }}#san-pham" class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <label for="price-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Khoang gia</label>
-            <select id="price-filter" name="price"
-                    class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                <option value="">Tat ca muc gia</option>
-                @foreach ($priceRanges as $value => $label)
-                    <option value="{{ $value }}" @selected($selectedPriceRange === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
+        <form method="GET" action="{{ route('home') }}#san-pham" class="grid gap-2 sm:grid-cols-[auto_auto_auto] lg:flex lg:items-center">
+            <div class="flex flex-col gap-1">
+                <label for="price-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Khoang gia</label>
+                <select id="price-filter" name="price"
+                        class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                    <option value="">Tat ca muc gia</option>
+                    @foreach ($priceRanges as $value => $label)
+                        <option value="{{ $value }}" @selected($selectedPriceRange === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="brand-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Thuong hieu</label>
+                <select id="brand-filter" name="brand"
+                        class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                    <option value="">Tat ca thuong hieu</option>
+                    @foreach ($filterBrands as $brand)
+                        <option value="{{ $brand->slug }}" @selected($selectedBrandSlug === $brand->slug)>
+                            {{ $brand->name }} ({{ $brand->products_count }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             <button type="submit"
-                    class="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
+                    class="self-end rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
                 Loc
             </button>
-            @if ($selectedPriceRange)
+            @if ($selectedPriceRange || $selectedBrandSlug)
                 <a href="{{ route('home') }}#san-pham"
-                   class="rounded-xl border border-white/10 px-5 py-2.5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
+                   class="self-end rounded-xl border border-white/10 px-5 py-2.5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
                     Xoa loc
                 </a>
             @endif
@@ -259,7 +275,7 @@
         @empty
             <div class="col-span-full rounded-2xl border border-white/5 bg-night-soft p-8 text-center">
                 <p class="text-sm font-semibold text-white">Chua co san pham phu hop.</p>
-                <p class="mt-1 text-xs text-gray-500">Thu chon khoang gia khac de xem them dien thoai.</p>
+                <p class="mt-1 text-xs text-gray-500">Thu chon khoang gia hoac thuong hieu khac de xem them dien thoai.</p>
             </div>
         @endforelse
     </div>
