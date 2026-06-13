@@ -91,26 +91,41 @@
             </div>
         </div>
 
+        @php
+            $categoryLinks = [
+                ['label' => 'iPhone', 'href' => route('home', ['brand' => 'apple']).'#san-pham'],
+                ['label' => 'Samsung', 'href' => route('home', ['brand' => 'samsung']).'#san-pham'],
+                ['label' => 'Xiaomi', 'href' => route('home', ['brand' => 'xiaomi']).'#san-pham'],
+                ['label' => 'OPPO', 'href' => route('home', ['brand' => 'oppo']).'#san-pham'],
+                ['label' => 'Vivo', 'href' => route('home', ['brand' => 'vivo']).'#san-pham'],
+                ['label' => 'Realme', 'href' => route('home', ['brand' => 'realme']).'#san-pham'],
+                ['label' => 'Flagship', 'href' => route('home', ['features' => ['featured']]).'#san-pham'],
+                ['label' => 'Phụ kiện', 'href' => route('home', ['q' => 'phụ kiện']).'#san-pham'],
+            ];
+        @endphp
+
         {{-- Thanh điều hướng danh mục --}}
         <nav class="hidden border-t border-white/5 lg:block">
             <div class="mx-auto flex h-11 max-w-7xl items-center gap-1 px-4 sm:px-6">
-                <button class="mr-2 flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:bg-brand-500">
+                <a href="{{ route('home') }}#san-pham" class="mr-2 flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:bg-brand-500">
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
                     Danh mục
-                </button>
-                @foreach (['iPhone', 'Samsung', 'Xiaomi', 'OPPO', 'Vivo', 'Realme', 'Flagship', 'Phụ kiện'] as $cat)
-                    <a href="#" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat }}</a>
+                </a>
+                @foreach ($categoryLinks as $cat)
+                    <a href="{{ $cat['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
                 @endforeach
-                <a href="#flash-sale" class="rounded-lg px-3.5 py-1.5 text-xs font-bold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
-                <a href="#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+                <a href="{{ route('home') }}#flash-sale" class="rounded-lg px-3.5 py-1.5 text-xs font-bold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
+                <a href="{{ route('home') }}#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
             </div>
         </nav>
 
         {{-- Menu mobile --}}
         <div data-mobile-menu class="hidden border-t border-white/5 bg-night px-4 pb-4 pt-2 lg:hidden">
-            @foreach (['iPhone', 'Samsung', 'Xiaomi', 'OPPO', 'Vivo', 'Realme', 'Flagship', 'Phụ kiện', 'Khuyến mãi', 'Tin công nghệ'] as $cat)
-                <a href="#" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat }}</a>
+            @foreach ($categoryLinks as $cat)
+                <a href="{{ $cat['href'] }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
             @endforeach
+            <a href="{{ route('home') }}#flash-sale" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
+            <a href="{{ route('home') }}#tech-journal" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
         </div>
     </header>
 
