@@ -208,8 +208,65 @@
     </div>
 </section>
 
-{{-- ===================== 5. Best Seller + New Arrival ===================== --}}
+{{-- ===================== 5. Dien thoai / Loc theo gia ===================== --}}
 <section id="san-pham" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
+    <div class="reveal mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+            <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">Dien thoai</h2>
+            <p class="mt-1 text-sm text-gray-500">Loc nhanh san pham theo khoang gia ban can.</p>
+        </div>
+
+        <form method="GET" action="{{ route('home') }}#san-pham" class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label for="price-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Khoang gia</label>
+            <select id="price-filter" name="price"
+                    class="rounded-xl border border-white/10 bg-night-card px-4 py-2.5 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                <option value="">Tat ca muc gia</option>
+                @foreach ($priceRanges as $value => $label)
+                    <option value="{{ $value }}" @selected($selectedPriceRange === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <button type="submit"
+                    class="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
+                Loc
+            </button>
+            @if ($selectedPriceRange)
+                <a href="{{ route('home') }}#san-pham"
+                   class="rounded-xl border border-white/10 px-5 py-2.5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
+                    Xoa loc
+                </a>
+            @endif
+        </form>
+    </div>
+
+    <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        @forelse ($catalogProducts as $product)
+            @php
+                $discount = null;
+                if ($product->sale_price && $product->sale_price < $product->price) {
+                    $discount = (int) round((($product->price - $product->sale_price) / $product->price) * 100);
+                }
+            @endphp
+            <x-product-card
+                :name="$product->name"
+                :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)"
+                :price="$product->effective_price"
+                :old-price="$product->sale_price ? $product->price : null"
+                :discount="$discount"
+                :rating="$product->rating_average ? round($product->rating_average, 1) : null"
+                :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                :href="route('products.show', $product)"
+            />
+        @empty
+            <div class="col-span-full rounded-2xl border border-white/5 bg-night-soft p-8 text-center">
+                <p class="text-sm font-semibold text-white">Chua co san pham phu hop.</p>
+                <p class="mt-1 text-xs text-gray-500">Thu chon khoang gia khac de xem them dien thoai.</p>
+            </div>
+        @endforelse
+    </div>
+</section>
+
+{{-- ===================== 5. Best Seller + New Arrival ===================== --}}
+<section class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
     <div class="grid gap-10 lg:grid-cols-2 lg:gap-8">
         @foreach ([
             ['title' => 'Best Seller', 'iconColor' => 'text-amber-400 bg-amber-400/15', 'items' => $bestSeller, 'icon' => 'M13 2 4.09 12.69a.6.6 0 0 0 .46.99H11l-1.27 7.4a.6.6 0 0 0 1.07.47l8.91-10.68a.6.6 0 0 0-.46-.99H13l1.27-7.4A.6.6 0 0 0 13.2 2H13Z'],
