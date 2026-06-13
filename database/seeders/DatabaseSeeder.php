@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
             'phone'    => '0900000001',
             'role'     => 'admin',
             'status'   => 'active',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('password123'),
         ]);
 
         // Test user
