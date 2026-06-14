@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\AccountController;
-use APP\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -16,6 +16,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/products/{product:slug}', [ProductDetailController::class, 'show'])
     ->name('products.show');
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 // Guest routes (chưa đăng nhập)
 Route::middleware('guest')->group(function () {
@@ -28,7 +29,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/forgot-password',        [AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/forgot-password',       [AuthController::class, 'sendResetLink'])->name('password.email');
 
-    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::get('/debug/count', function () {
+    return \App\Models\Product::count();
+});
     Route::post('/reset-password',        [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
