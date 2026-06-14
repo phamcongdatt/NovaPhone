@@ -21,6 +21,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            if (! request()->is('api/*') && request()->hasSession()) {
+                $cartService = app(\App\Services\CartService::class);
+                $view->with([
+                    'cartCount' => $cartService->getCount(),
+                    'cartTotal' => $cartService->getTotal(),
+                    'cartItems' => $cartService->getItems(),
+                ]);
+            } else {
+                $view->with([
+                    'cartCount' => 0,
+                    'cartTotal' => 0,
+                    'cartItems' => collect(),
+                ]);
+            }
+=======
         // Tùy biến nội dung email xác thực sang tiếng Việt mà vẫn dùng
         VerifyEmail::toMailUsing(function (object $notifiable, string $url): MailMessage {
             return (new MailMessage)
