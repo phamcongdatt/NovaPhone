@@ -6,6 +6,12 @@
 /* Dark mode điều khiển bằng class .dark trên thẻ <html> */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Báo cho browser render các UI control mặc định (select, scrollbar...)
+   theo theme tối — bắt buộc để dropdown của <select> không bị nền trắng */
+html.dark {
+    color-scheme: dark;
+}
+
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
@@ -28,9 +34,12 @@
     --color-surface: #f8f9fa;
 
     /* Nền tối chủ đạo (dark-luxury theme) */
-    --color-night: #0a0c12;       /* nền trang */
-    --color-night-soft: #0f1219;  /* nền section / footer */
-    --color-night-card: #12151d;  /* nền card sản phẩm */
+    --color-night: #0a0c12;
+    /* nền trang */
+    --color-night-soft: #0f1219;
+    /* nền section / footer */
+    --color-night-card: #12151d;
+    /* nền card sản phẩm */
 }
 
 /* ===== Fade-in khi cuộn trang (IntersectionObserver gắn class .revealed) ===== */
@@ -41,33 +50,58 @@
         opacity 0.6s ease-out,
         transform 0.6s ease-out;
 }
+
 .reveal.revealed {
     opacity: 1;
     transform: none;
 }
+
 /* Stagger nhẹ cho các item trong cùng một lưới */
-.reveal-stagger > * {
+.reveal-stagger>* {
     opacity: 0;
     transform: translateY(20px);
     transition:
         opacity 0.55s ease-out,
         transform 0.55s ease-out;
 }
-.reveal-stagger.revealed > * {
+
+.reveal-stagger.revealed>* {
     opacity: 1;
     transform: none;
 }
-.reveal-stagger.revealed > *:nth-child(2) { transition-delay: 0.07s; }
-.reveal-stagger.revealed > *:nth-child(3) { transition-delay: 0.14s; }
-.reveal-stagger.revealed > *:nth-child(4) { transition-delay: 0.21s; }
-.reveal-stagger.revealed > *:nth-child(5) { transition-delay: 0.28s; }
-.reveal-stagger.revealed > *:nth-child(6) { transition-delay: 0.35s; }
-.reveal-stagger.revealed > *:nth-child(7) { transition-delay: 0.42s; }
-.reveal-stagger.revealed > *:nth-child(8) { transition-delay: 0.49s; }
+
+.reveal-stagger.revealed>*:nth-child(2) {
+    transition-delay: 0.07s;
+}
+
+.reveal-stagger.revealed>*:nth-child(3) {
+    transition-delay: 0.14s;
+}
+
+.reveal-stagger.revealed>*:nth-child(4) {
+    transition-delay: 0.21s;
+}
+
+.reveal-stagger.revealed>*:nth-child(5) {
+    transition-delay: 0.28s;
+}
+
+.reveal-stagger.revealed>*:nth-child(6) {
+    transition-delay: 0.35s;
+}
+
+.reveal-stagger.revealed>*:nth-child(7) {
+    transition-delay: 0.42s;
+}
+
+.reveal-stagger.revealed>*:nth-child(8) {
+    transition-delay: 0.49s;
+}
 
 @media (prefers-reduced-motion: reduce) {
+
     .reveal,
-    .reveal-stagger > * {
+    .reveal-stagger>* {
         opacity: 1 !important;
         transform: none !important;
         transition: none !important;
@@ -80,6 +114,7 @@
     overflow: hidden;
     background-color: #1f2937;
 }
+
 .skeleton::after {
     content: '';
     position: absolute;
@@ -88,6 +123,7 @@
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
     animation: shimmer 1.6s infinite;
 }
+
 @keyframes shimmer {
     100% {
         transform: translateX(100%);
@@ -99,14 +135,17 @@
     overflow: hidden;
     mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
 }
+
 .marquee-track {
     display: flex;
     width: max-content;
     animation: marquee 28s linear infinite;
 }
+
 .marquee:hover .marquee-track {
     animation-play-state: paused;
 }
+
 @keyframes marquee {
     to {
         transform: translateX(-50%);
@@ -124,16 +163,21 @@
 .float-slow {
     animation: float 6s ease-in-out infinite;
 }
+
 @keyframes float {
+
     0%,
     100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-16px);
     }
 }
+
 @media (prefers-reduced-motion: reduce) {
+
     .float-slow,
     .marquee-track {
         animation: none;
@@ -144,7 +188,32 @@
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
+
 .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM ADMIN: input / select dùng chung
+   ═══════════════════════════════════════════════════════════════ */
+
+.input-field {
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-500/25;
+}
+
+.input-field-sm {
+    @apply w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-500/25;
+}
+
+/* Fix: dropdown của <select> bị nền trắng / chữ trắng trên trắng */
+select.input-field,
+select.input-field-sm {
+    background-color: var(--color-night-card);
+}
+
+select.input-field option,
+select.input-field-sm option {
+    background-color: var(--color-night-card);
+    color: #f3f4f6;
 }
