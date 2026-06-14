@@ -48,5 +48,10 @@ class AppServiceProvider extends ServiceProvider
                 ->line('Nếu bạn không tạo tài khoản này, vui lòng bỏ qua email.')
                 ->salutation('Trân trọng, Đội ngũ NovaPhone');
         });
-    }
+    }                  
+
+
+
+
+    
 }
