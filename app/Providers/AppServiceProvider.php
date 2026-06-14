@@ -36,8 +36,9 @@ class AppServiceProvider extends ServiceProvider
                     'cartItems' => collect(),
                 ]);
             }
-=======
-        // Tùy biến nội dung email xác thực sang tiếng Việt mà vẫn dùng
+        });
+
+        // Email xác thực (tiếng Việt)
         VerifyEmail::toMailUsing(function (object $notifiable, string $url): MailMessage {
             return (new MailMessage)
                 ->subject('Xác thực địa chỉ email — NovaPhone')

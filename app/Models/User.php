@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -42,6 +43,14 @@ class User extends Authenticatable implements MustVerifyEmail
             // Cast "hashed" tự động hash password khi gán -> không cần Hash::make() thủ công.
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Gửi mail xác thực email qua queue (chạy nền) thay vì gửi đồng bộ.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new QueuedVerifyEmail);
     }
 
     public function isAdmin(): bool
