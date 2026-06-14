@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\AuthController;
+use APP\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -64,7 +64,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Routes yêu cầu đã đăng nhập + email đã được xác thực
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 
     Route::get('/account',   [AccountController::class, 'show'])->name('account.show');
