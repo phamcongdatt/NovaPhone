@@ -5,29 +5,26 @@
     'oldPrice' => null,
     'discount' => null,
     'rating' => null,
-    'sold' => null,         // ví dụ: '1,2k'
-    'soldPercent' => null,  // % suất sale đã bán -> hiện thanh tiến độ (dùng cho Flash Sale)
-    'badge' => null,        // ví dụ: 'Mới', 'Bán chạy'
+    'sold' => null,
+    'soldPercent' => null,
+    'badge' => null,
+    'href' => '#',
 ])
 
 <article {{ $attributes->merge(['class' => 'group relative flex flex-col rounded-2xl border border-white/5 bg-night-card p-3 transition-all duration-200 ease-in-out hover:-translate-y-1.5 hover:border-brand-500/40 hover:shadow-xl hover:shadow-black/50']) }}>
-
-    {{-- Badge giảm giá --}}
     @if ($discount)
         <span class="absolute left-3 top-3 z-10 rounded-lg bg-red-600 px-2 py-1 text-[11px] font-bold text-white shadow-sm">
             -{{ $discount }}%
         </span>
     @endif
 
-    {{-- Badge phụ (Mới / Bán chạy...) --}}
     @if ($badge)
         <span class="absolute right-3 top-3 z-10 rounded-lg bg-white/10 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur">
             {{ $badge }}
         </span>
     @endif
 
-    {{-- Ảnh sản phẩm (kèm skeleton loading) --}}
-    <a href="#" class="skeleton mb-3 block overflow-hidden rounded-xl bg-white/5">
+    <a href="{{ $href }}" class="skeleton mb-3 block overflow-hidden rounded-xl bg-white/5">
         <img
             src="{{ $image }}"
             alt="{{ $name }}"
@@ -37,24 +34,30 @@
         >
     </a>
 
-    {{-- Tên sản phẩm --}}
     <h3 class="mb-1.5 min-h-10 text-sm font-semibold leading-snug text-gray-100">
-        <a href="#" class="line-clamp-2 transition-colors duration-200 group-hover:text-brand-400">{{ $name }}</a>
+        <a href="{{ $href }}" class="line-clamp-2 transition-colors duration-200 group-hover:text-brand-400">
+            {{ $name }}
+        </a>
     </h3>
 
-    {{-- Giá --}}
     <div class="mb-2 flex items-baseline gap-2">
-        <p class="text-base font-extrabold text-brand-400">{{ number_format($price, 0, ',', '.') }}₫</p>
+        <p class="text-base font-extrabold text-brand-400">{{ number_format($price, 0, ',', '.') }}đ</p>
         @if ($oldPrice)
-            <p class="text-xs text-gray-500 line-through">{{ number_format($oldPrice, 0, ',', '.') }}₫</p>
+            <p class="text-xs text-gray-500 line-through">{{ number_format($oldPrice, 0, ',', '.') }}đ</p>
         @endif
     </div>
 
-    {{-- Thanh suất sale (Flash Sale) hoặc dòng đánh giá --}}
-    @if (!is_null($soldPercent))
+    @if (! is_null($soldPercent))
+        @php
+            $soldWidth = max(0, min(100, (int) $soldPercent));
+        @endphp
+
         <div class="mt-auto">
             <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div class="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400" style="width: {{ $soldPercent }}%"></div>
+                <div
+                    class="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400 [width:var(--sold-width)]"
+                    style="--sold-width: {{ $soldWidth }}%;"
+                ></div>
             </div>
             <p class="mt-1.5 text-[11px] text-gray-400">Đã bán {{ $sold }}</p>
         </div>
@@ -66,6 +69,7 @@
                 </svg>
                 <span class="font-semibold text-gray-200">{{ $rating }}</span>
             @endif
+
             @if ($sold)
                 <span class="text-gray-600">•</span>
                 <span>Đã bán {{ $sold }}</span>

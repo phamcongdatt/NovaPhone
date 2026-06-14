@@ -23,6 +23,7 @@
 /.claude
 /storage/pail
 /vendor
+/test
 _ide_helper.php
 Homestead.json
 Homestead.yaml
