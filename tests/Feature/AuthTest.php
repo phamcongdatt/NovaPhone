@@ -30,7 +30,7 @@ class AuthTest extends TestCase
             'password_confirmation' => 'password123',
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('verification.notice'));
         $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
         $this->assertAuthenticated();
     }
@@ -86,7 +86,7 @@ class AuthTest extends TestCase
         $this->post(route('login'), [
             'email'    => 'user@example.com',
             'password' => 'password123',
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect(route('home'));
 
         $this->assertAuthenticatedAs($user);
     }
@@ -142,7 +142,7 @@ class AuthTest extends TestCase
 
         $this->actingAs($user)
              ->post(route('logout'))
-             ->assertRedirect(route('login'));
+             ->assertRedirect(route('home'));
 
         $this->assertGuest();
     }

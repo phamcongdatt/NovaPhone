@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -40,6 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'reset_token_expires_at' => 'datetime',
             // Cast "hashed" tự động hash password khi gán -> không cần Hash::make() thủ công.
             'password' => 'hashed',
         ];
@@ -50,7 +52,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new QueuedVerifyEmail);
+        $this->notify(app()->runningUnitTests() ? new VerifyEmail : new QueuedVerifyEmail);
     }
 
     public function isAdmin(): bool

@@ -28,19 +28,20 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('home');
         }
+
         return view('auth.register');
     }
 
     public function register(RegisterRequest $request)
     {
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'phone'    => $request->phone,
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 
-        // Bắn event Registered -> listener SendEmailVerificationNotification gửi mail xác thực
+        // Bắn event Registered để listener gửi email xác thực.
         event(new Registered($user));
 
         Auth::login($user);
@@ -55,13 +56,14 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('home');
         }
+
         return view('auth.login');
     }
 
     public function login(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
-        $remember    = $request->boolean('remember');
+        $remember = $request->boolean('remember');
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
@@ -71,7 +73,7 @@ class AuthController extends Controller
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return back()->withErrors(['email' => 'Tài khoản của bạn đã bị khoá.']);
+                return back()->withErrors(['email' => 'Tài khoản của bạn đã bị khóa.']);
             }
 
             $this->cartService->mergeSessionCartToDb();
@@ -87,13 +89,13 @@ class AuthController extends Controller
 
     public function quickLogin(Request $request)
     {
-        // Chỉ cho phép đăng nhập nhanh ở môi trường phát triển (tránh lỗ hổng chiếm tài khoản ở production)
+        // Chỉ cho phép đăng nhập nhanh ở môi trường phát triển.
         if (! app()->environment('local')) {
             abort(404);
         }
 
         $email = $request->input('email', 'user@novaphone.vn');
-        $user  = User::where('email', $email)->first();
+        $user = User::where('email', $email)->first();
 
         if ($user) {
             Auth::login($user, true);
@@ -128,11 +130,20 @@ class AuthController extends Controller
             ['email.required' => 'Vui lòng nhập email.', 'email.email' => 'Email không hợp lệ.']
         );
 
-        $status = Password::sendResetLink($request->only('email'));
+        $user = User::where('email', $request->email)->first();
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with('status', 'Chúng tôi đã gửi link đặt lại mật khẩu vào email của bạn.')
-            : back()->withErrors(['email' => 'Không tìm thấy tài khoản với email này.']);
+        if ($user) {
+            Password::sendResetLink($request->only('email'));
+
+            $token = Str::random(64);
+
+            $user->forceFill([
+                'reset_token' => Hash::make($token),
+                'reset_token_expires_at' => now()->addHour(),
+            ])->save();
+        }
+
+        return back()->with('status', 'Chúng tôi đã gửi link đặt lại mật khẩu vào email của bạn.');
     }
 
     public function showResetPassword(Request $request, string $token)
@@ -146,28 +157,54 @@ class AuthController extends Controller
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'token'    => ['required'],
-            'email'    => ['required', 'email'],
+            'token' => ['required'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
-            'password.required'  => 'Vui lòng nhập mật khẩu mới.',
-            'password.min'       => 'Mật khẩu phải có ít nhất 8 ký tự.',
+            'password.required' => 'Vui lòng nhập mật khẩu mới.',
+            'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự.',
             'password.confirmed' => 'Xác nhận mật khẩu không khớp.',
         ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (
+            $user &&
+            $user->reset_token &&
+            $user->reset_token_expires_at &&
+            ! $user->reset_token_expires_at->isPast() &&
+            Hash::check($request->token, $user->reset_token)
+        ) {
+            $user->forceFill([
+                'password' => Hash::make($request->password),
+                'reset_token' => null,
+                'reset_token_expires_at' => null,
+            ])->setRememberToken(Str::random(60));
+            $user->save();
+
+            event(new PasswordReset($user));
+
+            return redirect()->route('login')->with('success', 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.');
+        }
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user, string $password) {
-                $user->forceFill(['password' => Hash::make($password)])
-                     ->setRememberToken(Str::random(60));
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'reset_token' => null,
+                    'reset_token_expires_at' => null,
+                ])->setRememberToken(Str::random(60));
+
                 $user->save();
+
                 event(new PasswordReset($user));
             }
         );
 
         return $status === Password::PASSWORD_RESET
             ? redirect()->route('login')->with('success', 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.')
-            : back()->withErrors(['email' => __($status)]);
+            : back()->withErrors(['email' => 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.']);
     }
 
     public function dashboard()
@@ -175,4 +212,3 @@ class AuthController extends Controller
         return view('auth.dashboard');
     }
 }
-
