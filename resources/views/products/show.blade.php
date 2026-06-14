@@ -174,7 +174,9 @@
                         <p class="mb-2 text-sm font-semibold text-gray-300">Dung lượng</p>
                         <div class="flex flex-wrap gap-2">
                             @foreach ($storageOptions as $storage)
-                                <button class="rounded-lg border px-5 py-3 text-sm font-semibold transition {{ $loop->first ? 'border-brand-500 bg-brand-600/15 text-brand-200' : 'border-white/10 bg-white/[0.03] text-gray-200 hover:border-brand-400' }}">
+                                <button type="button"
+                                        data-storage="{{ $storage }}"
+                                        class="storage-btn rounded-lg border px-5 py-3 text-sm font-semibold transition cursor-pointer {{ $loop->first ? 'border-brand-500 bg-brand-600/15 text-brand-200' : 'border-white/10 bg-white/[0.03] text-gray-200 hover:border-brand-400' }}">
                                     {{ $storage }}
                                 </button>
                             @endforeach
@@ -187,7 +189,9 @@
                         <p class="mb-2 text-sm font-semibold text-gray-300">Màu sắc</p>
                         <div class="flex flex-wrap gap-2">
                             @foreach ($colorOptions as $color)
-                                <button class="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition {{ $loop->first ? 'border-brand-500 bg-brand-600/15 text-brand-200' : 'border-white/10 bg-white/[0.03] text-gray-200 hover:border-brand-400' }}">
+                                <button type="button"
+                                        data-color="{{ $color['name'] }}"
+                                        class="color-btn inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition cursor-pointer {{ $loop->first ? 'border-brand-500 bg-brand-600/15 text-brand-200' : 'border-white/10 bg-white/[0.03] text-gray-200 hover:border-brand-400' }}">
                                     <span class="size-4 rounded-full border border-white/20" style="background: {{ $color['code'] }}"></span>
                                     {{ $color['name'] }}
                                 </button>
@@ -197,14 +201,17 @@
                 @endif
 
                 <div class="mt-5 border-t border-white/10 pt-5">
-                    <p class="text-sm text-gray-500">Giá tại Thành phố Hồ Chí Minh</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-500">Giá tại Thành phố Hồ Chí Minh</p>
+                        <span id="stock-status-text" class="text-xs font-bold text-emerald-400">Còn hàng</span>
+                    </div>
                     <div class="mt-2 flex flex-wrap items-baseline gap-3">
-                        <span class="text-3xl font-black text-brand-400">{{ $money($detail['effective_price']) }}</span>
+                        <span id="price-display" class="text-3xl font-black text-brand-400">{{ $money($detail['effective_price']) }}</span>
                         @if ($detail['sale_price'])
-                            <span class="text-base text-gray-500 line-through">{{ $money($detail['price']) }}</span>
+                            <span id="old-price-display" class="text-base text-gray-500 line-through">{{ $money($detail['price']) }}</span>
                         @endif
                         @if ($detail['discount_percent'])
-                            <span class="rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white">
+                            <span id="discount-display" class="rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white">
                                 -{{ $detail['discount_percent'] }}%
                             </span>
                         @endif
@@ -217,14 +224,22 @@
                     <p class="mt-1 text-sm text-gray-400">Áp dụng cho khách hàng NovaPhone.</p>
                 </div>
 
-                <div class="mt-5 grid gap-3">
-                    <button class="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3.5 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5">
-                        Mua ngay
-                    </button>
-                    <button class="rounded-xl border border-brand-500/40 bg-brand-600/15 px-5 py-3.5 text-base font-black text-brand-200 transition hover:bg-brand-600 hover:text-white">
-                        Thêm vào giỏ hàng
-                    </button>
-                </div>
+                {{-- Form AJAX --}}
+                <form id="cart-form" class="mt-5">
+                    @csrf
+                    <input type="hidden" name="product_id" value="{{ $detail['id'] }}">
+                    <input type="hidden" name="variant_id" id="hidden-variant-id" value="">
+                    <input type="hidden" name="quantity" value="1">
+                    
+                    <div class="grid gap-3">
+                        <button type="button" id="buy-now-btn" class="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3.5 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 cursor-pointer">
+                            Mua ngay
+                        </button>
+                        <button type="button" id="add-to-cart-btn" class="rounded-xl border border-brand-500/40 bg-brand-600/15 px-5 py-3.5 text-base font-black text-brand-200 transition hover:bg-brand-600 hover:text-white cursor-pointer">
+                            Thêm vào giỏ hàng
+                        </button>
+                    </div>
+                </form>
             </section>
 
             <section id="reviews" class="rounded-2xl border border-white/5 bg-night-soft p-5 shadow-xl shadow-black/30">
@@ -252,40 +267,221 @@
     </section>
 </div>
 
+{{-- Container cho Toast alert --}}
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // ---------- 1. Bộ sưu tập ảnh (Gallery) ----------
         const mainImage = document.querySelector('[data-gallery-main]');
         const thumbs = Array.from(document.querySelectorAll('[data-gallery-thumb]'));
         const previous = document.querySelector('[data-gallery-prev]');
         const next = document.querySelector('[data-gallery-next]');
 
-        if (!mainImage || thumbs.length === 0) {
-            return;
-        }
+        if (mainImage && thumbs.length > 0) {
+            let currentIndex = 0;
 
-        let currentIndex = 0;
+            function setActiveImage(index) {
+                currentIndex = (index + thumbs.length) % thumbs.length;
+                const activeThumb = thumbs[currentIndex];
+                mainImage.src = activeThumb.dataset.gallerySrc;
 
-        function setActiveImage(index) {
-            currentIndex = (index + thumbs.length) % thumbs.length;
-            const activeThumb = thumbs[currentIndex];
-            mainImage.src = activeThumb.dataset.gallerySrc;
+                thumbs.forEach((thumb) => {
+                    thumb.classList.remove('border-brand-500');
+                    thumb.classList.add('border-white/10');
+                });
+
+                activeThumb.classList.remove('border-white/10');
+                activeThumb.classList.add('border-brand-500');
+                activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
 
             thumbs.forEach((thumb) => {
-                thumb.classList.remove('border-brand-500');
-                thumb.classList.add('border-white/10');
+                thumb.addEventListener('click', () => setActiveImage(Number(thumb.dataset.galleryIndex)));
             });
 
-            activeThumb.classList.remove('border-white/10');
-            activeThumb.classList.add('border-brand-500');
-            activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            previous?.addEventListener('click', () => setActiveImage(currentIndex - 1));
+            next?.addEventListener('click', () => setActiveImage(currentIndex + 1));
         }
 
-        thumbs.forEach((thumb) => {
-            thumb.addEventListener('click', () => setActiveImage(Number(thumb.dataset.galleryIndex)));
+        // ---------- 2. Xử lý Variant, Giá, Tồn kho ----------
+        const variants = @json($detail['variants']);
+        const basePrice = {{ (float) $detail['effective_price'] }};
+        const hasVariants = variants.length > 0;
+
+        let selectedStorage = null;
+        let selectedColor = null;
+
+        const storageButtons = document.querySelectorAll('.storage-btn');
+        const colorButtons = document.querySelectorAll('.color-btn');
+        const priceDisplay = document.getElementById('price-display');
+        const oldPriceDisplay = document.getElementById('old-price-display');
+        const discountDisplay = document.getElementById('discount-display');
+        const stockStatusText = document.getElementById('stock-status-text');
+        const hiddenVariantInput = document.getElementById('hidden-variant-id');
+        const buyNowBtn = document.getElementById('buy-now-btn');
+        const addToCartBtn = document.getElementById('add-to-cart-btn');
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+                .format(amount)
+                .replace(/\s?₫/, 'đ');
+        }
+
+        function updateSelectedVariant() {
+            if (!hasVariants) {
+                // Sản phẩm không có biến thể
+                const baseStock = {{ $detail['inventory']['available_quantity'] ?? 0 }};
+                hiddenVariantInput.value = "";
+                updateStockUI(baseStock);
+                return;
+            }
+
+            // Tìm biến thể khớp với dung lượng & màu sắc đang chọn
+            const matched = variants.find(v => 
+                (!selectedStorage || v.storage === selectedStorage) &&
+                (!selectedColor || v.color === selectedColor)
+            );
+
+            if (matched) {
+                hiddenVariantInput.value = matched.id;
+                
+                // Cập nhật giá bán = giá gốc + giá thêm của biến thể
+                const currentPrice = basePrice + matched.additional_price;
+                priceDisplay.textContent = formatMoney(currentPrice);
+                
+                if (oldPriceDisplay) {
+                    const originalPrice = {{ (float) $detail['price'] }} + matched.additional_price;
+                    oldPriceDisplay.textContent = formatMoney(originalPrice);
+                }
+
+                updateStockUI(matched.available_quantity);
+            } else {
+                hiddenVariantInput.value = "";
+                priceDisplay.textContent = formatMoney(basePrice);
+                updateStockUI(0); // Không khớp -> Coi như hết hàng
+            }
+        }
+
+        function updateStockUI(availableQty) {
+            if (availableQty > 0) {
+                stockStatusText.textContent = `Còn hàng (${availableQty} máy)`;
+                stockStatusText.className = "text-xs font-bold text-emerald-400";
+                buyNowBtn.disabled = false;
+                addToCartBtn.disabled = false;
+                buyNowBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                addToCartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                stockStatusText.textContent = "Hết hàng tạm thời";
+                stockStatusText.className = "text-xs font-bold text-red-400";
+                buyNowBtn.disabled = true;
+                addToCartBtn.disabled = true;
+                buyNowBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                addToCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Chọn ban đầu
+        if (hasVariants) {
+            const firstVariant = variants[0];
+            selectedStorage = firstVariant.storage;
+            selectedColor = firstVariant.color;
+            hiddenVariantInput.value = firstVariant.id;
+        }
+        updateSelectedVariant();
+
+        // Lắng nghe sự kiện click dung lượng
+        storageButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedStorage = btn.dataset.storage;
+                
+                storageButtons.forEach(b => {
+                    b.className = "storage-btn rounded-lg border px-5 py-3 text-sm font-semibold transition cursor-pointer border-white/10 bg-white/[0.03] text-gray-200 hover:border-brand-400";
+                });
+                btn.className = "storage-btn rounded-lg border px-5 py-3 text-sm font-semibold transition cursor-pointer border-brand-500 bg-brand-600/15 text-brand-200";
+                
+                updateSelectedVariant();
+            });
         });
 
-        previous?.addEventListener('click', () => setActiveImage(currentIndex - 1));
-        next?.addEventListener('click', () => setActiveImage(currentIndex + 1));
+        // Lắng nghe sự kiện click màu sắc
+        colorButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedColor = btn.dataset.color;
+
+                colorButtons.forEach(b => {
+                    b.className = "color-btn inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition cursor-pointer border-white/10 bg-white/[0.03] text-gray-200 hover:border-brand-400";
+                });
+                btn.className = "color-btn inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition cursor-pointer border-brand-500 bg-brand-600/15 text-brand-200";
+
+                updateSelectedVariant();
+            });
+        });
+
+        // ---------- 3. Xử lý Thêm vào giỏ & Mua ngay bằng AJAX ----------
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-3 rounded-2xl border px-5 py-3.5 shadow-2xl backdrop-blur-xl transition duration-300 transform translate-y-5 opacity-0 ${
+                type === 'success' 
+                    ? 'border-emerald-500/20 bg-emerald-950/80 text-emerald-300' 
+                    : 'border-red-500/20 bg-red-950/80 text-red-300'
+            }`;
+            
+            const icon = type === 'success' 
+                ? `<svg class="size-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`
+                : `<svg class="size-5 text-red-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`;
+
+            toast.innerHTML = `${icon}<span class="text-sm font-semibold">${message}</span>`;
+            document.getElementById('toast-container').appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('translate-y-5', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-5', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function addToCart(callback = null) {
+            const form = document.getElementById('cart-form');
+            const formData = new FormData(form);
+
+            fetch("{{ route('cart.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': formData.get('_token')
+                },
+                body: formData
+            })
+            .then(async response => {
+                const data = await response.json();
+                if (response.ok) {
+                    // Cập nhật giỏ hàng trên header
+                    const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
+                    headerCounts.forEach(el => el.textContent = data.cart_count);
+                    
+                    if (callback) {
+                        callback();
+                    } else {
+                        showToast('Đã thêm sản phẩm vào giỏ hàng thành công!');
+                    }
+                } else {
+                    showToast(data.message || 'Thêm vào giỏ hàng thất bại.', 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Không thể kết nối đến máy chủ.', 'error');
+            });
+        }
+
+        addToCartBtn.addEventListener('click', () => addToCart());
+
+        buyNowBtn.addEventListener('click', () => {
+            addToCart(() => {
+                window.location.href = "{{ route('checkout') }}";
+            });
+        });
     });
 </script>
 @endsection

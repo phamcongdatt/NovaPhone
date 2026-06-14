@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
+use App\Services\CartService;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -14,10 +16,18 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    // ─── Đăng ký ──────────────────────────────────────────────
+    protected CartService $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
 
     public function showRegister()
     {
+        if (Auth::check()) {
+            return redirect()->route('home');
+        }
         return view('auth.register');
     }
 
@@ -26,19 +36,25 @@ class AuthController extends Controller
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
+            'phone'    => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 
+        // Bắn event Registered -> listener SendEmailVerificationNotification gửi mail xác thực
+        event(new Registered($user));
+
         Auth::login($user);
+        $this->cartService->mergeSessionCartToDb();
 
-        return redirect('/')
-            ->with('success', 'Đăng ký thành công! Chào mừng ' . $user->name);
+        return redirect()->route('verification.notice')
+            ->with('success', 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
     }
-
-    // ─── Đăng nhập ────────────────────────────────────────────
 
     public function showLogin()
     {
+        if (Auth::check()) {
+            return redirect()->route('home');
+        }
         return view('auth.login');
     }
 
@@ -50,14 +66,18 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            // Chặn tài khoản bị khoá
             if (Auth::user()->isBlocked()) {
                 Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
                 return back()->withErrors(['email' => 'Tài khoản của bạn đã bị khoá.']);
             }
 
-            return redirect()->intended('/')
-                ->with('success', 'Đăng nhập thành công!');
+            $this->cartService->mergeSessionCartToDb();
+
+            return redirect()->intended(route('home'))
+                ->with('success', 'Đăng nhập thành công! Chào mừng bạn quay trở lại.');
         }
 
         return back()
@@ -65,7 +85,27 @@ class AuthController extends Controller
             ->withErrors(['email' => 'Email hoặc mật khẩu không chính xác.']);
     }
 
-    // ─── Đăng xuất ────────────────────────────────────────────
+    public function quickLogin(Request $request)
+    {
+        // Chỉ cho phép đăng nhập nhanh ở môi trường phát triển (tránh lỗ hổng chiếm tài khoản ở production)
+        if (! app()->environment('local')) {
+            abort(404);
+        }
+
+        $email = $request->input('email', 'user@novaphone.vn');
+        $user  = User::where('email', $email)->first();
+
+        if ($user) {
+            Auth::login($user, true);
+            $request->session()->regenerate();
+            $this->cartService->mergeSessionCartToDb();
+
+            return redirect()->route('home')
+                ->with('success', 'Đăng nhập nhanh thành công với tài khoản: ' . $user->name);
+        }
+
+        return redirect()->route('login')->with('error', 'Tài khoản giả lập không tồn tại.');
+    }
 
     public function logout(Request $request)
     {
@@ -73,11 +113,8 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')
-            ->with('success', 'Đã đăng xuất thành công.');
+        return redirect()->route('home')->with('success', 'Đã đăng xuất thành công.');
     }
-
-    // ─── Quên mật khẩu (dùng bảng password_reset_tokens) ─────
 
     public function showForgotPassword()
     {
@@ -91,15 +128,12 @@ class AuthController extends Controller
             ['email.required' => 'Vui lòng nhập email.', 'email.email' => 'Email không hợp lệ.']
         );
 
-        // Laravel tự lưu token vào bảng password_reset_tokens và gửi mail
         $status = Password::sendResetLink($request->only('email'));
 
         return $status === Password::RESET_LINK_SENT
             ? back()->with('status', 'Chúng tôi đã gửi link đặt lại mật khẩu vào email của bạn.')
             : back()->withErrors(['email' => 'Không tìm thấy tài khoản với email này.']);
     }
-
-    // ─── Đặt lại mật khẩu ─────────────────────────────────────
 
     public function showResetPassword(Request $request, string $token)
     {
@@ -121,7 +155,6 @@ class AuthController extends Controller
             'password.confirmed' => 'Xác nhận mật khẩu không khớp.',
         ]);
 
-        // Laravel tự xác thực token trong bảng password_reset_tokens rồi xoá đi
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user, string $password) {
@@ -137,10 +170,9 @@ class AuthController extends Controller
             : back()->withErrors(['email' => __($status)]);
     }
 
-    // ─── Dashboard ────────────────────────────────────────────
-
     public function dashboard()
     {
         return view('auth.dashboard');
     }
 }
+

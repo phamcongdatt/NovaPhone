@@ -68,47 +68,43 @@
                     <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
                 </a>
                 {{-- Giỏ hàng --}}
-                <a href="#" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                <a href="{{ route('cart.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                     <span class="relative">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.36-1.62 1.26 12a1.13 1.13 0 0 1-1.12 1.24H4.25a1.13 1.13 0 0 1-1.12-1.24l1.26-12A1.13 1.13 0 0 1 5.51 7.88h12.98c.58 0 1.06.43 1.12 1Z"/></svg>
-                        <span class="absolute -right-2 -top-1.5 flex size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">2</span>
+                        <span class="absolute -right-2 -top-1.5 flex size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $cartCount }}</span>
                     </span>
                     <span class="hidden text-xs font-semibold xl:block">Giỏ hàng</span>
                 </a>
                 {{-- Tài khoản --}}
-                {{-- Tài khoản --}}
-@auth
-    <a href="{{ route('dashboard') }}" class="group flex items-center gap-2 ...">
-        <svg ...></svg>
-        <span class="hidden text-left text-xs leading-tight xl:block">
-            <span class="block text-gray-500">Xin chào</span>
-            <span class="block font-semibold text-white">{{ Auth::user()->name }}</span>
-        </span>
-    </a>
-@else
-    <a href="{{ route('login') }}" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-        <span class="hidden text-left text-xs leading-tight xl:block">
-            <span class="block text-gray-500">Đăng nhập</span>
-            <span class="block font-semibold text-white">Tài khoản</span>
-        </span>
-    </a>
-@endauth
-=======
-                @guest
+
+                @auth
+                    <div class="relative group">
+                        <button class="flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3 cursor-pointer">
+                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+                            <span class="hidden text-left text-xs leading-tight xl:block">
+                                <span class="block text-gray-500">Xin chào,</span>
+                                <span class="block font-semibold text-white truncate max-w-[90px]">{{ Auth::user()->name }}</span>
+                            </span>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="absolute right-0 top-full mt-1.5 w-44 rounded-2xl border border-white/10 bg-night-soft p-2 shadow-2xl opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50">
+                            <a href="{{ route('orders.index') }}" class="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-300 hover:bg-white/5 hover:text-white transition">
+                                Đơn hàng của tôi
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition cursor-pointer">
+                                    Đăng xuất
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @else
                     <a href="{{ route('login') }}" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
                         <span class="hidden text-left text-xs leading-tight xl:block">
                             <span class="block text-gray-500">Đăng nhập</span>
-                            <span class="block font-semibold text-white">Tài khoản</span>
-                        </span>
-                    </a>
-                @endguest
-                @auth
-                    <a href="{{ route('account.show') }}" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-                        <span class="hidden max-w-28 text-left text-xs leading-tight xl:block">
-                            <span class="block truncate text-gray-500">{{ auth()->user()->name }}</span>
                             <span class="block font-semibold text-white">Tài khoản</span>
                         </span>
                     </a>
