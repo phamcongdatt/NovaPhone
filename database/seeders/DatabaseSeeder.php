@@ -16,16 +16,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin account
-        User::create([
-            'name'     => 'Admin NovaPhone',
-            'email'    => 'mailnikke276@gmail.com',
-            'phone'    => '0900000001',
-            'role'     => 'admin',
-            'status'   => 'active',
-            'password' => Hash::make('password123'),
-        ]);
-=======
         User::updateOrCreate(
             ['email' => 'admin@novaphone.vn'],
             [
@@ -34,6 +24,7 @@ class DatabaseSeeder extends Seeder
                 'role'     => 'admin',
                 'status'   => 'active',
                 'password' => Hash::make('password'),
+                'email_verified_at' => now(),
             ]
         );
         // Test user
@@ -45,6 +36,7 @@ class DatabaseSeeder extends Seeder
                 'role'     => 'user',
                 'status'   => 'active',
                 'password' => Hash::make('password'),
+                'email_verified_at' => now(),
             ]
         );
 

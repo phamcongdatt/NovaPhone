@@ -17,9 +17,6 @@ class CheckoutController extends Controller
     public function __construct(CartService $cartService)
     {
         $this->cartService = $cartService;
-
-        // Bắt buộc đăng nhập khi thanh toán
-        $this->middleware('auth');
     }
 
     /**
@@ -36,7 +33,7 @@ class CheckoutController extends Controller
         $user = Auth::user();
 
         // Lấy địa chỉ mặc định của user nếu có
-        $defaultAddress = $user->addresses()->where('is_default', true)->first() 
+        $defaultAddress = $user->addresses()->where('is_default', true)->first()
             ?? $user->addresses()->first();
 
         return view('checkout.index', compact('items', 'total', 'defaultAddress'));
