@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\AuthController;
+use APP\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -11,15 +11,11 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ProductController;
-
-
 // Trang chủ & sản phẩm
-
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/products/{product:slug}', [ProductDetailController::class, 'show'])
     ->name('products.show');
-
 
 // Guest routes (chưa đăng nhập)
 Route::middleware('guest')->group(function () {
@@ -68,7 +64,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Routes yêu cầu đã đăng nhập + email đã được xác thực
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 
     Route::get('/account',   [AccountController::class, 'show'])->name('account.show');
@@ -86,7 +82,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'verified'])
     ->group(function () {
         Route::resource('products', ProductController::class);
     });
