@@ -86,16 +86,13 @@
                     </a>
                 @endguest
                 @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-                            <span class="hidden max-w-28 text-left text-xs leading-tight xl:block">
-                                <span class="block truncate text-gray-500">{{ auth()->user()->name }}</span>
-                                <span class="block font-semibold text-white">Đăng xuất</span>
-                            </span>
-                        </button>
-                    </form>
+                    <a href="{{ route('account.show') }}" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+                        <span class="hidden max-w-28 text-left text-xs leading-tight xl:block">
+                            <span class="block truncate text-gray-500">{{ auth()->user()->name }}</span>
+                            <span class="block font-semibold text-white">Tài khoản</span>
+                        </span>
+                    </a>
                 @endauth
                 {{-- Nút mở menu mobile --}}
                 <button data-mobile-menu-toggle aria-expanded="false" aria-label="Mở menu"

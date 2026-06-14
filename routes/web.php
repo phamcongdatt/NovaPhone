@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductDetailController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -28,6 +29,10 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
+
+Route::get('/account', [AccountController::class, 'show'])
+    ->middleware('auth')
+    ->name('account.show');
 
 /*
 |--------------------------------------------------------------------------
