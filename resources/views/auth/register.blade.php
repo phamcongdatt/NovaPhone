@@ -112,14 +112,11 @@
     <div class="w-full max-w-6xl relative z-10">
 
         {{-- Logo --}}
-        <div class="flex items-center gap-2 mb-5">
-            <div class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 shadow-lg shadow-indigo-500/30">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 21h6a2 2 0 002-2V5a2 2 0 00-2-2H9a2 2 0 00-2 2v14a2 2 0 002 2zm3-3h.01"/>
-                </svg>
-            </div>
-            <span class="text-lg font-bold text-white tracking-tight">NovaPhone</span>
-        </div>
+        <a href="{{ route('home') }}" class="mb-5 inline-flex items-center">
+            <img src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                 alt="NovaPhone"
+                 class="h-14 w-auto max-w-[220px] object-contain">
+        </a>
 
         {{-- Khung chính với viền phát sáng --}}
         <div class="glow-border">
@@ -262,10 +259,10 @@
                         những ưu đãi độc quyền dành riêng cho thành viên.
                     </p>
 
-                    {{-- Ảnh điện thoại với hiệu ứng phát sáng --}}
+                    {{-- Banner thương hiệu --}}
                     <div class="phone-glow relative flex-1 flex items-center justify-center my-6">
-                        <img src="{{ asset('storage/phones.png') }}" alt="NovaPhone"
-                             class="relative z-10 max-h-72 w-auto object-contain drop-shadow-2xl">
+                        <img src="{{ asset('images/brand/nova-phone-banner.png') }}" alt="NovaPhone"
+                             class="relative z-10 w-full max-w-xl rounded-3xl border border-blue-400/30 object-contain shadow-2xl shadow-blue-500/20">
                     </div>
 
                     {{-- Tính năng --}}
