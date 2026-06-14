@@ -10,7 +10,7 @@ use App\Http\Controllers\ProductDetailController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Admin\ProductController;
 // Trang chủ & sản phẩm
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -80,3 +80,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout/payment-process/{order}',  [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
     Route::get('/checkout/success/{order}',           [CheckoutController::class, 'success'])->name('checkout.success');
 });
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('products', ProductController::class)->except(['show']);
+
+        Route::patch('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])
+            ->name('products.toggle-status');
+    });
