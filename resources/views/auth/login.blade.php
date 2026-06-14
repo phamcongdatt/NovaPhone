@@ -9,8 +9,7 @@
         
         {{-- Header Form --}}
         <div class="text-center">
-            <span class="inline-flex size-12 items-center justify-center rounded-2xl bg-brand-600 text-xl font-black text-white shadow-lg shadow-brand-600/30">N</span>
-            <h2 class="mt-4 text-2xl font-black tracking-tight text-white sm:text-3xl">Đăng nhập tài khoản</h2>
+            <h2 class="text-2xl font-black tracking-tight text-white sm:text-3xl">Đăng nhập tài khoản</h2>
             <p class="mt-2 text-sm text-gray-400">Trải nghiệm mua sắm đẳng cấp tại NovaPhone</p>
         </div>
 
