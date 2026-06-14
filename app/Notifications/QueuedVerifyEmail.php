@@ -17,4 +17,3 @@ class QueuedVerifyEmail extends VerifyEmail implements ShouldQueue
 {
     use Queueable;
 }
-x`
