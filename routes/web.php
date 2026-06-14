@@ -80,8 +80,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout/payment-process/{order}',  [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
     Route::get('/checkout/success/{order}',           [CheckoutController::class, 'success'])->name('checkout.success');
 });
-Route::prefix('admin')
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::resource('products', ProductController::class);
+        Route::resource('products', ProductController::class)->except(['show']);
+
+        Route::patch('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])
+            ->name('products.toggle-status');
     });
