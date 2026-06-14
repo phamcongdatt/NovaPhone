@@ -130,7 +130,7 @@
 
                     <p class="mt-7 text-center text-sm text-gray-400">
                         Đã có tài khoản?
-                        <a href="#" class="font-semibold text-amber-400 transition-colors duration-200 hover:text-amber-300">Đăng nhập ngay</a>
+                        <a href="{{ route('login') }}" class="font-semibold text-amber-400 transition-colors duration-200 hover:text-amber-300">Đăng nhập ngay</a>
                     </p>
                 </div>
             </div>
