@@ -14,14 +14,15 @@
         <div class="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-gradient-to-r from-brand-600/25 via-indigo-500/20 to-brand-600/25 opacity-70 blur-3xl"></div>
 
         <div class="relative overflow-hidden rounded-[2rem] border border-white/15 bg-night-soft px-6 py-10 shadow-2xl shadow-black/70 sm:px-10">
-            <a href="{{ route('home') }}" class="mb-7 flex items-center justify-center gap-2.5">
-                <span class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white shadow-lg shadow-brand-600/30">N</span>
-                <span class="text-lg font-extrabold tracking-tight">Nova<span class="text-brand-500">Phone</span></span>
+            <a href="{{ route('home') }}" class="mb-6 flex items-center justify-center">
+                <img src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                     alt="NovaPhone"
+                     class="h-14 w-auto max-w-[220px] object-contain">
             </a>
 
-            <h1 class="text-center text-3xl font-extrabold tracking-tight text-white">Đăng nhập tài khoản</h1>
+            <h1 class="text-center text-2xl font-extrabold tracking-tight text-white sm:text-[1.7rem]">Đăng nhập tài khoản</h1>
 
-            <form method="POST" action="{{ route('login') }}" class="mt-7 space-y-4" novalidate>
+            <form method="POST" action="{{ route('login') }}" class="mt-8 space-y-4" novalidate>
                 @csrf
 
                 <div>
