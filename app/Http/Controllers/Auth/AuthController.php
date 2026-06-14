@@ -8,11 +8,52 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 
 class AuthController extends Controller
 {
+    public function showLoginForm(): View
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request): RedirectResponse
+    {
+        $credentials = $request->validate(
+            [
+                'email' => ['required', 'string', 'email'],
+                'password' => ['required', 'string'],
+            ],
+            [],
+            [
+                'email' => 'email',
+                'password' => 'mật khẩu',
+            ]
+        );
+
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            throw ValidationException::withMessages([
+                'email' => 'Email hoặc mật khẩu không chính xác.',
+            ]);
+        }
+
+        if ($request->user()->isBlocked()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Tài khoản của bạn đang bị khóa.',
+            ]);
+        }
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('home'));
+    }
+
     /**
      * Hiển thị form đăng ký.
      */
@@ -64,5 +105,15 @@ class AuthController extends Controller
 
         // 5) Điều hướng tới trang "vui lòng kiểm tra email".
         return redirect()->route('verification.notice');
+    }
+
+    public function logout(Request $request): RedirectResponse
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home');
     }
 }

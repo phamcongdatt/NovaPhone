@@ -37,7 +37,7 @@
         </form>
 
         {{-- Đăng xuất --}}
-        <form method="POST" action="#" class="mt-3">
+        <form method="POST" action="{{ route('logout') }}" class="mt-3">
             @csrf
             <button type="submit"
                     class="text-sm font-semibold text-gray-400 transition-colors duration-200 hover:text-white">

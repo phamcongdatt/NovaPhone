@@ -23,14 +23,15 @@
                 <div class="w-full max-w-md">
 
                     {{-- Logo --}}
-                    <a href="{{ route('home') }}" class="mb-7 flex items-center justify-center gap-2.5">
-                        <span class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white shadow-lg shadow-brand-600/30">N</span>
-                        <span class="text-lg font-extrabold tracking-tight">Nova<span class="text-brand-500">Phone</span></span>
+                    <a href="{{ route('home') }}" class="mb-6 flex items-center justify-center">
+                        <img src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                             alt="NovaPhone"
+                             class="h-14 w-auto max-w-[220px] object-contain">
                     </a>
 
-                    <h1 class="text-center text-3xl font-extrabold tracking-tight text-white">Đăng ký tài khoản</h1>
+                    <h1 class="text-center text-2xl font-extrabold tracking-tight text-white sm:text-[1.7rem]">Đăng ký tài khoản</h1>
 
-                    <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-4" novalidate>
+                    <form method="POST" action="{{ route('register') }}" class="mt-8 space-y-4" novalidate>
                         @csrf
 
                         {{-- Họ và tên --}}
@@ -130,7 +131,7 @@
 
                     <p class="mt-7 text-center text-sm text-gray-400">
                         Đã có tài khoản?
-                        <a href="#" class="font-semibold text-amber-400 transition-colors duration-200 hover:text-amber-300">Đăng nhập ngay</a>
+                        <a href="{{ route('login') }}" class="font-semibold text-amber-400 transition-colors duration-200 hover:text-amber-300">Đăng nhập ngay</a>
                     </p>
                 </div>
             </div>
@@ -151,8 +152,8 @@
                     {{-- Ảnh sản phẩm + hiệu ứng phát sáng --}}
                     <div class="relative my-10 flex items-center justify-center">
                         <div class="pointer-events-none absolute inset-0 -z-0 mx-auto size-72 rounded-full bg-brand-500/25 blur-[90px]"></div>
-                        <img src="{{ asset('storage/phones.png') }}" alt="Điện thoại flagship NovaPhone"
-                             class="relative z-10 w-full max-w-md drop-shadow-2xl">
+                        <img src="{{ asset('images/brand/nova-phone-logo-original.png') }}" alt="NovaPhone"
+                             class="relative z-10 w-full max-w-sm object-contain drop-shadow-2xl">
                     </div>
 
                     {{-- Tính năng --}}
