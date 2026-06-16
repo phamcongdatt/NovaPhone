@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
@@ -20,10 +21,10 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 // Guest routes (chưa đăng nhập)
 Route::middleware('guest')->group(function () {
-    Route::get('/register',               [AuthController::class, 'showRegister'])->name('register');
+    Route::get('/register',               [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register',              [AuthController::class, 'register']);
 
-    Route::get('/login',                  [AuthController::class, 'showLogin'])->name('login');
+    Route::get('/login',                  [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login',                 [AuthController::class, 'login']);
 
     Route::get('/forgot-password',        [AuthController::class, 'showForgotPassword'])->name('password.request');
