@@ -13,6 +13,7 @@ class Order extends Model
         'user_id', 'order_code', 'status',
         'payment_method', 'payment_status',
         'subtotal', 'discount_amount', 'shipping_fee', 'total_amount',
+        'coupon_id', 'coupon_code',
         'shipping_full_name', 'shipping_phone', 'shipping_address',
         'shipping_ward', 'shipping_district', 'shipping_province',
         'note', 'cancelled_reason', 'cancelled_by',
@@ -58,5 +59,15 @@ class Order extends Model
     public function cancelledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
     }
 }
