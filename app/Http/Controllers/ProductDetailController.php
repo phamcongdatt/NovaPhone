@@ -3,11 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 class ProductDetailController extends Controller
 {
+    protected CartService $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
+
     public function show(Product $product): View
     {
         abort_unless($product->is_active, 404);
@@ -16,6 +24,7 @@ class ProductDetailController extends Controller
 
         return view('products.show', [
             'product' => $product->refresh()->loadMissing($this->relations()),
+            'cartCount' => $this->cartService->getCount(),
             'detail' => $this->detailPayload($product),
         ]);
     }
