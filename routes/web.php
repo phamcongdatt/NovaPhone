@@ -1,8 +1,13 @@
 <?php
 
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AccountController;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\AuthController as RegistrationController;
+=======
+use App\Http\Controllers\Auth\AuthController;
+
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -16,10 +21,32 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/products/{product:slug}', [ProductDetailController::class, 'show'])
     ->name('products.show');
+Route::get('/search', [SearchController::class, 'index'])->name('search');
+
 
 // ---------- Authentication Routes ----------
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+=======
+// Guest routes (chưa đăng nhập)
+Route::middleware('guest')->group(function () {
+    Route::get('/register',               [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register',              [AuthController::class, 'register']);
+
+    Route::get('/login',                  [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login',                 [AuthController::class, 'login']);
+
+    Route::get('/forgot-password',        [AuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/forgot-password',       [AuthController::class, 'sendResetLink'])->name('password.email');
+
+    Route::get('/debug/count', function () {
+    return \App\Models\Product::count();
+});
+    Route::post('/reset-password',        [AuthController::class, 'resetPassword'])->name('password.update');
+});
+
+// Đăng nhập nhanh (demo - chỉ hoạt động ở môi trường local)
+
 Route::get('/quick-login', [AuthController::class, 'quickLogin'])->name('quick-login');
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
