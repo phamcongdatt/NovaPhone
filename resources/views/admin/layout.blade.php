@@ -70,6 +70,18 @@
                     </a>
                 @endforeach
             </nav>
+
+            {{-- Nâng cấp gói Pro --}}
+            <div class="p-4 mt-auto">
+                <div class="rounded-2xl border border-white/5 bg-[#0f1423] p-4 text-center shadow-lg shadow-black/20">
+                    <div class="mx-auto mb-2 flex size-8 items-center justify-center rounded-full bg-blue-600/20 text-blue-500 shadow-lg shadow-blue-600/20">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
+                    </div>
+                    <h4 class="mb-1 text-[11px] font-bold text-gray-300 uppercase tracking-wider">NÂNG CẤP GÓI PRO</h4>
+                    <p class="mb-3 text-[10px] text-gray-500 leading-relaxed">Mở khóa nhiều tính năng quản trị nâng cao</p>
+                    <button class="w-full rounded-lg bg-blue-600 py-2 text-[11px] font-semibold text-white transition hover:bg-blue-500 shadow-md shadow-blue-600/20">Nâng cấp ngay</button>
+                </div>
+            </div>
         </aside>
 
         {{-- ============== Main ============== --}}

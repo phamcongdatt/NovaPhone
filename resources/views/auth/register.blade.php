@@ -71,6 +71,23 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="flex flex-col gap-1">
+                <div class="flex items-start">
+                    <div class="flex h-5 items-center">
+                        <input id="terms" name="terms" type="checkbox" required
+                               class="h-4 w-4 rounded border-white/10 bg-night text-brand-600 focus:ring-brand-500 focus:ring-offset-night-soft">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="terms" class="font-medium text-gray-300">
+                            Tôi đồng ý với <a href="#" class="font-semibold text-brand-400 hover:text-brand-300">Điều khoản dịch vụ</a> và <a href="#" class="font-semibold text-brand-400 hover:text-brand-300">Chính sách bảo mật</a>
+                        </label>
+                    </div>
+                </div>
+                @error('terms')
+                    <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
+                @enderror
+            </div>
 
             <div>
                 <button type="submit"

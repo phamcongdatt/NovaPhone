@@ -8,11 +8,8 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
-<<<<<<< HEAD
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.27",
-=======
->>>>>>> 7b7390a18f24ba0c604da0cd59c9c9ee59fb6461
         "laravel/tinker": "^2.10",
         "spatie/laravel-permission": "^6.0"
     },
