@@ -63,4 +63,38 @@ class ProductController extends Controller
             'filters' => $request->only(['search', 'brand', 'price', 'sort']),
         ]);
     }
+
+    public function quickSearch(Request $request)
+    {
+        $term = $request->input('q', '');
+        if (empty($term)) {
+            return response()->json([]);
+        }
+
+        $products = Product::with(['images' => fn($q) => $q->where('is_primary', true)])
+            ->where('is_active', true)
+            ->where(function ($query) use ($term) {
+                $query->where('name', 'LIKE', "%{$term}%")
+                      ->orWhere('description', 'LIKE', "%{$term}%");
+            })
+            ->selectRaw('*, (CASE WHEN name LIKE ? THEN 5 ELSE 0 END + CASE WHEN description LIKE ? THEN 1 ELSE 0 END) as relevance', ["%{$term}%", "%{$term}%"])
+            ->orderBy('relevance', 'desc')
+            ->limit(5)
+            ->get();
+
+        $mapped = $products->map(function ($product) {
+            $thumb = $product->images->first()?->image_url ?? $product->thumbnail;
+            $thumbUrl = str_starts_with($thumb, 'http') ? $thumb : asset('storage/' . $thumb);
+            return [
+                'name' => $product->name,
+                'url' => route('products.show', $product->slug),
+                'price' => number_format((float) $product->effective_price, 0, ',', '.') . 'đ',
+                'old_price' => $product->sale_price && $product->sale_price < $product->price ? number_format((float) $product->price, 0, ',', '.') . 'đ' : null,
+                'thumbnail' => $thumbUrl,
+                'relevance' => $product->relevance
+            ];
+        });
+
+        return response()->json($mapped);
+    }
 }

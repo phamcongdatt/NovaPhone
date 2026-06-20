@@ -50,13 +50,26 @@
             </a>
 
             {{-- Ô tìm kiếm trung tâm --}}
-            <div class="relative min-w-0 flex-1">
-                <input
-                    type="search"
-                    placeholder="Bạn cần tìm gì hôm nay?"
-                    class="w-full rounded-full border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-500/25"
-                >
-                <svg class="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
+            <div class="relative min-w-0 flex-1" id="quick-search-container">
+                <form action="{{ route('products.index') }}" method="GET" class="relative">
+                    <input
+                        type="search"
+                        name="search"
+                        id="quick-search-input"
+                        autocomplete="off"
+                        value="{{ request('search') }}"
+                        placeholder="Bạn cần tìm gì hôm nay?"
+                        class="w-full rounded-full border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-500/25"
+                    >
+                    <button type="submit" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-brand-500 transition-colors">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
+                    </button>
+                </form>
+
+                {{-- Dropdown kết quả --}}
+                <div id="quick-search-results" class="absolute left-0 right-0 top-full mt-2 hidden max-h-96 overflow-y-auto rounded-xl border border-white/10 bg-night-soft shadow-2xl shadow-black/50 backdrop-blur-xl z-[60] no-scrollbar">
+                    {{-- Dữ liệu AJAX sẽ render ở đây --}}
+                </div>
             </div>
 
             {{-- Cụm hành động bên phải --}}
@@ -238,5 +251,76 @@
     </footer>
 
     @stack('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('quick-search-input');
+            const searchResults = document.getElementById('quick-search-results');
+            const searchContainer = document.getElementById('quick-search-container');
+            let debounceTimer;
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    const query = this.value.trim();
+
+                    if (query.length < 2) {
+                        searchResults.classList.add('hidden');
+                        searchResults.innerHTML = '';
+                        return;
+                    }
+
+                    debounceTimer = setTimeout(() => {
+                        fetch(`{{ route('search.quick') }}?q=${encodeURIComponent(query)}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.length > 0) {
+                                    let html = '<div class="p-2 space-y-1">';
+                                    data.forEach(item => {
+                                        let oldPriceHtml = item.old_price ? `<span class="text-[10px] text-gray-500 line-through">${item.old_price}</span>` : '';
+                                        html += `
+                                            <a href="${item.url}" class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 group">
+                                                <div class="flex size-12 shrink-0 items-center justify-center rounded-md bg-white/5 p-1 transition-transform group-hover:scale-105">
+                                                    <img src="${item.thumbnail}" alt="${item.name}" class="h-full w-full object-contain">
+                                                </div>
+                                                <div class="flex flex-1 flex-col justify-center overflow-hidden">
+                                                    <h4 class="truncate text-sm font-semibold text-gray-200 group-hover:text-brand-300 transition-colors">${item.name}</h4>
+                                                    <div class="flex items-baseline gap-2 mt-0.5">
+                                                        <span class="text-xs font-bold text-brand-400">${item.price}</span>
+                                                        ${oldPriceHtml}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        `;
+                                    });
+                                    html += '</div>';
+                                    searchResults.innerHTML = html;
+                                    searchResults.classList.remove('hidden');
+                                } else {
+                                    searchResults.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Không tìm thấy sản phẩm nào phù hợp.</div>';
+                                    searchResults.classList.remove('hidden');
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Search error:', err);
+                            });
+                    }, 300); // delay 300ms
+                });
+
+                // Ẩn khi click ra ngoài
+                document.addEventListener('click', function(e) {
+                    if (!searchContainer.contains(e.target)) {
+                        searchResults.classList.add('hidden');
+                    }
+                });
+                
+                // Hiện lại khi focus vào input nếu đã có giá trị
+                searchInput.addEventListener('focus', function() {
+                    if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
+                        searchResults.classList.remove('hidden');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
