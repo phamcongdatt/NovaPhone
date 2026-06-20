@@ -16,25 +16,29 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin account
-        User::create([
-            'name'     => 'Admin NovaPhone',
-            'email'    => 'admin@novaphone.vn',
-            'phone'    => '0900000001',
-            'role'     => 'admin',
-            'status'   => 'active',
-            'password' => Hash::make('password'),
-        ]);
-
+        User::updateOrCreate(
+            ['email' => 'admin@novaphone.vn'],
+            [
+                'name'     => 'Admin NovaPhone',
+                'phone'    => '0900000001',
+                'role'     => 'admin',
+                'status'   => 'active',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
         // Test user
-        User::create([
+        User::updateOrCreate(
+            ['email' => 'user@novaphone.vn'],
+            [
             'name'     => 'Nguyễn Văn A',
-            'email'    => 'user@novaphone.vn',
-            'phone'    => '0900000002',
-            'role'     => 'user',
-            'status'   => 'active',
-            'password' => Hash::make('password'),
-        ]);
+                'phone'    => '0900000002',
+                'role'     => 'user',
+                'status'   => 'active',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
 
         // Brands
         $brands = ['Apple', 'Samsung', 'Xiaomi', 'OPPO', 'Vivo', 'Realme'];

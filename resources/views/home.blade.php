@@ -4,27 +4,45 @@
 
 @php
     // Dữ liệu tĩnh mô phỏng (sẽ thay bằng dữ liệu từ Controller/API khi làm Backend)
+    $productImages = [
+        'iPhone 15 Pro Max 256GB' => 'iphone-15-pro-max-256gb.jpg',
+        'Samsung Galaxy S24 Ultra 256GB' => 'samsung-galaxy-s24-ultra-256gb.webp',
+        'Xiaomi 14T Pro 512GB' => 'xiaomi-14t-pro-512gb.jpg',
+        'OPPO Find X7 Ultra 256GB' => 'oppo-find-x7-ultra.webp',
+        'Vivo X100 Pro 256GB' => 'vivo-x100-pro.webp',
+        'Realme GT 6 512GB' => 'realme-gt-6-512gb.webp',
+        'Samsung Galaxy S24 Ultra' => 'samsung-galaxy-s24-ultra.jpg',
+        'iPhone 15 128GB' => 'iphone-15-128gb.webp',
+        'Xiaomi Redmi Note 13 Pro' => 'xiaomi-redmi-note-13-pro.webp',
+        'iPhone 16 128GB' => 'iphone-16-128gb.webp',
+        'Samsung Galaxy Z Flip6' => 'samsung-galaxy-z-flip6.webp',
+        'Xiaomi 14 Ultra' => 'xiaomi-14-ultra.webp',
+        'OPPO Reno12 Pro' => 'oppo-reno12-pro.webp',
+        'iPhone 17 Pro Max' => 'iphone-17-pro-max.jpg',
+    ];
+    $productImage = fn ($name) => asset('images/products/'.($productImages[$name] ?? 'iphone-15-pro-max-256gb.jpg'));
+
     $flashSale = [
-        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=iPhone+15+Pro+Max', 'price' => 28990000, 'oldPrice' => 34990000, 'discount' => 17, 'sold' => '128', 'soldPercent' => 72],
-        ['name' => 'Samsung Galaxy S24 Ultra 256GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Galaxy+S24+Ultra', 'price' => 25990000, 'oldPrice' => 31990000, 'discount' => 19, 'sold' => '96', 'soldPercent' => 58],
-        ['name' => 'Xiaomi 14T Pro 512GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Xiaomi+14T+Pro', 'price' => 14990000, 'oldPrice' => 18990000, 'discount' => 21, 'sold' => '215', 'soldPercent' => 85],
-        ['name' => 'OPPO Find X7 Ultra 256GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Find+X7+Ultra', 'price' => 16990000, 'oldPrice' => 21990000, 'discount' => 23, 'sold' => '54', 'soldPercent' => 40],
-        ['name' => 'Vivo X100 Pro 256GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Vivo+X100+Pro', 'price' => 17990000, 'oldPrice' => 21990000, 'discount' => 18, 'sold' => '64', 'soldPercent' => 47],
-        ['name' => 'Realme GT 6 512GB', 'image' => 'https://placehold.co/600x600/12151d/93c5fd?text=Realme+GT+6', 'price' => 11990000, 'oldPrice' => 14990000, 'discount' => 20, 'sold' => '47', 'soldPercent' => 35],
+        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => $productImage('iPhone 15 Pro Max 256GB'), 'price' => 28990000, 'oldPrice' => 34990000, 'discount' => 17, 'sold' => '128', 'soldPercent' => 72],
+        ['name' => 'Samsung Galaxy S24 Ultra 256GB', 'image' => $productImage('Samsung Galaxy S24 Ultra 256GB'), 'price' => 25990000, 'oldPrice' => 31990000, 'discount' => 19, 'sold' => '96', 'soldPercent' => 58],
+        ['name' => 'Xiaomi 14T Pro 512GB', 'image' => $productImage('Xiaomi 14T Pro 512GB'), 'price' => 14990000, 'oldPrice' => 18990000, 'discount' => 21, 'sold' => '215', 'soldPercent' => 85],
+        ['name' => 'OPPO Find X7 Ultra 256GB', 'image' => $productImage('OPPO Find X7 Ultra 256GB'), 'price' => 16990000, 'oldPrice' => 21990000, 'discount' => 23, 'sold' => '54', 'soldPercent' => 40],
+        ['name' => 'Vivo X100 Pro 256GB', 'image' => $productImage('Vivo X100 Pro 256GB'), 'price' => 17990000, 'oldPrice' => 21990000, 'discount' => 18, 'sold' => '64', 'soldPercent' => 47],
+        ['name' => 'Realme GT 6 512GB', 'image' => $productImage('Realme GT 6 512GB'), 'price' => 11990000, 'oldPrice' => 14990000, 'discount' => 20, 'sold' => '47', 'soldPercent' => 35],
     ];
 
     $bestSeller = [
-        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => 'https://placehold.co/600x600/12151d/e5e7eb?text=iPhone+15+PM', 'price' => 28990000, 'rating' => 4.9, 'sold' => '2,3k'],
-        ['name' => 'Samsung Galaxy S24 Ultra', 'image' => 'https://placehold.co/600x600/12151d/e5e7eb?text=S24+Ultra', 'price' => 25990000, 'rating' => 4.8, 'sold' => '1,8k'],
-        ['name' => 'iPhone 15 128GB', 'image' => 'https://placehold.co/600x600/12151d/e5e7eb?text=iPhone+15', 'price' => 20990000, 'rating' => 4.8, 'sold' => '1,6k'],
-        ['name' => 'Xiaomi Redmi Note 13 Pro', 'image' => 'https://placehold.co/600x600/12151d/e5e7eb?text=Redmi+Note+13', 'price' => 6990000, 'rating' => 4.6, 'sold' => '1,2k'],
+        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => $productImage('iPhone 15 Pro Max 256GB'), 'price' => 28990000, 'rating' => 4.9, 'sold' => '2,3k'],
+        ['name' => 'Samsung Galaxy S24 Ultra', 'image' => $productImage('Samsung Galaxy S24 Ultra'), 'price' => 25990000, 'rating' => 4.8, 'sold' => '1,8k'],
+        ['name' => 'iPhone 15 128GB', 'image' => $productImage('iPhone 15 128GB'), 'price' => 20990000, 'rating' => 4.8, 'sold' => '1,6k'],
+        ['name' => 'Xiaomi Redmi Note 13 Pro', 'image' => $productImage('Xiaomi Redmi Note 13 Pro'), 'price' => 6990000, 'rating' => 4.6, 'sold' => '1,2k'],
     ];
 
     $newArrival = [
-        ['name' => 'iPhone 16 128GB', 'image' => 'https://placehold.co/600x600/1a1330/c4b5fd?text=iPhone+16', 'price' => 22990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'Samsung Galaxy Z Flip6', 'image' => 'https://placehold.co/600x600/1a1330/c4b5fd?text=Z+Flip6', 'price' => 26990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'Xiaomi 14 Ultra', 'image' => 'https://placehold.co/600x600/1a1330/c4b5fd?text=Xiaomi+14+Ultra', 'price' => 24990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'OPPO Reno12 Pro', 'image' => 'https://placehold.co/600x600/1a1330/c4b5fd?text=Reno12+Pro', 'price' => 12990000, 'rating' => 5.0, 'badge' => 'Mới'],
+        ['name' => 'iPhone 16 128GB', 'image' => $productImage('iPhone 16 128GB'), 'price' => 22990000, 'rating' => 5.0, 'badge' => 'Mới'],
+        ['name' => 'Samsung Galaxy Z Flip6', 'image' => $productImage('Samsung Galaxy Z Flip6'), 'price' => 26990000, 'rating' => 5.0, 'badge' => 'Mới'],
+        ['name' => 'Xiaomi 14 Ultra', 'image' => $productImage('Xiaomi 14 Ultra'), 'price' => 24990000, 'rating' => 5.0, 'badge' => 'Mới'],
+        ['name' => 'OPPO Reno12 Pro', 'image' => $productImage('OPPO Reno12 Pro'), 'price' => 12990000, 'rating' => 5.0, 'badge' => 'Mới'],
     ];
 
     $brands = [
@@ -52,7 +70,7 @@
     ];
 
     $news = [
-        ['title' => 'iPhone 17 Pro Max: Thiết kế titanium mới, nâng cấp đột phá', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=iPhone+17+Pro+Max', 'date' => '12/06/2026'],
+        ['title' => 'iPhone 17 Pro Max: Thiết kế titanium mới, nâng cấp đột phá', 'image' => $productImage('iPhone 17 Pro Max'), 'date' => '12/06/2026'],
         ['title' => 'Galaxy S24 Ultra sau 3 tháng: Có còn đáng mua?', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Galaxy+S24+Ultra', 'date' => '10/06/2026'],
         ['title' => 'Xiaomi 15 Ultra chính thức ra mắt tại Việt Nam', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Xiaomi+15+Ultra', 'date' => '08/06/2026'],
         ['title' => 'iPhone 15 Pro Max vs Galaxy S24 Ultra: Đâu là vua Android?', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Flagship+Battle', 'date' => '06/06/2026'],
@@ -63,7 +81,7 @@
 @section('content')
 
 {{-- ===================== 1. Hero Banner ===================== --}}
-<section class="relative overflow-hidden">
+<section class="relative overflow-hidden" data-hero-slider>
     <div class="hero-glow absolute inset-0"></div>
     <div class="absolute inset-0 opacity-[0.05]" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 28px 28px;"></div>
 
@@ -73,24 +91,26 @@
                 <span class="size-1.5 animate-pulse rounded-full bg-brand-400"></span>
                 Sản phẩm mới ra mắt
             </span>
-            <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 data-hero-title class="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
                 iPhone <span class="bg-gradient-to-r from-brand-400 to-cyan-300 bg-clip-text text-transparent">17 Pro Max</span>
             </h1>
-            <p class="mt-4 text-lg font-medium text-gray-300">Titanium. Mạnh mẽ. Đẳng cấp.</p>
+            <p data-hero-subtitle class="mt-4 text-lg font-medium text-gray-300">Titanium. Mạnh mẽ. Đẳng cấp.</p>
 
             {{-- Chips tính năng nổi bật --}}
-            <div class="mt-6 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start">
+            <div data-hero-chips class="mt-6 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start">
                 @foreach (['A19 Pro Chip', 'Camera 48MP', 'Pin cả ngày'] as $chip)
                     <span class="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-gray-300 backdrop-blur">{{ $chip }}</span>
                 @endforeach
             </div>
 
             <div class="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-                <a href="#flash-sale"
+                <a href="{{ route('products.show', 'iphone-17-pro-max') }}"
+                   data-hero-buy
                    class="rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-3.5 text-sm font-bold text-gray-900 shadow-lg shadow-amber-500/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/35 active:translate-y-0">
                     Mua ngay
                 </a>
-                <a href="{{ route('products.show', 'iphone-15-pro-max-256gb') }}"
+                <a href="{{ route('products.show', 'iphone-17-pro-max') }}"
+                   data-hero-detail
                    class="rounded-2xl border border-white/15 bg-white/5 px-8 py-3.5 text-sm font-bold text-white backdrop-blur transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-white/10">
                     Xem chi tiết
                 </a>
@@ -99,26 +119,27 @@
 
         {{-- Ảnh sản phẩm hero --}}
         <div class="relative hidden justify-center lg:flex">
-            <div class="absolute inset-0 m-auto size-80 rounded-full bg-brand-600/25 blur-3xl"></div>
-            <img src="https://placehold.co/460x540/0d1017/3b82f6?text=iPhone+17+Pro+Max"
+            <div class="absolute inset-0 m-auto h-72 w-[34rem] rounded-full bg-brand-600/25 blur-3xl"></div>
+            <img src="{{ $productImage('iPhone 17 Pro Max') }}"
                  alt="iPhone 17 Pro Max — flagship mới nhất tại NovaPhone"
-                 class="float-slow relative w-[26rem] rounded-[2.5rem] border border-white/10 shadow-2xl shadow-black/60">
+                 data-hero-image
+                 class="float-slow relative aspect-[16/9] w-[36rem] rounded-[2rem] border border-white/10 object-cover shadow-2xl shadow-black/60">
         </div>
     </div>
 
     {{-- Điều hướng slider --}}
-    <button aria-label="Banner trước" class="absolute left-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex">
+    <button type="button" data-hero-prev aria-label="Banner trước" class="absolute left-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex">
         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
     </button>
-    <button aria-label="Banner sau" class="absolute right-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex">
+    <button type="button" data-hero-next aria-label="Banner sau" class="absolute right-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex">
         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
     </button>
     {{-- Chấm chuyển slide --}}
     <div class="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
-        <span class="h-1.5 w-6 rounded-full bg-brand-500"></span>
-        <span class="size-1.5 rounded-full bg-white/25"></span>
-        <span class="size-1.5 rounded-full bg-white/25"></span>
-        <span class="size-1.5 rounded-full bg-white/25"></span>
+        <button type="button" data-hero-dot="0" aria-label="Chuyển đến banner 1" class="h-1.5 w-6 rounded-full bg-brand-500 transition-all duration-200"></button>
+        <button type="button" data-hero-dot="1" aria-label="Chuyển đến banner 2" class="size-1.5 rounded-full bg-white/25 transition-all duration-200"></button>
+        <button type="button" data-hero-dot="2" aria-label="Chuyển đến banner 3" class="size-1.5 rounded-full bg-white/25 transition-all duration-200"></button>
+        <button type="button" data-hero-dot="3" aria-label="Chuyển đến banner 4" class="size-1.5 rounded-full bg-white/25 transition-all duration-200"></button>
     </div>
 </section>
 
@@ -208,8 +229,122 @@
     </div>
 </section>
 
-{{-- ===================== 5. Best Seller + New Arrival ===================== --}}
+{{-- ===================== 5. Điện thoại / Lọc theo giá, thương hiệu, tính năng ===================== --}}
 <section id="san-pham" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
+    <div class="reveal mb-6">
+        <div class="mb-5">
+            <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">Điện thoại</h2>
+            <p class="mt-1 text-sm text-gray-500">Lọc nhanh sản phẩm theo giá, thương hiệu và tính năng bạn cần.</p>
+        </div>
+
+        <form method="GET" action="{{ route('home') }}#san-pham"
+              class="rounded-2xl border border-white/5 bg-night-soft p-4 shadow-xl shadow-black/20">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-12">
+                <div class="flex flex-col gap-1.5 xl:col-span-3">
+                    <label for="search-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Từ khóa</label>
+                    <input id="search-filter" name="q" type="search" value="{{ $selectedSearchQuery }}"
+                           placeholder="Tên, SKU..."
+                           class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                </div>
+
+                <div class="flex flex-col gap-1.5 xl:col-span-2">
+                    <label for="price-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Khoảng giá</label>
+                    <select id="price-filter" name="price"
+                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                        <option value="">Tất cả mức giá</option>
+                        @foreach ($priceRanges as $value => $label)
+                            <option value="{{ $value }}" @selected($selectedPriceRange === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1.5 xl:col-span-2">
+                    <label for="brand-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Thương hiệu</label>
+                    <select id="brand-filter" name="brand"
+                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                        <option value="">Tất cả thương hiệu</option>
+                        @foreach ($filterBrands as $brand)
+                            <option value="{{ $brand->slug }}" @selected($selectedBrandSlug === $brand->slug)>
+                                {{ $brand->name }} ({{ $brand->products_count }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1.5 xl:col-span-2">
+                    <label for="sort-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sắp xếp</label>
+                    <select id="sort-filter" name="sort"
+                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                        @foreach ($sortOptions as $value => $label)
+                            <option value="{{ $value }}" @selected($selectedSort === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex items-end gap-2 xl:col-span-3">
+                    <button type="submit"
+                            class="h-12 flex-1 rounded-xl bg-brand-600 px-5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
+                        Lọc
+                    </button>
+                    @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedFeatures)
+                        <a href="{{ route('home') }}#san-pham"
+                           class="flex h-12 items-center justify-center rounded-xl border border-white/10 px-5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
+                            Xóa lọc
+                        </a>
+                    @endif
+                </div>
+            </div>
+
+            <fieldset class="mt-4">
+                <legend class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Tính năng</legend>
+                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                    @foreach ($featureFilters as $value => $label)
+                        <label class="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-night-card px-3 text-sm font-semibold text-gray-300 transition-colors duration-200 hover:border-brand-500/50 hover:text-white">
+                            <input type="checkbox" name="features[]" value="{{ $value }}" @checked(in_array($value, $selectedFeatures, true))
+                                   class="size-4 rounded border-white/20 bg-white/5 text-brand-600 focus:ring-brand-500">
+                            <span>{{ $label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+    <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        @forelse ($catalogProducts as $product)
+            @php
+                $discount = null;
+                if ($product->sale_price && $product->sale_price < $product->price) {
+                    $discount = (int) round((($product->price - $product->sale_price) / $product->price) * 100);
+                }
+            @endphp
+            <x-product-card
+                :name="$product->name"
+                :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)"
+                :price="$product->effective_price"
+                :old-price="$product->sale_price ? $product->price : null"
+                :discount="$discount"
+                :rating="$product->rating_average ? round($product->rating_average, 1) : null"
+                :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                :href="route('products.show', $product)"
+            />
+        @empty
+            <div class="col-span-full rounded-2xl border border-white/5 bg-night-soft p-8 text-center">
+                <p class="text-sm font-semibold text-white">Chưa có sản phẩm phù hợp.</p>
+                <p class="mt-1 text-xs text-gray-500">Thử tìm từ khóa khác hoặc chọn lại bộ lọc để xem thêm điện thoại.</p>
+            </div>
+        @endforelse
+    </div>
+
+    @if ($catalogProducts->hasPages())
+        <div class="mt-8">
+            {{ $catalogProducts->links() }}
+        </div>
+    @endif
+</section>
+
+{{-- ===================== 5. Best Seller + New Arrival ===================== --}}
+<section class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
     <div class="grid gap-10 lg:grid-cols-2 lg:gap-8">
         @foreach ([
             ['title' => 'Best Seller', 'iconColor' => 'text-amber-400 bg-amber-400/15', 'items' => $bestSeller, 'icon' => 'M13 2 4.09 12.69a.6.6 0 0 0 .46.99H11l-1.27 7.4a.6.6 0 0 0 1.07.47l8.91-10.68a.6.6 0 0 0-.46-.99H13l1.27-7.4A.6.6 0 0 0 13.2 2H13Z'],
