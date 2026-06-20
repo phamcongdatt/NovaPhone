@@ -43,27 +43,35 @@
         <div class="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:h-[68px] lg:gap-8">
 
             {{-- Logo --}}
-            <a href="{{ route('home') }}" class="flex shrink-0 items-center">
-                <img src="{{ asset('images/brand/nova-phone-logo.png') }}"
-                     alt="NovaPhone"
-                     class="h-12 w-auto max-w-[190px] object-contain">
+            <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2.5">
+                <span class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white shadow-lg shadow-brand-600/30">N</span>
+                <span class="hidden text-lg font-extrabold tracking-tight sm:block">
+                    Nova<span class="text-brand-500">Phone</span>
+                </span>
             </a>
 
             {{-- Ô tìm kiếm trung tâm --}}
-            <form method="GET" action="{{ route('home') }}#san-pham" class="relative min-w-0 flex-1">
-                <input
-                    type="search"
-                    id="search-input"
-                    name="q"
-                    value="{{ request('q') }}"
-                    placeholder="Bạn cần tìm gì hôm nay?"
-                    class="w-full rounded-full border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-500/25"
-                >
-                <svg class="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
-                <div id="search-suggestions" class="absolute left-0 top-full mt-2 w-full bg-night-soft border border-white/10 rounded-2xl shadow-2xl hidden z-50 overflow-hidden">
-                    <ul class="divide-y divide-white/5"></ul>
+            <div class="relative min-w-0 flex-1" id="quick-search-container">
+                <form action="{{ route('products.index') }}" method="GET" class="relative">
+                    <input
+                        type="search"
+                        name="search"
+                        id="quick-search-input"
+                        autocomplete="off"
+                        value="{{ request('search') }}"
+                        placeholder="Bạn cần tìm gì hôm nay?"
+                        class="w-full rounded-full border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-500/25"
+                    >
+                    <button type="submit" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-brand-500 transition-colors">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
+                    </button>
+                </form>
+
+                {{-- Dropdown kết quả --}}
+                <div id="quick-search-results" class="absolute left-0 right-0 top-full mt-2 hidden max-h-96 overflow-y-auto rounded-xl border border-white/10 bg-night-soft shadow-2xl shadow-black/50 backdrop-blur-xl z-[60] no-scrollbar">
+                    {{-- Dữ liệu AJAX sẽ render ở đây --}}
                 </div>
-            </form>
+            </div>
 
             {{-- Cụm hành động bên phải --}}
             <div class="flex shrink-0 items-center gap-1 sm:gap-2">
@@ -73,47 +81,15 @@
                     <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
                 </a>
                 {{-- Giỏ hàng --}}
-                <a href="{{ route('cart.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                <a href="#" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                     <span class="relative">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.36-1.62 1.26 12a1.13 1.13 0 0 1-1.12 1.24H4.25a1.13 1.13 0 0 1-1.12-1.24l1.26-12A1.13 1.13 0 0 1 5.51 7.88h12.98c.58 0 1.06.43 1.12 1Z"/></svg>
-                        <span class="absolute -right-2 -top-1.5 flex size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $cartCount }}</span>
+                        <span class="absolute -right-2 -top-1.5 flex size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">2</span>
                     </span>
                     <span class="hidden text-xs font-semibold xl:block">Giỏ hàng</span>
                 </a>
                 {{-- Tài khoản --}}
-@auth
-    @if (Auth::user()->isAdmin())
-        <a href="{{ route('admin.products.index') }}"
-           class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-            <span class="hidden text-xs font-semibold xl:block">Quản trị</span>
-        </a>
-    @endif
-@endauth
-                @auth
-                    <div class="relative group">
-                        <button class="flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3 cursor-pointer">
-                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-                            <span class="hidden text-left text-xs leading-tight xl:block">
-                                <span class="block text-gray-500">Xin chào,</span>
-                                <span class="block font-semibold text-white truncate max-w-[90px]">{{ Auth::user()->name }}</span>
-                            </span>
-                        </button>
-                        
-                        <!-- Dropdown Menu -->
-                        <div class="absolute right-0 top-full mt-1.5 w-44 rounded-2xl border border-white/10 bg-night-soft p-2 shadow-2xl opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50">
-                            <a href="{{ route('orders.index') }}" class="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-300 hover:bg-white/5 hover:text-white transition">
-                                Đơn hàng của tôi
-                            </a>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full text-left flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition cursor-pointer">
-                                    Đăng xuất
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                @else
+                @guest
                     <a href="{{ route('login') }}" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
                         <span class="hidden text-left text-xs leading-tight xl:block">
@@ -121,6 +97,33 @@
                             <span class="block font-semibold text-white">Tài khoản</span>
                         </span>
                     </a>
+                @endguest
+
+                @auth
+                    <div class="group relative">
+                        <button class="flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3 focus:outline-none">
+                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+                            <span class="hidden text-left text-xs leading-tight xl:block">
+                                <span class="block text-gray-500">Xin chào,</span>
+                                <span class="block font-semibold text-white truncate max-w-[100px]">{{ explode(' ', Auth::user()->name)[count(explode(' ', Auth::user()->name))-1] }}</span>
+                            </span>
+                        </button>
+                        
+                        {{-- Dropdown menu --}}
+                        <div class="invisible absolute right-0 top-full mt-1 w-48 opacity-0 transition-all duration-200 ease-in-out group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-50">
+                            <div class="rounded-xl border border-white/10 bg-night-soft py-2 shadow-2xl shadow-black/50">
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
+                                <a href="{{ route('password.change') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Đổi mật khẩu</a>
+                                <div class="my-1 border-t border-white/5"></div>
+                                <form action="{{ route('logout') }}" method="POST" class="block w-full">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors">
+                                        Đăng xuất
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 @endauth
                 {{-- Nút mở menu mobile --}}
                 <button data-mobile-menu-toggle aria-expanded="false" aria-label="Mở menu"
@@ -129,18 +132,6 @@
                 </button>
             </div>
         </div>
-
-        @php
-            $categoryLinks = [
-                ['label' => 'iPhone', 'href' => route('home', ['brand' => 'apple']).'#san-pham'],
-                ['label' => 'Samsung', 'href' => route('home', ['brand' => 'samsung']).'#san-pham'],
-                ['label' => 'Xiaomi', 'href' => route('home', ['brand' => 'xiaomi']).'#san-pham'],
-                ['label' => 'OPPO', 'href' => route('home', ['brand' => 'oppo']).'#san-pham'],
-                ['label' => 'Vivo', 'href' => route('home', ['brand' => 'vivo']).'#san-pham'],
-                ['label' => 'Realme', 'href' => route('home', ['brand' => 'realme']).'#san-pham'],
-                ['label' => 'Flagship', 'href' => route('home', ['features' => ['featured']]).'#san-pham'],
-            ];
-        @endphp
 
         {{-- Thanh điều hướng danh mục --}}
         <nav class="hidden border-t border-white/5 lg:block">
@@ -176,19 +167,23 @@
                 </div>
                 @foreach ($categoryLinks as $cat)
                     <a href="{{ $cat['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
+                <button class="mr-2 flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:bg-brand-500">
+                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+                    Danh mục
+                </button>
+                @foreach (['iPhone', 'Samsung', 'Xiaomi', 'OPPO', 'Vivo', 'Realme', 'Flagship', 'Phụ kiện'] as $cat)
+                    <a href="#" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat }}</a
                 @endforeach
-                <a href="{{ route('home') }}#flash-sale" class="rounded-lg px-3.5 py-1.5 text-xs font-bold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
-                <a href="{{ route('home') }}#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+                <a href="#flash-sale" class="rounded-lg px-3.5 py-1.5 text-xs font-bold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
+                <a href="#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
             </div>
         </nav>
 
         {{-- Menu mobile --}}
         <div data-mobile-menu class="hidden border-t border-white/5 bg-night px-4 pb-4 pt-2 lg:hidden">
-            @foreach ($categoryLinks as $cat)
-                <a href="{{ $cat['href'] }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
+            @foreach (['iPhone', 'Samsung', 'Xiaomi', 'OPPO', 'Vivo', 'Realme', 'Flagship', 'Phụ kiện', 'Khuyến mãi', 'Tin công nghệ'] as $cat)
+                <a href="#" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat }}</a>
             @endforeach
-            <a href="{{ route('home') }}#flash-sale" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
-            <a href="{{ route('home') }}#tech-journal" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
         </div>
     </header>
 
@@ -203,10 +198,12 @@
 
             {{-- Cột 1: Giới thiệu --}}
             <div class="lg:col-span-2 lg:pr-10">
-                <a href="{{ route('home') }}" class="mb-4 inline-flex">
-                    <img src="{{ asset('images/brand/nova-phone-logo.png') }}"
-                         alt="NovaPhone"
-                         class="h-16 w-auto max-w-[260px] object-contain">
+                <a href="{{ route('home') }}" class="mb-4 flex items-center gap-2.5">
+                    <span class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white">N</span>
+                    <span>
+                        <span class="block text-lg font-extrabold leading-tight tracking-tight">Nova<span class="text-brand-500">Phone</span></span>
+                        <span class="block text-[10px] font-medium uppercase tracking-widest text-gray-500">Premium Mobile Experience</span>
+                    </span>
                 </a>
                 <p class="text-sm leading-relaxed text-gray-400">
                     NovaPhone — Hệ thống bán lẻ điện thoại, máy tính bảng và phụ kiện chính hãng. Cam kết sản phẩm chất lượng, giá tốt nhất thị trường và dịch vụ hậu mãi tận tâm.
@@ -286,5 +283,76 @@
     </footer>
 
     @stack('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('quick-search-input');
+            const searchResults = document.getElementById('quick-search-results');
+            const searchContainer = document.getElementById('quick-search-container');
+            let debounceTimer;
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    const query = this.value.trim();
+
+                    if (query.length < 2) {
+                        searchResults.classList.add('hidden');
+                        searchResults.innerHTML = '';
+                        return;
+                    }
+
+                    debounceTimer = setTimeout(() => {
+                        fetch(`{{ route('search.quick') }}?q=${encodeURIComponent(query)}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.length > 0) {
+                                    let html = '<div class="p-2 space-y-1">';
+                                    data.forEach(item => {
+                                        let oldPriceHtml = item.old_price ? `<span class="text-[10px] text-gray-500 line-through">${item.old_price}</span>` : '';
+                                        html += `
+                                            <a href="${item.url}" class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 group">
+                                                <div class="flex size-12 shrink-0 items-center justify-center rounded-md bg-white/5 p-1 transition-transform group-hover:scale-105">
+                                                    <img src="${item.thumbnail}" alt="${item.name}" class="h-full w-full object-contain">
+                                                </div>
+                                                <div class="flex flex-1 flex-col justify-center overflow-hidden">
+                                                    <h4 class="truncate text-sm font-semibold text-gray-200 group-hover:text-brand-300 transition-colors">${item.name}</h4>
+                                                    <div class="flex items-baseline gap-2 mt-0.5">
+                                                        <span class="text-xs font-bold text-brand-400">${item.price}</span>
+                                                        ${oldPriceHtml}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        `;
+                                    });
+                                    html += '</div>';
+                                    searchResults.innerHTML = html;
+                                    searchResults.classList.remove('hidden');
+                                } else {
+                                    searchResults.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Không tìm thấy sản phẩm nào phù hợp.</div>';
+                                    searchResults.classList.remove('hidden');
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Search error:', err);
+                            });
+                    }, 300); // delay 300ms
+                });
+
+                // Ẩn khi click ra ngoài
+                document.addEventListener('click', function(e) {
+                    if (!searchContainer.contains(e.target)) {
+                        searchResults.classList.add('hidden');
+                    }
+                });
+                
+                // Hiện lại khi focus vào input nếu đã có giá trị
+                searchInput.addEventListener('focus', function() {
+                    if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
+                        searchResults.classList.remove('hidden');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
