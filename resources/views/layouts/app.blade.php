@@ -146,7 +146,15 @@
         <nav class="hidden border-t border-white/5 lg:block">
             <div class="mx-auto flex h-11 max-w-7xl items-center gap-1 px-4 sm:px-6">
                 <div class="group relative mr-2 flex h-full items-center">
-                    <a href="{{ route('home') }}#san-pham" class="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-600/30">
+                    @auth
+                        @if(Auth::user()->isAdmin())
+                            <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-600/30">
+                        @else
+                            <a href="{{ route('home') }}#san-pham" class="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-600/30">
+                        @endif
+                    @else
+                        <a href="{{ route('home') }}#san-pham" class="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-600/30">
+                    @endauth
                         <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
                         Danh mục
                         <svg class="size-3.5 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
