@@ -340,4 +340,144 @@ class AuthController extends Controller
         Auth::login($user);
         return redirect()->intended('/')->with('success', 'Đăng nhập nhanh thành công!');
     }
+
+    public function redirectToProvider(string $provider)
+    {
+        if (!in_array($provider, ['google', 'facebook'])) {
+            return redirect()->route('login')->with('error', 'Phương thức đăng nhập không hỗ trợ.');
+        }
+
+        try {
+            return \Laravel\Socialite\Facades\Socialite::driver($provider)->redirect();
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Có lỗi xảy ra khi chuyển hướng: ' . $e->getMessage());
+        }
+    }
+
+    public function handleProviderCallback(string $provider, Request $request)
+    {
+        if (!in_array($provider, ['google', 'facebook'])) {
+            return redirect()->route('login')->with('error', 'Phương thức đăng nhập không hỗ trợ.');
+        }
+
+        try {
+            $socialUser = \Laravel\Socialite\Facades\Socialite::driver($provider)->user();
+            
+            // Tìm hoặc tạo người dùng
+            $user = User::where('provider', $provider)
+                ->where('provider_id', $socialUser->getId())
+                ->first();
+
+            if (!$user) {
+                // Kiểm tra xem email có tồn tại chưa (nếu đăng ký bằng password trước đó)
+                $user = User::where('email', $socialUser->getEmail())->first();
+
+                if ($user) {
+                    // Liên kết tài khoản
+                    $user->update([
+                        'provider' => $provider,
+                        'provider_id' => $socialUser->getId(),
+                        'avatar' => $user->avatar ?? $socialUser->getAvatar(),
+                    ]);
+                } else {
+                    // Tạo tài khoản mới
+                    $user = User::create([
+                        'name' => $socialUser->getName(),
+                        'email' => $socialUser->getEmail(),
+                        'avatar' => $socialUser->getAvatar(),
+                        'provider' => $provider,
+                        'provider_id' => $socialUser->getId(),
+                        'email_verified_at' => now(), // Đã xác thực qua mạng xã hội
+                        'password' => Hash::make(Str::random(24)),
+                    ]);
+                    
+                    event(new Registered($user));
+                }
+            }
+
+            if ($user->isBlocked()) {
+                return redirect()->route('login')->with('error', 'Tài khoản của bạn đã bị khoá.');
+            }
+
+            Auth::login($user, true);
+            $request->session()->regenerate();
+            $this->cartService->mergeSessionCartToDb();
+
+            return redirect()->intended(route('home'))
+                ->with('success', 'Đăng nhập bằng ' . ucfirst($provider) . ' thành công!');
+
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Không thể kết nối với ' . ucfirst($provider) . '. ' . $e->getMessage());
+        }
+    }
+
+    public function socialLoginPost(Request $request)
+    {
+        try {
+            $request->validate([
+                'provider' => 'required|in:google,facebook',
+                'provider_id' => 'required|string',
+                'email' => 'required|email',
+                'name' => 'required|string|max:255',
+                'avatar' => 'nullable|string',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ: ' . implode(', ', $e->validator->errors()->all())
+            ], 422);
+        }
+
+        $provider = $request->input('provider');
+        $providerId = $request->input('provider_id');
+        $email = $request->input('email');
+        $name = $request->input('name');
+        $avatar = $request->input('avatar');
+
+        // Tìm hoặc tạo người dùng
+        $user = User::where('provider', $provider)
+            ->where('provider_id', $providerId)
+            ->first();
+
+        if (!$user) {
+            $user = User::where('email', $email)->first();
+
+            if ($user) {
+                $user->update([
+                    'provider' => $provider,
+                    'provider_id' => $providerId,
+                    'avatar' => $user->avatar ?? $avatar,
+                ]);
+            } else {
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'avatar' => $avatar,
+                    'provider' => $provider,
+                    'provider_id' => $providerId,
+                    'email_verified_at' => now(),
+                    'password' => Hash::make(Str::random(24)),
+                ]);
+
+                event(new Registered($user));
+            }
+        }
+
+        if ($user->isBlocked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tài khoản của bạn đã bị khoá.'
+            ], 403);
+        }
+
+        Auth::login($user, true);
+        $request->session()->regenerate();
+        $this->cartService->mergeSessionCartToDb();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đăng nhập thành công!',
+            'redirect' => route('home')
+        ]);
+    }
 }
