@@ -1,9 +1,13 @@
-
-@extends('layouts.app')
-
-@section('title', 'Đăng nhập tài khoản | NovaPhone')
-
-@section('content')
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Đăng nhập tài khoản | NovaPhone</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="bg-night font-sans text-gray-100 antialiased min-h-screen flex flex-col">
 <div class="hero-glow flex min-h-[calc(100vh-68px-340px)] items-center justify-center px-4 py-16 sm:px-6">
     <div class="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-night-soft/60 p-8 shadow-2xl shadow-black/50 backdrop-blur-2xl">
         
@@ -215,94 +219,86 @@
         </div>
     </div>
 </div>
-@endsection
+    <script>
+        let currentProvider = '';
 
-@push('scripts')
-<script>
-    let currentProvider = '';
+        const GOOGLE_SVG = `<svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.9 3.4 14.7 2.4 12 2.4 6.9 2.4 2.8 6.5 2.8 11.6S6.9 20.8 12 20.8c5.3 0 8.8-3.7 8.8-9 0-.6-.1-1.1-.2-1.6H12z"/></svg>`;
+        const FACEBOOK_SVG = `<svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#1877F2" d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7C18.3 21.1 22 17 22 12z"/></svg>`;
 
-    console.log('Initializing social login script');
-    const GOOGLE_SVG = `<svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.9 3.4 14.7 2.4 12 2.4 6.9 2.4 2.8 6.5 2.8 11.6S6.9 20.8 12 20.8c5.3 0 8.8-3.7 8.8-9 0-.6-.1-1.1-.2-1.6H12z"/></svg>`;
-    const FACEBOOK_SVG = `<svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#1877F2" d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7C18.3 21.1 22 17 22 12z"/></svg>`;
+        function handleSocialLogin(provider) {
+            const isConfigured = {
+                google: {{ config('services.google.client_id') ? 'true' : 'false' }},
+                facebook: {{ config('services.facebook.client_id') ? 'true' : 'false' }}
+            };
 
-    function handleSocialLogin(provider) {
-        const isConfigured = {
-            google: {{ config('services.google.client_id') ? 'true' : 'false' }},
-            facebook: {{ config('services.facebook.client_id') ? 'true' : 'false' }}
-        };
-
-        console.log('handleSocialLogin called for provider:', provider);
-        if (isConfigured[provider]) {
-            console.log('Provider configured, redirecting to OAuth');
-            window.location.href = `/auth/${provider}/redirect`;
-        } else {
-            console.log('Provider not configured, showing mock modal');
-            currentProvider = provider;
-            document.getElementById('modal-provider-name').textContent = provider === 'google' ? 'Google' : 'Facebook';
-            document.getElementById('modal-provider-icon').innerHTML = provider === 'google' ? GOOGLE_SVG : FACEBOOK_SVG;
-            
-            const modal = document.getElementById('social-mock-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-            }, 50);
-        }
-    }
-
-    function closeSocialMockModal() {
-        const modal = document.getElementById('social-mock-modal');
-        modal.classList.add('opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 300);
-    }
-
-    function selectMockAccount(name, email) {
-        submitMockLogin(name, email);
-    }
-
-    function submitCustomMock() {
-        const name = document.getElementById('mock-custom-name').value.trim();
-        const email = document.getElementById('mock-custom-email').value.trim();
-        if (!name || !email) {
-            alert('Vui lòng điền họ tên và email giả lập.');
-            return;
-        }
-        submitMockLogin(name, email);
-    }
-
-    function submitMockLogin(name, email) {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        
-        console.log('Submitting mock login for provider:', currentProvider);
-        fetch('/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                provider: currentProvider,
-                provider_id: 'mock_' + currentProvider + '_' + Math.random().toString(36).substr(2, 9),
-                email: email,
-                name: name,
-                avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=' + encodeURIComponent(name)
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            console.log('Mock login response:', data);
-            if (data.success) {
-                window.location.href = data.redirect;
+            if (isConfigured[provider]) {
+                window.location.href = `/auth/${provider}/redirect`;
             } else {
-                alert(data.message || 'Đăng nhập thất bại.');
+                currentProvider = provider;
+                document.getElementById('modal-provider-name').textContent = provider === 'google' ? 'Google' : 'Facebook';
+                document.getElementById('modal-provider-icon').innerHTML = provider === 'google' ? GOOGLE_SVG : FACEBOOK_SVG;
+                
+                const modal = document.getElementById('social-mock-modal');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                }, 50);
             }
-        })
-        .catch(err => {
-            console.error('Fetch error:', err);
-            alert('Có lỗi mạng xảy ra khi đăng nhập.');
-        });
-    }
-</script>
-@endpush
+        }
+
+        function closeSocialMockModal() {
+            const modal = document.getElementById('social-mock-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function selectMockAccount(name, email) {
+            submitMockLogin(name, email);
+        }
+
+        function submitCustomMock() {
+            const name = document.getElementById('mock-custom-name').value.trim();
+            const email = document.getElementById('mock-custom-email').value.trim();
+            if (!name || !email) {
+                alert('Vui lòng điền họ tên và email giả lập.');
+                return;
+            }
+            submitMockLogin(name, email);
+        }
+
+        function submitMockLogin(name, email) {
+            const csrfToken = '{{ csrf_token() }}';
+            
+            fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    provider: currentProvider,
+                    provider_id: 'mock_' + currentProvider + '_' + Math.random().toString(36).substr(2, 9),
+                    email: email,
+                    name: name,
+                    avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=' + encodeURIComponent(name)
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.message || 'Đăng nhập thất bại.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Có lỗi mạng xảy ra khi đăng nhập.');
+            });
+        }
+    </script>
+</body>
+</html>
