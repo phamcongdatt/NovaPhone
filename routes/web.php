@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\CategoryController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\AuthController as RegistrationController;
-=======
 use App\Http\Controllers\Auth\AuthController;
 
 use App\Http\Controllers\CartController;
@@ -30,8 +33,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 // ---------- Authentication Routes ----------
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-=======
+Route::post('/login', [AuthController::class, 'login'])
 // Guest routes (chưa đăng nhập)
 Route::middleware('guest')->group(function () {
     Route::get('/register',               [AuthController::class, 'showRegisterForm'])->name('register');
@@ -40,10 +42,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/login',                  [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login',                 [AuthController::class, 'login']);
 
-<<<<<<< HEAD
     Route::get('/forgot-password',        [AuthController::class, 'showForgotPassword'])->name('password.request');
-    Route::post('/forgot-password',       [AuthController::class, 'sendResetLink'])->name('password.email');
-=======
+    Route::post('/forgot-password',       [AuthController::class, 'sendResetLink'])->name('password.email')
     // Social Authentication Routes
     Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirectToProvider'])->name('auth.social.redirect');
     Route::get('/auth/{provider}/callback', [AuthController::class, 'handleProviderCallback'])->name('auth.social.callback');
@@ -51,7 +51,7 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
->>>>>>> vin_dev
+
 
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
@@ -116,3 +116,29 @@ Route::post('/email/verification-notification', function (Request $request) {
     return back()->with('status', 'verification-link-sent');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
+/*
+|--------------------------------------------------------------------------
+| Khu vực quản trị (Admin) — yêu cầu đăng nhập + quyền admin
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Sản phẩm
+        Route::patch('products/{product}/toggle-status', [AdminProductController::class, 'toggleStatus'])
+            ->name('products.toggle-status');
+        Route::resource('products', AdminProductController::class);
+        
+
+        // Danh mục
+        Route::resource('categories', CategoryController::class)->except(['show']);
+
+        // Bình luận / đánh giá
+        Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+        Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
+        Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    });
+    
