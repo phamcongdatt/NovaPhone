@@ -30,6 +30,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'status',
         'password',
+        'google_id',
+        'provider',
+        'provider_id',
     ];
 
     protected $hidden = [
@@ -41,7 +44,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'reset_token_expires_at' => 'datetime',
             // Cast "hashed" tự động hash password khi gán -> không cần Hash::make() thủ công.
             'password' => 'hashed',
         ];
