@@ -18,7 +18,7 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name' => 'required|string|max:255|unique:categories,name' . ($id ? ',' . $id : ''),
             'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
+            'is_active' => 'required|boolean',
         ];
     }
 
@@ -27,8 +27,8 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name.required' => 'Tên danh mục là bắt buộc.',
             'name.unique' => 'Tên danh mục đã tồn tại.',
-            'status.required' => 'Trạng thái là bắt buộc.',
-            'status.in' => 'Trạng thái không hợp lệ.',
+            'is_active.required' => 'Trạng thái là bắt buộc.',
+            'is_active.boolean' => 'Trạng thái không hợp lệ.',
         ];
     }
 }

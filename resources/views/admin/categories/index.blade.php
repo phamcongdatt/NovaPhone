@@ -97,22 +97,22 @@
                     </label>
 
                     <select
-                        name="status"
-                        class="w-full rounded-xl border {{ $errors->has('status') ? 'border-red-500/50' : 'border-white/10' }} bg-white/5 px-4 py-3 text-white">
+                        name="is_active"
+                        class="w-full rounded-xl border {{ $errors->has('is_active') ? 'border-red-500/50' : 'border-white/10' }} bg-white/5 px-4 py-3 text-white">
 
                         <option value="">Chọn</option>
 
-                        <option value="active" @selected(old('status') === 'active')>
+                        <option value="1" @selected(old('is_active') == '1')>
                             Active
                         </option>
 
-                        <option value="inactive" @selected(old('status') === 'inactive')>
+                        <option value="0" @selected(old('is_active') == '0')>
                             Inactive
                         </option>
 
                     </select>
 
-                    @error('status')
+                    @error('is_active')
                         <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
                     @enderror
 
@@ -195,10 +195,15 @@
                     </td>
 
                     <td class="px-4 py-4 text-center">
-                        {{ $category->status }}
+                        {{ $category->is_active ? 'Active' : 'Inactive' }}
                     </td>
 
                     <td class="px-4 py-4 text-right">
+
+                        <a href="{{ route('admin.categories.edit', $category) }}"
+                           class="rounded-lg mr-2 inline-block px-3 py-2 text-sm font-semibold transition duration-150 bg-brand-500/15 text-brand-400 hover:bg-brand-500/20">
+                            Sửa
+                        </a>
 
                         <form
                             method="POST"
