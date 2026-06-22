@@ -4,11 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-<<<<<<< HEAD
-    "content-hash": "5c5bbf4e92fcaea69a7a4c961c00b6ac",
-=======
     "content-hash": "1f0e88297287e5b870388bae67cb96e4",
->>>>>>> vin_dev
     "packages": [
         {
             "name": "brick/math",
@@ -3013,18 +3009,6 @@
         },
         {
             "name": "phpseclib/phpseclib",
-<<<<<<< HEAD
-            "version": "3.0.53",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "511ddc8e352d5d1f1e33bea468b6f4ef48438cf9"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/511ddc8e352d5d1f1e33bea468b6f4ef48438cf9",
-                "reference": "511ddc8e352d5d1f1e33bea468b6f4ef48438cf9",
-=======
             "version": "3.0.55",
             "source": {
                 "type": "git",
@@ -3035,7 +3019,6 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/db9744e6d47e742b1f974e965ad49bdd041105af",
                 "reference": "db9744e6d47e742b1f974e965ad49bdd041105af",
->>>>>>> vin_dev
                 "shasum": ""
             },
             "require": {
@@ -3116,11 +3099,7 @@
             ],
             "support": {
                 "issues": "https://github.com/phpseclib/phpseclib/issues",
-<<<<<<< HEAD
-                "source": "https://github.com/phpseclib/phpseclib/tree/3.0.53"
-=======
                 "source": "https://github.com/phpseclib/phpseclib/tree/3.0.55"
->>>>>>> vin_dev
             },
             "funding": [
                 {
@@ -3136,11 +3115,7 @@
                     "type": "tidelift"
                 }
             ],
-<<<<<<< HEAD
-            "time": "2026-06-09T18:08:26+00:00"
-=======
             "time": "2026-06-14T23:24:10+00:00"
->>>>>>> vin_dev
         },
         {
             "name": "psr/clock",
