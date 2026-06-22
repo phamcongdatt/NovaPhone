@@ -1,130 +1,167 @@
-@extends('layouts.app')
-@section('title', 'Đăng ký - NovaPhone')
-@section('content')
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Đăng ký - NovaPhone</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="min-h-screen bg-night font-sans text-gray-100 antialiased">
+<main class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+        <div class="absolute left-1/2 top-[-18rem] size-[40rem] -translate-x-1/2 rounded-full bg-brand-600/15 blur-3xl"></div>
+        <div class="absolute bottom-[-16rem] right-[-10rem] size-[32rem] rounded-full bg-blue-400/10 blur-3xl"></div>
+    </div>
 
-<div class="flex min-h-[70vh] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md space-y-8 rounded-2xl border border-white/10 bg-night-soft p-8 shadow-2xl">
-        <div>
-            <h2 class="mt-2 text-center text-3xl font-extrabold tracking-tight text-white">
-                Tạo tài khoản mới
-            </h2>
-            <p class="mt-2 text-center text-sm text-gray-400">
-                Gia nhập NovaPhone để trải nghiệm dịch vụ mua sắm đẳng cấp
-            </p>
-        </div>
-        
-        <form class="mt-8 space-y-6" action="{{ route('register') }}" method="POST">
-            @csrf
-            
-            <div class="space-y-4">
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-300">Họ và tên</label>
-                    <input id="name" name="name" type="text" required value="{{ old('name') }}"
-                           class="mt-1 block w-full rounded-xl border border-white/10 bg-night px-4 py-3 text-white placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm">
+    <div class="relative z-10 w-full max-w-md">
+        <a href="{{ route('home') }}" class="mx-auto mb-7 flex w-fit items-center justify-center" aria-label="NovaPhone - Trang chủ">
+            <img src="{{ asset('images/brand/nova-phone-logo.png') }}" alt="NovaPhone" class="h-16 w-auto max-w-[240px] object-contain sm:h-[72px]">
+        </a>
+
+        <div class="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-night-soft/60 p-8 shadow-2xl shadow-black/50 backdrop-blur-2xl">
+            <div class="text-center">
+                <h1 class="text-3xl font-black tracking-tight text-white">Tạo tài khoản mới</h1>
+                <p class="mt-2 text-sm text-gray-400">Gia nhập NovaPhone để trải nghiệm dịch vụ mua sắm đẳng cấp</p>
+            </div>
+
+            <form class="mt-8 space-y-5" action="{{ route('register') }}" method="POST">
+                @csrf
+
+                <div class="space-y-1.5">
+                    <label for="name" class="text-xs font-bold uppercase tracking-wider text-gray-400">Họ và tên</label>
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        required
+                        value="{{ old('name') }}"
+                        placeholder="Nguyễn Văn A"
+                        class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                    >
                     @error('name')
-                        <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
+                        <p class="text-xs text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-300">Địa chỉ Email</label>
-                    <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}"
-                           class="mt-1 block w-full rounded-xl border border-white/10 bg-night px-4 py-3 text-white placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm">
+                <div class="space-y-1.5">
+                    <label for="email" class="text-xs font-bold uppercase tracking-wider text-gray-400">Địa chỉ Email</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        required
+                        value="{{ old('email') }}"
+                        placeholder="ten@novaphone.vn"
+                        class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                    >
                     @error('email')
-                        <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
+                        <p class="text-xs text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-300">Số điện thoại (tùy chọn)</label>
-                    <input id="phone" name="phone" type="tel" value="{{ old('phone') }}"
-                           class="mt-1 block w-full rounded-xl border border-white/10 bg-night px-4 py-3 text-white placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm">
+                <div class="space-y-1.5">
+                    <label for="phone" class="text-xs font-bold uppercase tracking-wider text-gray-400">Số điện thoại (tùy chọn)</label>
+                    <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        value="{{ old('phone') }}"
+                        placeholder="09xxxxxxxx"
+                        class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                    >
                     @error('phone')
-                        <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
+                        <p class="text-xs text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
-                
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300">Mật khẩu</label>
-                    <div class="relative mt-1">
-                        <input id="password" name="password" type="password" autocomplete="new-password" required
-                               class="block w-full rounded-xl border border-white/10 bg-night px-4 py-3 pr-10 text-white placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm">
-                        <button type="button" data-toggle-password class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white focus:outline-none">
-                            <svg class="icon-eye hidden size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                            <svg class="icon-eye-slash size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+
+                <div class="space-y-1.5">
+                    <label for="password" class="text-xs font-bold uppercase tracking-wider text-gray-400">Mật khẩu</label>
+                    <div class="relative">
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="new-password"
+                            required
+                            placeholder="••••••••"
+                            class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                        >
+                        <button type="button" data-toggle-password aria-label="Hiện hoặc ẩn mật khẩu" class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 transition hover:text-white">
+                            <svg class="icon-eye size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1 1 0 0 1 0-.64C3.42 7.51 7.36 4.5 12 4.5s8.57 3.01 9.96 7.18c.07.21.07.43 0 .64C20.58 16.49 16.64 19.5 12 19.5S3.43 16.49 2.04 12.32Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                            <svg class="icon-eye-slash hidden size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18M10.58 10.59a2 2 0 0 0 2.83 2.83M9.88 4.51A10.5 10.5 0 0 1 12 4.5c4.64 0 8.57 3.01 9.96 7.18.07.21.07.43 0 .64a10.53 10.53 0 0 1-2.1 3.66M6.23 6.23a10.48 10.48 0 0 0-4.19 5.45 1 1 0 0 0 0 .64C3.42 16.49 7.36 19.5 12 19.5a10.5 10.5 0 0 0 3.77-.7"/></svg>
                         </button>
                     </div>
                     @error('password')
-                        <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
+                        <p class="text-xs text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-300">Xác nhận mật khẩu</label>
-                    <div class="relative mt-1">
-                        <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required
-                               class="block w-full rounded-xl border border-white/10 bg-night px-4 py-3 pr-10 text-white placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm">
-                        <button type="button" data-toggle-password class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white focus:outline-none">
-                            <svg class="icon-eye hidden size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                            <svg class="icon-eye-slash size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+                <div class="space-y-1.5">
+                    <label for="password_confirmation" class="text-xs font-bold uppercase tracking-wider text-gray-400">Xác nhận mật khẩu</label>
+                    <div class="relative">
+                        <input
+                            id="password_confirmation"
+                            name="password_confirmation"
+                            type="password"
+                            autocomplete="new-password"
+                            required
+                            placeholder="••••••••"
+                            class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                        >
+                        <button type="button" data-toggle-password aria-label="Hiện hoặc ẩn mật khẩu" class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 transition hover:text-white">
+                            <svg class="icon-eye size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1 1 0 0 1 0-.64C3.42 7.51 7.36 4.5 12 4.5s8.57 3.01 9.96 7.18c.07.21.07.43 0 .64C20.58 16.49 16.64 19.5 12 19.5S3.43 16.49 2.04 12.32Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                            <svg class="icon-eye-slash hidden size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18M10.58 10.59a2 2 0 0 0 2.83 2.83M9.88 4.51A10.5 10.5 0 0 1 12 4.5c4.64 0 8.57 3.01 9.96 7.18.07.21.07.43 0 .64a10.53 10.53 0 0 1-2.1 3.66M6.23 6.23a10.48 10.48 0 0 0-4.19 5.45 1 1 0 0 0 0 .64C3.42 16.49 7.36 19.5 12 19.5a10.5 10.5 0 0 0 3.77-.7"/></svg>
                         </button>
                     </div>
                 </div>
-            </div>
-            
-            <div class="flex flex-col gap-1">
-                <div class="flex items-start">
-                    <div class="flex h-5 items-center">
-                        <input id="terms" name="terms" type="checkbox" required
-                               class="h-4 w-4 rounded border-white/10 bg-night text-brand-600 focus:ring-brand-500 focus:ring-offset-night-soft">
-                    </div>
-                    <div class="ml-3 text-sm">
-                        <label for="terms" class="font-medium text-gray-300">
-                            Tôi đồng ý với <a href="#" class="font-semibold text-brand-400 hover:text-brand-300">Điều khoản dịch vụ</a> và <a href="#" class="font-semibold text-brand-400 hover:text-brand-300">Chính sách bảo mật</a>
-                        </label>
-                    </div>
-                </div>
-                @error('terms')
-                    <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
-                @enderror
-            </div>
 
-            <div>
-                <button type="submit"
-                        class="group relative flex w-full justify-center rounded-xl border border-transparent bg-brand-600 px-4 py-3 text-sm font-bold text-white transition-all duration-200 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-night-soft shadow-lg shadow-brand-600/30">
+                <div class="flex flex-col gap-1">
+                    <label class="flex items-start gap-2 text-sm text-gray-400">
+                        <input
+                            id="terms"
+                            name="terms"
+                            type="checkbox"
+                            required
+                            class="mt-0.5 size-4 rounded border-white/10 bg-white/5 text-brand-600 focus:ring-brand-500/30"
+                        >
+                        <span>
+                            Tôi đồng ý với <a href="#" class="font-bold text-brand-400 transition hover:text-brand-300">Điều khoản dịch vụ</a> và <a href="#" class="font-bold text-brand-400 transition hover:text-brand-300">Chính sách bảo mật</a>
+                        </span>
+                    </label>
+                    @error('terms')
+                        <p class="text-xs text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 py-3 text-sm font-bold text-white shadow-lg shadow-brand-600/25 transition hover:-translate-y-0.5">
                     Đăng ký
                 </button>
+            </form>
+
+            <div class="relative my-6 flex items-center justify-center">
+                <div class="absolute inset-x-0 h-px bg-white/10"></div>
+                <span class="relative bg-night-soft px-3 text-xs uppercase tracking-wider text-gray-500">Hoặc đăng ký bằng</span>
             </div>
 
-            <div class="relative mt-6">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-white/10"></div>
-                </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="bg-night-soft px-2 text-gray-500">Hoặc đăng ký bằng</span>
-                </div>
-            </div>
-
-            <div>
-                <a href="{{ route('google.login') }}" class="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-white/10 hover:border-white/20">
-                    <svg class="size-5" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
+            <div class="flex flex-col gap-3">
+                <a href="{{ route('google.login') }}" class="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10">
+                    <svg class="size-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09Z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z"/><path fill="#FBBC05" d="M5.84 14.09A6.6 6.6 0 0 1 5.49 12c0-.73.13-1.43.35-2.09V7.07H2.18A11 11 0 0 0 1 12c0 1.78.43 3.45 1.18 4.93l3.66-2.84Z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15A10.6 10.6 0 0 0 12 1 11 11 0 0 0 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38Z"/></svg>
                     Google
                 </a>
+                <a href="{{ route('auth.social.redirect', ['provider' => 'facebook']) }}" class="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10">
+                    <svg class="size-5" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047v-2.66c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.971H15.83c-1.491 0-1.956.93-1.956 1.886v2.264h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073Z"/></svg>
+                    Facebook
+                </a>
             </div>
-        </form>
 
-        <div class="text-center text-sm text-gray-400">
-            Bạn đã có tài khoản? 
-            <a href="{{ route('login') }}" class="font-bold text-brand-400 transition-colors hover:text-brand-300">
-                Đăng nhập
-            </a>
+            <p class="mt-7 text-center text-sm text-gray-500">
+                Đã có tài khoản?
+                <a href="{{ route('login') }}" class="font-bold text-brand-400 transition hover:text-brand-300">Đăng nhập</a>
+            </p>
         </div>
     </div>
-</div>
-
-@endsection
+</main>
+</body>
+</html>
