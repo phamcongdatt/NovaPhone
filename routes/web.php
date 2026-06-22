@@ -126,8 +126,9 @@ Route::middleware(['auth', 'admin'])
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
 
-        // Bình luận / đánh giá
+       /* // Bình luận / đánh giá
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+        */
     });
