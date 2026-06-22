@@ -20,8 +20,9 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect('/');
+            return redirect()->route(Auth::user()->isAdmin() ? 'admin.dashboard' : 'home');
         }
+
         return view('auth.login');
     }
 
@@ -54,7 +55,11 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            if ($request->user()->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            return redirect()->intended(route('home'));
         }
 
         throw ValidationException::withMessages([
@@ -217,7 +222,12 @@ class AuthController extends Controller
             }
             
             Auth::login($user);
-            return redirect()->intended('/');
+
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            return redirect()->intended(route('home'));
             
         } catch (\Exception $e) {
             return redirect('/login')->withErrors(['email' => 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.']);
@@ -401,7 +411,11 @@ class AuthController extends Controller
 
             Auth::login($user, true);
             $request->session()->regenerate();
-            $this->cartService->mergeSessionCartToDb();
+
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard')
+                    ->with('success', 'Đăng nhập bằng ' . ucfirst($provider) . ' thành công!');
+            }
 
             return redirect()->intended(route('home'))
                 ->with('success', 'Đăng nhập bằng ' . ucfirst($provider) . ' thành công!');
@@ -472,12 +486,11 @@ class AuthController extends Controller
 
         Auth::login($user, true);
         $request->session()->regenerate();
-        $this->cartService->mergeSessionCartToDb();
 
         return response()->json([
             'success' => true,
             'message' => 'Đăng nhập thành công!',
-            'redirect' => route('home')
+            'redirect' => $user->isAdmin() ? route('admin.dashboard') : route('home')
         ]);
     }
 }

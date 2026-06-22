@@ -5,12 +5,12 @@
 @section('page-subtitle', 'Tổng quan hệ thống')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-5">
 
     {{-- Dòng 1: Thống kê 4 thẻ --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {{-- Doanh thu --}}
-        <div class="relative overflow-hidden rounded-2xl border border-white/5 bg-[#0f1423] shadow-lg shadow-black/20">
+        <div class="relative min-h-40 overflow-hidden rounded-2xl border border-blue-400/10 bg-[#081321] shadow-lg shadow-black/20">
             <div class="p-5 pb-8">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">DOANH THU HÔM NAY</span>
@@ -36,7 +36,7 @@
         </div>
 
         {{-- Đơn hàng --}}
-        <div class="relative overflow-hidden rounded-2xl border border-white/5 bg-[#0f1423] shadow-lg shadow-black/20">
+        <div class="relative min-h-40 overflow-hidden rounded-2xl border border-violet-400/10 bg-[#081321] shadow-lg shadow-black/20">
             <div class="p-5 pb-8">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">ĐƠN HÀNG</span>
@@ -62,7 +62,7 @@
         </div>
 
         {{-- Sản phẩm --}}
-        <div class="relative overflow-hidden rounded-2xl border border-white/5 bg-[#0f1423] shadow-lg shadow-black/20">
+        <div class="relative min-h-40 overflow-hidden rounded-2xl border border-cyan-400/10 bg-[#081321] shadow-lg shadow-black/20">
             <div class="p-5 pb-8">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">SẢN PHẨM</span>
@@ -88,7 +88,7 @@
         </div>
 
         {{-- Khách hàng --}}
-        <div class="relative overflow-hidden rounded-2xl border border-white/5 bg-[#0f1423] shadow-lg shadow-black/20">
+        <div class="relative min-h-40 overflow-hidden rounded-2xl border border-amber-400/10 bg-[#081321] shadow-lg shadow-black/20">
             <div class="p-5 pb-8">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">KHÁCH HÀNG</span>
@@ -115,10 +115,10 @@
     </div>
 
     {{-- Dòng 2: Doanh thu (Area Chart) & Đơn hàng gần đây --}}
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-5">
         
         {{-- Biểu đồ Doanh thu --}}
-        <div class="rounded-2xl border border-white/5 bg-[#0f1423] p-5 shadow-lg shadow-black/20 lg:col-span-2 flex flex-col">
+        <div class="flex min-h-[350px] flex-col rounded-2xl border border-blue-400/10 bg-[#081321] p-5 shadow-lg shadow-black/20 xl:col-span-2">
             <div class="mb-4 flex items-center justify-between">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">DOANH THU</span>
                 <select class="rounded border border-white/10 bg-transparent px-2 py-1 text-xs text-gray-300 focus:outline-none">
@@ -141,7 +141,7 @@
         </div>
 
         {{-- Đơn hàng gần đây --}}
-        <div class="rounded-2xl border border-white/5 bg-[#0f1423] p-5 shadow-lg shadow-black/20 lg:col-span-3">
+        <div class="rounded-2xl border border-blue-400/10 bg-[#081321] p-5 shadow-lg shadow-black/20 xl:col-span-3">
             <div class="mb-4 flex items-center justify-between">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">ĐƠN HÀNG GẦN ĐÂY</span>
                 <a href="{{ route('admin.dashboard' ?? '#') }}" class="text-[11px] font-semibold text-blue-400 hover:text-blue-300">Xem tất cả <svg class="inline-block size-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></a>
@@ -216,10 +216,10 @@
     </div>
 
     {{-- Dòng 3: Sản phẩm bán chạy, Tồn kho thấp, Thống kê danh mục --}}
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
         
         {{-- Sản phẩm bán chạy --}}
-        <div class="rounded-2xl border border-white/5 bg-[#0f1423] p-5 shadow-lg shadow-black/20 flex flex-col">
+        <div class="flex min-h-72 flex-col rounded-2xl border border-blue-400/10 bg-[#081321] p-5 shadow-lg shadow-black/20">
             <div class="mb-4 flex items-center justify-between">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">SẢN PHẨM BÁN CHẠY</span>
                 <a href="{{ route('admin.products.index') }}" class="text-[11px] font-semibold text-blue-400 hover:text-blue-300">Xem tất cả <svg class="inline-block size-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></a>
@@ -239,8 +239,13 @@
                     <div class="flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold {{ $rankColor }}">
                         {{ $index + 1 }}
                     </div>
-                    <div class="size-7 shrink-0 rounded bg-white/5 flex items-center justify-center">
-                         <svg class="size-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    @php
+                        $thumbnail = $product->thumbnail
+                            ? (str_starts_with($product->thumbnail, '/images/') ? asset(ltrim($product->thumbnail, '/')) : asset('storage/' . ltrim($product->thumbnail, '/')))
+                            : null;
+                    @endphp
+                    <div class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.06] bg-white/5">
+                        @if($thumbnail)<img src="{{ $thumbnail }}" alt="{{ $product->name }}" class="size-full object-contain p-0.5">@else<svg class="size-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/></svg>@endif
                     </div>
                     <div class="flex-1 min-w-0 pr-2">
                         <p class="text-[11px] text-gray-300 line-clamp-1 mb-1">{{ $product->name }}</p>
@@ -258,7 +263,7 @@
         </div>
 
         {{-- Tồn kho thấp --}}
-        <div class="rounded-2xl border border-white/5 bg-[#0f1423] p-5 shadow-lg shadow-black/20 flex flex-col">
+        <div class="flex min-h-72 flex-col rounded-2xl border border-blue-400/10 bg-[#081321] p-5 shadow-lg shadow-black/20">
             <div class="mb-4 flex items-center justify-between">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">TỒN KHO THẤP</span>
                 <a href="#" class="text-[11px] font-semibold text-blue-400 hover:text-blue-300">Xem tất cả <svg class="inline-block size-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></a>
@@ -266,8 +271,13 @@
             <div class="space-y-4 mt-2 flex-1">
                 @foreach($lowStock as $inventory)
                 <div class="flex items-center gap-3">
-                    <div class="size-7 shrink-0 rounded bg-white/5 flex items-center justify-center">
-                         <svg class="size-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    @php
+                        $stockThumbnail = $inventory->product?->thumbnail
+                            ? (str_starts_with($inventory->product->thumbnail, '/images/') ? asset(ltrim($inventory->product->thumbnail, '/')) : asset('storage/' . ltrim($inventory->product->thumbnail, '/')))
+                            : null;
+                    @endphp
+                    <div class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.06] bg-white/5">
+                        @if($stockThumbnail)<img src="{{ $stockThumbnail }}" alt="{{ $inventory->product->name ?? 'Sản phẩm' }}" class="size-full object-contain p-0.5">@else<svg class="size-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/></svg>@endif
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-[11px] text-gray-300 line-clamp-1">{{ $inventory->product->name ?? 'Sản phẩm' }}</p>
@@ -282,7 +292,7 @@
         </div>
 
         {{-- Thống kê theo danh mục --}}
-        <div class="rounded-2xl border border-white/5 bg-[#0f1423] p-5 shadow-lg shadow-black/20 flex flex-col">
+        <div class="flex min-h-72 flex-col rounded-2xl border border-blue-400/10 bg-[#081321] p-5 shadow-lg shadow-black/20">
             <div class="mb-4">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">THỐNG KÊ THEO DANH MỤC</span>
             </div>

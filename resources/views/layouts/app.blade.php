@@ -43,11 +43,12 @@
         <div class="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:h-[68px] lg:gap-8">
 
             {{-- Logo --}}
-            <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2.5">
-                <span class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white shadow-lg shadow-brand-600/30">N</span>
-                <span class="hidden text-lg font-extrabold tracking-tight sm:block">
-                    Nova<span class="text-brand-500">Phone</span>
-                </span>
+            <a href="{{ route('home') }}" class="flex shrink-0 items-center" aria-label="NovaPhone - Trang chủ">
+                <img
+                    src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                    alt="NovaPhone"
+                    class="h-11 w-auto max-w-[180px] object-contain sm:h-12"
+                >
             </a>
 
             {{-- Ô tìm kiếm trung tâm --}}
@@ -156,7 +157,7 @@
                                 Tất cả sản phẩm
                                 <span class="text-xs text-gray-500">→</span>
                             </a>
-                            @foreach ($categoryLinks as $cat)
+                            @foreach (($categoryLinks ?? []) as $cat)
                                 <a href="{{ $cat['href'] }}" class="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-300 transition-colors duration-200 hover:bg-white/5 hover:text-white">
                                     {{ $cat['label'] }}
                                     <span class="text-xs text-gray-600">→</span>
@@ -165,14 +166,8 @@
                         </div>
                     </div>
                 </div>
-                @foreach ($categoryLinks as $cat)
+                @foreach (($categoryLinks ?? []) as $cat)
                     <a href="{{ $cat['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
-                <button class="mr-2 flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:bg-brand-500">
-                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-                    Danh mục
-                </button>
-                @foreach (['iPhone', 'Samsung', 'Xiaomi', 'OPPO', 'Vivo', 'Realme', 'Flagship', 'Phụ kiện'] as $cat)
-                    <a href="#" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat }}</a
                 @endforeach
                 <a href="#flash-sale" class="rounded-lg px-3.5 py-1.5 text-xs font-bold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
                 <a href="#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
@@ -181,9 +176,11 @@
 
         {{-- Menu mobile --}}
         <div data-mobile-menu class="hidden border-t border-white/5 bg-night px-4 pb-4 pt-2 lg:hidden">
-            @foreach (['iPhone', 'Samsung', 'Xiaomi', 'OPPO', 'Vivo', 'Realme', 'Flagship', 'Phụ kiện', 'Khuyến mãi', 'Tin công nghệ'] as $cat)
-                <a href="#" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat }}</a>
+            @foreach (($categoryLinks ?? []) as $cat)
+                <a href="{{ $cat['href'] }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
             @endforeach
+            <a href="#flash-sale" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
+            <a href="#tech-journal" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
         </div>
     </header>
 
@@ -198,12 +195,12 @@
 
             {{-- Cột 1: Giới thiệu --}}
             <div class="lg:col-span-2 lg:pr-10">
-                <a href="{{ route('home') }}" class="mb-4 flex items-center gap-2.5">
-                    <span class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white">N</span>
-                    <span>
-                        <span class="block text-lg font-extrabold leading-tight tracking-tight">Nova<span class="text-brand-500">Phone</span></span>
-                        <span class="block text-[10px] font-medium uppercase tracking-widest text-gray-500">Premium Mobile Experience</span>
-                    </span>
+                <a href="{{ route('home') }}" class="mb-4 inline-flex" aria-label="NovaPhone - Trang chủ">
+                    <img
+                        src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                        alt="NovaPhone"
+                        class="h-14 w-auto max-w-[210px] object-contain"
+                    >
                 </a>
                 <p class="text-sm leading-relaxed text-gray-400">
                     NovaPhone — Hệ thống bán lẻ điện thoại, máy tính bảng và phụ kiện chính hãng. Cam kết sản phẩm chất lượng, giá tốt nhất thị trường và dịch vụ hậu mãi tận tâm.

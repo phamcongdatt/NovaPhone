@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -28,12 +30,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'status',
         'password',
-<<<<<<< HEAD
         'google_id',
-=======
         'provider',
         'provider_id',
->>>>>>> vin_dev
     ];
 
     protected $hidden = [
@@ -45,10 +44,17 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            // Removed 'hashed' cast for password to prevent double hashing during seeding.
-            // Password will be hashed manually via Hash::make or automatically via Auth.
-
+            // Cast "hashed" tự động hash password khi gán -> không cần Hash::make() thủ công.
+            'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Gửi mail xác thực email qua queue (chạy nền) thay vì gửi đồng bộ.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(app()->runningUnitTests() ? new VerifyEmail : new QueuedVerifyEmail);
     }
 
     public function isAdmin(): bool
