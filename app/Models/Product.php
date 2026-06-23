@@ -64,6 +64,11 @@ class Product extends Model
         return $this->hasOne(Inventory::class)->whereNull('variant_id');
     }
 
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class);
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

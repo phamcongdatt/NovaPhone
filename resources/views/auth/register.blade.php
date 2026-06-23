@@ -237,14 +237,10 @@
                     </div>
 
                     {{-- Social --}}
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" class="social-btn flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm text-slate-200">
+                    <div class="grid grid-cols-1 gap-3">
+                        <button type="button" onclick="handleSocialLogin('google')" class="social-btn flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm text-slate-200 cursor-pointer">
                             <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.9 3.4 14.7 2.4 12 2.4 6.9 2.4 2.8 6.5 2.8 11.6S6.9 20.8 12 20.8c5.3 0 8.8-3.7 8.8-9 0-.6-.1-1.1-.2-1.6H12z"/></svg>
-                            Google
-                        </button>
-                        <button type="button" class="social-btn flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm text-slate-200">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#1877F2" d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7C18.3 21.1 22 17 22 12z"/></svg>
-                            Facebook
+                            Đăng ký với Google
                         </button>
                     </div>
 
@@ -264,7 +260,7 @@
 
                     {{-- Ảnh điện thoại với hiệu ứng phát sáng --}}
                     <div class="phone-glow relative flex-1 flex items-center justify-center my-6">
-                        <img src="{{ asset('storage/phones.png') }}" alt="NovaPhone"
+                        <img src="{{ asset('images/phones.png') }}" alt="NovaPhone"
                              class="relative z-10 max-h-72 w-auto object-contain drop-shadow-2xl">
                     </div>
 
@@ -331,5 +327,146 @@
             text.className   = 'text-xs mt-0.5 ' + level.textColor;
         }
     </script>
+
+    <script>
+        let currentProvider = '';
+
+        const GOOGLE_SVG = `<svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.9 3.4 14.7 2.4 12 2.4 6.9 2.4 2.8 6.5 2.8 11.6S6.9 20.8 12 20.8c5.3 0 8.8-3.7 8.8-9 0-.6-.1-1.1-.2-1.6H12z"/></svg>`;
+
+        function handleSocialLogin(provider) {
+            const isConfigured = {
+                google: {{ config('services.google.client_id') ? 'true' : 'false' }}
+            };
+
+            if (isConfigured[provider]) {
+                window.location.href = `/auth/${provider}/redirect`;
+            } else {
+                currentProvider = provider;
+                document.getElementById('modal-provider-name').textContent = 'Google';
+                document.getElementById('modal-provider-icon').innerHTML = GOOGLE_SVG;
+                
+                const modal = document.getElementById('social-mock-modal');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                }, 50);
+            }
+        }
+
+        function closeSocialMockModal() {
+            const modal = document.getElementById('social-mock-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function selectMockAccount(name, email) {
+            submitMockLogin(name, email);
+        }
+
+        function submitCustomMock() {
+            const name = document.getElementById('mock-custom-name').value.trim();
+            const email = document.getElementById('mock-custom-email').value.trim();
+            if (!name || !email) {
+                alert('Vui lòng điền họ tên và email giả lập.');
+                return;
+            }
+            submitMockLogin(name, email);
+        }
+
+        function submitMockLogin(name, email) {
+            const csrfToken = '{{ csrf_token() }}';
+            
+            fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    provider: currentProvider,
+                    provider_id: 'mock_' + currentProvider + '_' + Math.random().toString(36).substr(2, 9),
+                    email: email,
+                    name: name,
+                    avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=' + encodeURIComponent(name)
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.message || 'Đăng nhập thất bại.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Có lỗi mạng xảy ra khi đăng nhập.');
+            });
+        }
+    </script>
+
+    <!-- Social Quick Login Modal -->
+    <div id="social-mock-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md hidden transition-all duration-300 opacity-0">
+        <div class="relative w-full max-w-sm overflow-hidden rounded-3xl border border-white/10 bg-[#0c0c14]/95 p-6 shadow-2xl shadow-indigo-500/10">
+            <!-- Close Button -->
+            <button onclick="closeSocialMockModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white transition cursor-pointer">
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <div class="text-center mb-6">
+                <span id="modal-provider-icon" class="inline-flex size-12 items-center justify-center rounded-2xl bg-white/5 mb-3 text-slate-200">
+                    <!-- SVG Icon will be inserted here dynamically -->
+                </span>
+                <h3 class="text-lg font-bold text-white">Giả lập Đăng nhập <span id="modal-provider-name">Google</span></h3>
+                <p class="text-xs text-slate-400 mt-1">Hệ thống đang chạy ở local. Hãy chọn hoặc nhập tài khoản giả lập để đăng nhập nhanh.</p>
+            </div>
+
+            <!-- Predefined Accounts -->
+            <div class="space-y-2.5 mb-5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Tài khoản có sẵn:</span>
+                
+                <button onclick="selectMockAccount('Nguyễn Văn A', 'user@novaphone.vn')" class="w-full flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-left text-xs transition hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer">
+                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=A" class="size-8 rounded-lg bg-indigo-500/20" alt="Avatar">
+                    <div>
+                        <span class="block font-semibold text-white">Nguyễn Văn A</span>
+                        <span class="block text-[10px] text-slate-400">user@novaphone.vn (Mặc định)</span>
+                    </div>
+                </button>
+
+                <button onclick="selectMockAccount('Trần Minh Quân', 'quan.tm@gmail.com')" class="w-full flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-left text-xs transition hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer">
+                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Quan" class="size-8 rounded-lg bg-indigo-500/20" alt="Avatar">
+                    <div>
+                        <span class="block font-semibold text-white">Trần Minh Quân</span>
+                        <span class="block text-[10px] text-slate-400">quan.tm@gmail.com</span>
+                    </div>
+                </button>
+                
+                <button onclick="selectMockAccount('Lê Thị Mai', 'mai.lt@gmail.com')" class="w-full flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-left text-xs transition hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer">
+                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Mai" class="size-8 rounded-lg bg-indigo-500/20" alt="Avatar">
+                    <div>
+                        <span class="block font-semibold text-white">Lê Thị Mai</span>
+                        <span class="block text-[10px] text-slate-400">mai.lt@gmail.com</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Custom Account Form -->
+            <div class="space-y-3 pt-3 border-t border-white/10">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Hoặc tự nhập thông tin:</span>
+                <div>
+                    <input type="text" id="mock-custom-name" placeholder="Họ và tên giả lập" class="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-xs text-white outline-none focus:border-indigo-500">
+                </div>
+                <div class="flex gap-2">
+                    <input type="email" id="mock-custom-email" placeholder="Email giả lập" class="flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-xs text-white outline-none focus:border-indigo-500">
+                    <button onclick="submitCustomMock()" class="rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 text-xs font-bold text-white hover:brightness-110 transition cursor-pointer">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

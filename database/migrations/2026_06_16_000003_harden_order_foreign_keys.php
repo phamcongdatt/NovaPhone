@@ -4,6 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     /**
@@ -14,37 +16,41 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropForeign('orders_user_id_foreign');
-            $table->foreign('user_id')->references('id')->on('users')->restrictOnDelete();
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->dropForeign('orders_user_id_foreign');
+                $table->foreign('user_id')->references('id')->on('users')->restrictOnDelete();
+            });
 
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->dropForeign('order_items_product_id_foreign');
-            $table->foreign('product_id')->references('id')->on('products')->restrictOnDelete();
-        });
+            Schema::table('order_items', function (Blueprint $table) {
+                $table->dropForeign('order_items_product_id_foreign');
+                $table->foreign('product_id')->references('id')->on('products')->restrictOnDelete();
+            });
 
-        Schema::table('order_status_histories', function (Blueprint $table) {
-            $table->dropForeign('order_status_histories_created_by_foreign');
-            $table->foreign('created_by')->references('id')->on('users')->restrictOnDelete();
-        });
+            Schema::table('order_status_histories', function (Blueprint $table) {
+                $table->dropForeign('order_status_histories_created_by_foreign');
+                $table->foreign('created_by')->references('id')->on('users')->restrictOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropForeign('orders_user_id_foreign');
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->dropForeign('orders_user_id_foreign');
+                $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            });
 
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->dropForeign('order_items_product_id_foreign');
-            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
-        });
+            Schema::table('order_items', function (Blueprint $table) {
+                $table->dropForeign('order_items_product_id_foreign');
+                $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
+            });
 
-        Schema::table('order_status_histories', function (Blueprint $table) {
-            $table->dropForeign('order_status_histories_created_by_foreign');
-            $table->foreign('created_by')->references('id')->on('users')->cascadeOnDelete();
-        });
+            Schema::table('order_status_histories', function (Blueprint $table) {
+                $table->dropForeign('order_status_histories_created_by_foreign');
+                $table->foreign('created_by')->references('id')->on('users')->cascadeOnDelete();
+            });
+        }
     }
 };

@@ -21,6 +21,8 @@ return new class extends Migration
             $table->enum('status', ['active', 'blocked'])->default('active');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('reset_token')->nullable();
+            $table->timestamp('reset_token_expires_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
