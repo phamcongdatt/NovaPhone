@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
-use APP\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
