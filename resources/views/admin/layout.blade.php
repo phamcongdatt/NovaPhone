@@ -39,9 +39,12 @@
                 <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5h7l2 2h9v9.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7.5Zm0 0V5a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v2.5"/></svg>
                 <span class="flex-1">Danh mục</span><span class="text-slate-600">›</span>
             </a>
+            <a href="{{ route('admin.users.index') }}" class="{{ $navItem }} {{ request()->routeIs('admin.users.*') ? $navActive : $navIdle }}">
+                <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span class="flex-1">Khách hàng</span><span class="text-slate-600">›</span>
+            </a>
             @foreach ([
                 ['Đơn hàng', 'M3 5h18l-2 16H5L3 5Zm4 0a5 5 0 0 1 10 0'],
-                ['Khách hàng', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'],
                 ['Banner', 'M3 5h18v14H3V5Zm0 10 5-5 4 4 3-3 6 6M16 9h.01'],
                 ['Khuyến mãi', 'm20 12-8 8-9-9V3h8l9 9ZM7.5 7.5h.01'],
                 ['Tin công nghệ', 'M4 4h16v16H4V4Zm4 4h8M8 12h8M8 16h5'],

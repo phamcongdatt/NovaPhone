@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
@@ -126,8 +127,15 @@ Route::middleware(['auth', 'admin'])
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
 
-        // Bình luận / đánh giá
+        // Người dùng / Khách hàng (xem danh sách, chi tiết, khóa/mở khóa)
+        Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::patch('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])
+            ->name('users.toggle-status');
+
+       /* // Bình luận / đánh giá
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+        */
     });
