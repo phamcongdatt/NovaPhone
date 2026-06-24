@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -29,6 +30,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'status',
         'password',
+        'google_id',
+        'provider',
+        'provider_id',
     ];
 
     protected $hidden = [
@@ -50,7 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new QueuedVerifyEmail);
+        $this->notify(app()->runningUnitTests() ? new VerifyEmail : new QueuedVerifyEmail);
     }
 
     public function isAdmin(): bool

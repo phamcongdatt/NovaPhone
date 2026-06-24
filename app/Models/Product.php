@@ -34,6 +34,11 @@ class Product extends Model
         return (float) ($this->sale_price ?? $this->price);
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
@@ -54,17 +59,11 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class);
     }
 
-    /**
-     * Tồn kho của riêng sản phẩm (không có biến thể).
-     */
     public function inventory(): HasOne
     {
         return $this->hasOne(Inventory::class)->whereNull('variant_id');
     }
 
-    /**
-     * Tất cả dòng tồn kho (gốc + từng biến thể) — dùng để tính tổng tồn kho.
-     */
     public function inventories(): HasMany
     {
         return $this->hasMany(Inventory::class);

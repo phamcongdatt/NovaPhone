@@ -77,4 +77,60 @@ class LoginTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_social_login_post_success(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([
+            \Illuminate\Auth\Events\Registered::class,
+        ]);
+
+        $this->postJson('/auth/login', [
+            'provider' => 'google',
+            'provider_id' => 'mock_google_123',
+            'email' => 'google.user@gmail.com',
+            'name' => 'Google User',
+            'avatar' => 'https://example.com/avatar.jpg',
+        ])->assertOk()
+          ->assertJson([
+              'success' => true,
+              'message' => 'Đăng nhập thành công!',
+              'redirect' => route('home')
+          ]);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'google.user@gmail.com',
+            'provider' => 'google',
+            'provider_id' => 'mock_google_123',
+        ]);
+
+        $this->assertAuthenticated();
+    }
+
+    public function test_social_login_post_existing_user(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([
+            \Illuminate\Auth\Events\Registered::class,
+        ]);
+
+        $user = User::factory()->create([
+            'email' => 'existing@gmail.com',
+            'name' => 'Existing User',
+        ]);
+
+        $this->postJson('/auth/login', [
+            'provider' => 'facebook',
+            'provider_id' => 'mock_facebook_456',
+            'email' => 'existing@gmail.com',
+            'name' => 'Facebook User',
+            'avatar' => 'https://example.com/fb.jpg',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'existing@gmail.com',
+            'provider' => 'facebook',
+            'provider_id' => 'mock_facebook_456',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+    }
 }
