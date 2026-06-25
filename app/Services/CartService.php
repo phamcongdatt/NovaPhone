@@ -53,8 +53,8 @@ class CartService
             $mockItem = new CartItem([
                 'product_id' => $item['product_id'],
                 'variant_id' => $item['variant_id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
+                'quantity'   => $item['quantity'],
+                'price'      => $item['price'],
             ]);
 
             // Thiết lập quan hệ ảo
@@ -108,11 +108,11 @@ class CartService
                 $cartItem->update(['quantity' => $newQty]);
             } else {
                 $cartItem = CartItem::create([
-                    'cart_id' => $cart->id,
+                    'cart_id'    => $cart->id,
                     'product_id' => $productId,
                     'variant_id' => $variantId,
-                    'quantity' => $quantity,
-                    'price' => $price,
+                    'quantity'   => $quantity,
+                    'price'      => $price,
                 ]);
             }
 
@@ -133,8 +133,8 @@ class CartService
             $sessionCart[$key] = [
                 'product_id' => $productId,
                 'variant_id' => $variantId,
-                'quantity' => $quantity,
-                'price' => $price,
+                'quantity'   => $quantity,
+                'price'      => $price,
             ];
         }
 
@@ -180,8 +180,8 @@ class CartService
         }
 
         $itemData = $sessionCart[$itemIdOrKey];
-        $product = Product::findOrFail($itemData['product_id']);
-        $variant = $itemData['variant_id'] ? ProductVariant::findOrFail($itemData['variant_id']) : null;
+        $product  = Product::findOrFail($itemData['product_id']);
+        $variant  = $itemData['variant_id'] ? ProductVariant::findOrFail($itemData['variant_id']) : null;
 
         $availableQuantity = $this->getAvailableStock($product, $variant);
         if ($availableQuantity < $quantity) {
@@ -272,7 +272,6 @@ class CartService
             try {
                 $this->add($item['product_id'], $item['variant_id'], $item['quantity']);
             } catch (Exception $e) {
-                // Bỏ qua nếu có lỗi tồn kho khi merge, tránh làm gián đoạn đăng nhập
                 continue;
             }
         }
