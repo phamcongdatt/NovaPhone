@@ -113,7 +113,8 @@
                         {{-- Dropdown menu --}}
                         <div class="invisible absolute right-0 top-full mt-1 w-48 opacity-0 transition-all duration-200 ease-in-out group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-50">
                             <div class="rounded-xl border border-white/10 bg-night-soft py-2 shadow-2xl shadow-black/50">
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
+                                <a href="{{ route('account.show') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Tài khoản của tôi</a>
+                                <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
                                 <a href="{{ route('password.change') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Đổi mật khẩu</a>
                                 <div class="my-1 border-t border-white/5"></div>
                                 <form action="{{ route('logout') }}" method="POST" class="block w-full">

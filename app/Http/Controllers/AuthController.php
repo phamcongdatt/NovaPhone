@@ -160,20 +160,20 @@ class AuthController extends Controller
     {
         $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'confirmed', 'different:current_password'],
         ], [
             'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại.',
             'current_password.current_password' => 'Mật khẩu hiện tại không đúng.',
             'password.required' => 'Vui lòng nhập mật khẩu mới.',
             'password.min' => 'Mật khẩu mới phải có ít nhất 8 ký tự.',
             'password.confirmed' => 'Xác nhận mật khẩu mới không khớp.',
+            'password.different' => 'Mật khẩu mới phải khác mật khẩu hiện tại.',
         ]);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        
         $user->update([
-            'password' => $request->password,
+            'password' => Hash::make($request->password), // Đảm bảo bcrypt MK mới
         ]);
 
         return back()->with('status', 'Đổi mật khẩu thành công!');
