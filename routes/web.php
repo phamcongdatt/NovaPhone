@@ -15,6 +15,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductDetailController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +72,12 @@ Route::middleware('auth')->group(function () {
 Route::get('/account', [AccountController::class, 'show'])
     ->middleware('auth')
     ->name('account.show');
+
+// ---------- Profile ----------
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 // ---------- Cart Routes ----------
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
