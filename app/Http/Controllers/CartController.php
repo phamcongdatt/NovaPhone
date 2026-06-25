@@ -100,6 +100,14 @@ class CartController extends Controller
      * Xóa sản phẩm khỏi giỏ hàng.
      */
     public function destroy(Request $request, $idOrKey)
+
+
+
+
+
+
+
+    
     {
         try {
             $this->cartService->remove($idOrKey);
