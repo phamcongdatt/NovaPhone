@@ -82,7 +82,7 @@
                     <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
                 </a>
                 {{-- Giỏ hàng --}}
-                <a href="#" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                <a href="{{ route('cart.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                     <span class="relative">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.36-1.62 1.26 12a1.13 1.13 0 0 1-1.12 1.24H4.25a1.13 1.13 0 0 1-1.12-1.24l1.26-12A1.13 1.13 0 0 1 5.51 7.88h12.98c.58 0 1.06.43 1.12 1Z"/></svg>
                         <span class="absolute -right-2 -top-1.5 flex size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">2</span>
