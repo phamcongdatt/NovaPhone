@@ -87,11 +87,15 @@ Route::patch('/cart/update/{item}', [CartController::class, 'update'])->name('ca
 Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
 
 // ---------- Checkout Routes ----------
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-Route::post('/checkout/place-order', [CheckoutController::class, 'store'])->name('checkout.place-order');
-Route::get('/checkout/payment-gateway/{order}', [CheckoutController::class, 'paymentGateway'])->name('checkout.payment-gateway');
-Route::post('/checkout/payment-process/{order}', [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
-Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::middleware('auth')->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
+    Route::get('/checkout/payment-gateway/{order}', [CheckoutController::class, 'paymentGateway'])->name('checkout.payment-gateway');
+    Route::post('/checkout/payment-process/{order}', [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
+    Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+});
 
 // ---------- Orders Routes ----------
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');

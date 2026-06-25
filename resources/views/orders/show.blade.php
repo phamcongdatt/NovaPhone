@@ -7,10 +7,10 @@
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').'đ';
     
     $statusSteps = [
-        ['status' => 'pending', 'label' => 'Đặt hàng thành công', 'desc' => 'Đơn hàng đang chờ xác nhận'],
-        ['status' => 'confirmed', 'label' => 'Đã xác nhận', 'desc' => 'Đơn hàng đang được chuẩn bị'],
-        ['status' => 'shipping', 'label' => 'Đang giao hàng', 'desc' => 'Đơn hàng đang được vận chuyển'],
-        ['status' => 'delivered', 'label' => 'Giao hàng thành công', 'desc' => 'Đơn hàng đã được giao nhận'],
+        ['status' => 'pending', 'label' => 'Đã đặt', 'desc' => 'Đơn hàng đã được tiếp nhận'],
+        ['status' => 'confirmed', 'label' => 'Đã xác nhận', 'desc' => 'Đơn hàng đang được xác nhận'],
+        ['status' => 'shipping', 'label' => 'Đang giao', 'desc' => 'Đơn hàng đang được giao tới bạn'],
+        ['status' => 'delivered', 'label' => 'Hoàn thành', 'desc' => 'Đơn hàng đã được giao thành công'],
     ];
 
     $currentStep = match ($order->status) {
@@ -47,12 +47,23 @@
                 <h1 class="text-3xl font-black text-white tracking-tight">Chi tiết đơn hàng</h1>
                 <p class="text-sm text-gray-500 mt-1">Đặt ngày {{ $order->created_at->format('H:i d/m/Y') }}</p>
             </div>
-            <a href="{{ route('orders.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-brand-400 hover:text-brand-300 transition-colors">
-                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                </svg>
-                Quay lại danh sách
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                @if ($order->status === 'pending')
+                    <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                        @csrf
+                        <button type="submit" class="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm font-bold text-red-300 transition hover:bg-red-500/20 hover:text-red-100">
+                            Hủy đơn
+                        </button>
+                    </form>
+                @endif
+
+                <a href="{{ route('orders.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-brand-400 hover:text-brand-300 transition-colors">
+                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                    Quay lại danh sách
+                </a>
+            </div>
         </div>
 
         {{-- Sơ đồ Timeline hành trình đơn hàng --}}

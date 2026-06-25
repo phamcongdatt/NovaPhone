@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\CartService;
@@ -16,6 +17,7 @@ class CheckoutController extends Controller
 
     public function __construct(CartService $cartService)
     {
+        $this->middleware('auth');
         $this->cartService = $cartService;
     }
 
@@ -42,18 +44,8 @@ class CheckoutController extends Controller
     /**
      * Xử lý đặt hàng.
      */
-    public function store(Request $request)
+    public function store(CheckoutRequest $request)
     {
-        $request->validate([
-            'shipping_full_name' => 'required|string|max:255',
-            'shipping_phone' => 'required|string|max:15',
-            'shipping_province' => 'required|string|max:255',
-            'shipping_district' => 'required|string|max:255',
-            'shipping_ward' => 'required|string|max:255',
-            'shipping_address' => 'required|string|max:255',
-            'payment_method' => 'required|in:cod,momo,vnpay',
-            'note' => 'nullable|string',
-        ]);
 
         $items = $this->cartService->getItems();
         if ($items->isEmpty()) {
