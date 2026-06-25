@@ -79,8 +79,9 @@
                                 id="quantity-input-{{ $item->id }}"
                                 value="{{ $item->quantity }}" 
                                 min="1" 
-                                readonly
-                                class="w-10 text-center bg-transparent border-0 text-sm font-bold text-white focus:ring-0 select-none pointer-events-none"
+                                onchange="updateQuantity('{{ $item->id }}', this.value, true)"
+                                onkeydown="if(event.key === 'Enter') this.blur();"
+                                class="w-10 text-center bg-transparent border-0 text-sm font-bold text-white focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             >
                             <button 
                                 type="button" 
@@ -197,12 +198,15 @@
         }, 3000);
     }
 
-    function updateQuantity(itemId, change) {
+    function updateQuantity(itemId, changeOrQty, isDirect = false) {
         const input = document.getElementById(`quantity-input-${itemId}`);
-        const currentQty = parseInt(input.value);
-        const newQty = currentQty + change;
+        const currentQty = parseInt(input.value) || 1;
+        let newQty = isDirect ? parseInt(changeOrQty) : (currentQty + changeOrQty);
         
-        if (newQty < 1) return;
+        if (isNaN(newQty) || newQty < 1) {
+            newQty = 1;
+            input.value = 1;
+        }
 
         // Gọi AJAX cập nhật
         fetch(`/cart/update/${itemId}`, {
@@ -229,11 +233,17 @@
                 showToast('Đã cập nhật số lượng thành công!');
             } else {
                 showToast(data.message || 'Có lỗi xảy ra', 'error');
+                if (data.item_quantity) {
+                    input.value = data.item_quantity;
+                } else {
+                    input.value = currentQty;
+                }
             }
         })
         .catch(err => {
             console.error(err);
             showToast('Không thể kết nối đến máy chủ.', 'error');
+            input.value = currentQty;
         });
     }
 
