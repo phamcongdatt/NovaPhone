@@ -141,17 +141,18 @@ Route::middleware(['auth', 'admin'])
         Route::patch('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])
             ->name('users.toggle-status');
 
-        // Đơn hàng (xem danh sách, chi tiết, xác nhận/cập nhật trạng thái, hủy)
-        Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
-        Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
-            ->name('orders.update-status');
-        Route::patch('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])
-            ->name('orders.cancel');
+        // Thống kê đơn hàng (đặt TRƯỚC {order} để tránh conflict)
+ Route::get('orders/statistics', [App\Http\Controllers\Admin\OrderStatisticsController::class, 'index'])->name('orders.statistics');
+ // Đơn hàng (xem danh sách, chi tiết, xác nhận/cập nhật trạng thái, hủy)
+ Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
+ Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+ Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
+ ->name('orders.update-status');
+ Route::patch('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])
+ ->name('orders.cancel');
 
-       /* // Bình luận / đánh giá
-        Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
-        Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
-        Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-        */
-    });
+ /* // Bình luận / đánh giá
+ Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+ Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
+ Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+*/   });
