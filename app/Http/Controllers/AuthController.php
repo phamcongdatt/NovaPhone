@@ -138,7 +138,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-        
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -194,16 +194,16 @@ class AuthController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-            
+
             // Tìm user đã có google_id này hoặc email này
             $user = User::where('google_id', $googleUser->id)->orWhere('email', $googleUser->email)->first();
-            
+
             if ($user) {
                 // Nếu user tồn tại (đăng ký bằng mail trước đó) thì update thêm google_id
                 if (!$user->google_id) {
                     $user->update(['google_id' => $googleUser->id]);
                 }
-                
+
                 // Kiểm tra tài khoản có bị chặn không
                 if ($user->isBlocked()) {
                     return redirect('/login')->withErrors(['email' => 'Tài khoản của bạn đang bị khóa.']);
@@ -220,7 +220,7 @@ class AuthController extends Controller
                     'status' => 'active',
                 ]);
             }
-            
+
             Auth::login($user);
 
             if ($user->isAdmin()) {
@@ -228,7 +228,7 @@ class AuthController extends Controller
             }
 
             return redirect()->intended(route('home'));
-            
+
         } catch (\Exception $e) {
             return redirect('/login')->withErrors(['email' => 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.']);
         }
@@ -372,7 +372,7 @@ class AuthController extends Controller
 
         try {
             $socialUser = \Laravel\Socialite\Facades\Socialite::driver($provider)->user();
-            
+
             // Tìm hoặc tạo người dùng
             $user = User::where('provider', $provider)
                 ->where('provider_id', $socialUser->getId())
@@ -400,7 +400,7 @@ class AuthController extends Controller
                         'email_verified_at' => now(), // Đã xác thực qua mạng xã hội
                         'password' => Hash::make(Str::random(24)),
                     ]);
-                    
+
                     event(new Registered($user));
                 }
             }
