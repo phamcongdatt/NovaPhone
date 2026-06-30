@@ -89,9 +89,11 @@ Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('
 // ---------- Checkout Routes ----------
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/place-order', [CheckoutController::class, 'store'])->name('checkout.place-order');
-Route::get('/checkout/payment-gateway/{order}', [CheckoutController::class, 'paymentGateway'])->name('checkout.payment-gateway');
-Route::post('/checkout/payment-process/{order}', [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
 Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+
+// VNPay - cổng thanh toán thật
+Route::get('/checkout/vnpay/create/{order}', [CheckoutController::class, 'vnpayCreate'])->name('checkout.vnpay.create');
+Route::get('/checkout/vnpay/return', [CheckoutController::class, 'vnpayReturn'])->name('checkout.vnpay.return');
 
 // ---------- Orders Routes ----------
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
