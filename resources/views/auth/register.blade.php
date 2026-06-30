@@ -112,14 +112,15 @@
     <div class="w-full max-w-6xl relative z-10">
 
         {{-- Logo --}}
-        <div class="flex items-center gap-2 mb-5">
-            <div class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 shadow-lg shadow-indigo-500/30">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 21h6a2 2 0 002-2V5a2 2 0 00-2-2H9a2 2 0 00-2 2v14a2 2 0 002 2zm3-3h.01"/>
-                </svg>
-            </div>
-            <span class="text-lg font-bold text-white tracking-tight">NovaPhone</span>
-        </div>
+         <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+        <div class="absolute left-1/2 top-[-18rem] size-[40rem] -translate-x-1/2 rounded-full bg-brand-600/15 blur-3xl"></div>
+        <div class="absolute bottom-[-16rem] right-[-10rem] size-[32rem] rounded-full bg-blue-400/10 blur-3xl"></div>
+         </div>
+
+        <div class="">
+        <a href="{{ route('home') }}" class="mx-auto mb-7 flex w-fit items-center justify-center" aria-label="NovaPhone - Trang chủ">
+            <img src="{{ asset('images/brand/nova-phone-logo.png') }}" alt="NovaPhone" class="h-16 w-auto max-w-[240px] object-contain sm:h-[72px]">
+        </a>
 
         {{-- Khung chính với viền phát sáng --}}
         <div class="glow-border">
@@ -344,7 +345,7 @@
                 currentProvider = provider;
                 document.getElementById('modal-provider-name').textContent = 'Google';
                 document.getElementById('modal-provider-icon').innerHTML = GOOGLE_SVG;
-                
+
                 const modal = document.getElementById('social-mock-modal');
                 modal.classList.remove('hidden');
                 setTimeout(() => {
@@ -377,7 +378,7 @@
 
         function submitMockLogin(name, email) {
             const csrfToken = '{{ csrf_token() }}';
-            
+
             fetch('/auth/login', {
                 method: 'POST',
                 headers: {
@@ -429,7 +430,7 @@
             <!-- Predefined Accounts -->
             <div class="space-y-2.5 mb-5">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Tài khoản có sẵn:</span>
-                
+
                 <button onclick="selectMockAccount('Nguyễn Văn A', 'user@novaphone.vn')" class="w-full flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-left text-xs transition hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer">
                     <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=A" class="size-8 rounded-lg bg-indigo-500/20" alt="Avatar">
                     <div>
@@ -445,7 +446,7 @@
                         <span class="block text-[10px] text-slate-400">quan.tm@gmail.com</span>
                     </div>
                 </button>
-                
+
                 <button onclick="selectMockAccount('Lê Thị Mai', 'mai.lt@gmail.com')" class="w-full flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-left text-xs transition hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer">
                     <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Mai" class="size-8 rounded-lg bg-indigo-500/20" alt="Avatar">
                     <div>
