@@ -457,8 +457,12 @@
                 const data = await response.json();
                 if (response.ok) {
                     // Cập nhật giỏ hàng trên header
-                    const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
-                    headerCounts.forEach(el => el.textContent = data.cart_count);
+                    const badge = document.getElementById('cart-count-badge');
+                    if (badge) {
+                        badge.textContent = data.cart_count;
+                        badge.classList.toggle('hidden', !(data.cart_count > 0));
+                        badge.classList.toggle('flex', data.cart_count > 0);
+                    }
                     
                     if (callback) {
                         callback();

@@ -82,10 +82,11 @@
                     <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
                 </a>
                 {{-- Giỏ hàng --}}
-                <a href="#" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                <a href="{{ route('cart.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                     <span class="relative">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.36-1.62 1.26 12a1.13 1.13 0 0 1-1.12 1.24H4.25a1.13 1.13 0 0 1-1.12-1.24l1.26-12A1.13 1.13 0 0 1 5.51 7.88h12.98c.58 0 1.06.43 1.12 1Z"/></svg>
-                        <span class="absolute -right-2 -top-1.5 flex size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">2</span>
+                        <span id="cart-count-badge"
+                              class="absolute -right-2 -top-1.5 {{ ($cartCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $cartCount ?? 0 }}</span>
                     </span>
                     <span class="hidden text-xs font-semibold xl:block">Giỏ hàng</span>
                 </a>
@@ -109,11 +110,12 @@
                                 <span class="block font-semibold text-white truncate max-w-[100px]">{{ explode(' ', Auth::user()->name)[count(explode(' ', Auth::user()->name))-1] }}</span>
                             </span>
                         </button>
-                        
+
                         {{-- Dropdown menu --}}
                         <div class="invisible absolute right-0 top-full mt-1 w-48 opacity-0 transition-all duration-200 ease-in-out group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-50">
                             <div class="rounded-xl border border-white/10 bg-night-soft py-2 shadow-2xl shadow-black/50">
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
+                                <a href="{{ route('account.show') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Tài khoản của tôi</a>
+                                <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
                                 <a href="{{ route('password.change') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Đổi mật khẩu</a>
                                 <div class="my-1 border-t border-white/5"></div>
                                 <form action="{{ route('logout') }}" method="POST" class="block w-full">
@@ -169,7 +171,6 @@
                 @foreach (($categoryLinks ?? []) as $cat)
                     <a href="{{ $cat['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
                 @endforeach
-                <a href="#flash-sale" class="rounded-lg px-3.5 py-1.5 text-xs font-bold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
                 <a href="#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
             </div>
         </nav>
@@ -341,7 +342,7 @@
                         searchResults.classList.add('hidden');
                     }
                 });
-                
+
                 // Hiện lại khi focus vào input nếu đã có giá trị
                 searchInput.addEventListener('focus', function() {
                     if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
@@ -351,5 +352,7 @@
             }
         });
     </script>
+
+    <x-chatbot-widget />
 </body>
 </html>

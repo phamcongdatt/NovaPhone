@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ReviewController;
-use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Api\GeminiChatbotController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
@@ -14,9 +15,12 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductDetailController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -71,6 +75,12 @@ Route::get('/account', [AccountController::class, 'show'])
     ->middleware('auth')
     ->name('account.show');
 
+// ---------- Profile ----------
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
+
 // ---------- Cart Routes ----------
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
@@ -81,9 +91,11 @@ Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('
 // ---------- Checkout Routes ----------
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/place-order', [CheckoutController::class, 'store'])->name('checkout.place-order');
-Route::get('/checkout/payment-gateway/{order}', [CheckoutController::class, 'paymentGateway'])->name('checkout.payment-gateway');
-Route::post('/checkout/payment-process/{order}', [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
 Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+
+// VNPay - cổng thanh toán thật
+Route::get('/checkout/vnpay/create/{order}', [CheckoutController::class, 'vnpayCreate'])->name('checkout.vnpay.create');
+Route::get('/checkout/vnpay/return', [CheckoutController::class, 'vnpayReturn'])->name('checkout.vnpay.return');
 
 // ---------- Orders Routes ----------
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
@@ -133,9 +145,20 @@ Route::middleware(['auth', 'admin'])
         Route::patch('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])
             ->name('users.toggle-status');
 
-       /* // Bình luận / đánh giá
-        Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
-        Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
-        Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-        */
-    });
+        // Thống kê đơn hàng (đặt TRƯỚC {order} để tránh conflict)
+ Route::get('orders/statistics', [App\Http\Controllers\Admin\OrderStatisticsController::class, 'index'])->name('orders.statistics');
+ // Đơn hàng (xem danh sách, chi tiết, xác nhận/cập nhật trạng thái, hủy)
+ Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
+ Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+ Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
+ ->name('orders.update-status');
+ Route::patch('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])
+ ->name('orders.cancel');
+
+ /* // Bình luận / đánh giá
+ Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+ Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
+ Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+*/
+//   GEMMINI CHAT
+});

@@ -138,7 +138,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-        
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -160,20 +160,20 @@ class AuthController extends Controller
     {
         $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'confirmed', 'different:current_password'],
         ], [
             'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại.',
             'current_password.current_password' => 'Mật khẩu hiện tại không đúng.',
             'password.required' => 'Vui lòng nhập mật khẩu mới.',
             'password.min' => 'Mật khẩu mới phải có ít nhất 8 ký tự.',
             'password.confirmed' => 'Xác nhận mật khẩu mới không khớp.',
+            'password.different' => 'Mật khẩu mới phải khác mật khẩu hiện tại.',
         ]);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        
         $user->update([
-            'password' => $request->password,
+            'password' => Hash::make($request->password), // Đảm bảo bcrypt MK mới
         ]);
 
         return back()->with('status', 'Đổi mật khẩu thành công!');
@@ -194,16 +194,16 @@ class AuthController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-            
+
             // Tìm user đã có google_id này hoặc email này
             $user = User::where('google_id', $googleUser->id)->orWhere('email', $googleUser->email)->first();
-            
+
             if ($user) {
                 // Nếu user tồn tại (đăng ký bằng mail trước đó) thì update thêm google_id
                 if (!$user->google_id) {
                     $user->update(['google_id' => $googleUser->id]);
                 }
-                
+
                 // Kiểm tra tài khoản có bị chặn không
                 if ($user->isBlocked()) {
                     return redirect('/login')->withErrors(['email' => 'Tài khoản của bạn đang bị khóa.']);
@@ -220,7 +220,7 @@ class AuthController extends Controller
                     'status' => 'active',
                 ]);
             }
-            
+
             Auth::login($user);
 
             if ($user->isAdmin()) {
@@ -228,7 +228,7 @@ class AuthController extends Controller
             }
 
             return redirect()->intended(route('home'));
-            
+
         } catch (\Exception $e) {
             return redirect('/login')->withErrors(['email' => 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.']);
         }
@@ -372,7 +372,7 @@ class AuthController extends Controller
 
         try {
             $socialUser = \Laravel\Socialite\Facades\Socialite::driver($provider)->user();
-            
+
             // Tìm hoặc tạo người dùng
             $user = User::where('provider', $provider)
                 ->where('provider_id', $socialUser->getId())
@@ -400,7 +400,7 @@ class AuthController extends Controller
                         'email_verified_at' => now(), // Đã xác thực qua mạng xã hội
                         'password' => Hash::make(Str::random(24)),
                     ]);
-                    
+
                     event(new Registered($user));
                 }
             }
