@@ -15,6 +15,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductDetailController;
+use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -28,6 +29,9 @@ Route::get('/search/quick', [ProductController::class, 'quickSearch'])->name('se
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product:slug}', [ProductDetailController::class, 'show'])
     ->name('products.show');
+Route::post('/products/{product:id}/review', [ProductReviewController::class, 'store'])
+    ->middleware('auth')
+    ->name('products.review.store');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
