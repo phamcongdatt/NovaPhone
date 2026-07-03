@@ -81,7 +81,7 @@ Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
 Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buy-now');
 Route::patch('/cart/update/{item}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
-
+Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 // ---------- Checkout Routes ----------
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/place-order', [CheckoutController::class, 'store'])->name('checkout.place-order');
@@ -137,7 +137,7 @@ Route::middleware(['auth', 'admin'])
         Route::patch('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])
             ->name('users.toggle-status');
 
-       /* // Bình luận / đánh giá
+        /* // Bình luận / đánh giá
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');

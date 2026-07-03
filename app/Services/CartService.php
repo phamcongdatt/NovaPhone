@@ -26,7 +26,6 @@ class CartService
             return $cart->items()->with(['product', 'variant'])->get();
         }
 
-        // Lấy từ session nếu chưa đăng nhập
         $sessionCart = session()->get('cart', []);
         $items = collect();
 
@@ -34,7 +33,6 @@ class CartService
             return $items;
         }
 
-        // Load trước tất cả products và variants để tránh N+1 query trong session
         $productIds = collect($sessionCart)->pluck('product_id')->unique();
         $variantIds = collect($sessionCart)->pluck('variant_id')->filter()->unique();
 
@@ -49,7 +47,6 @@ class CartService
 
             $variant = $item['variant_id'] ? $variants->get($item['variant_id']) : null;
 
-            // Tạo đối tượng ảo giống CartItem để View render đồng nhất
             $mockItem = new CartItem([
                 'product_id' => $item['product_id'],
                 'variant_id' => $item['variant_id'],
@@ -57,15 +54,12 @@ class CartService
                 'price'      => $item['price'],
             ]);
 
-            // Thiết lập quan hệ ảo
             $mockItem->setRelation('product', $product);
             if ($variant) {
                 $mockItem->setRelation('variant', $variant);
             }
 
-            // Gán id ảo là key của session để dễ xử lý xóa/cập nhật
             $mockItem->id = $key;
-
             $items->push($mockItem);
         }
 
@@ -80,13 +74,11 @@ class CartService
         $product = Product::findOrFail($productId);
         $variant = $variantId ? ProductVariant::findOrFail($variantId) : null;
 
-        // Tính giá sản phẩm
         $price = $product->effective_price;
         if ($variant) {
             $price += (float) $variant->additional_price;
         }
 
-        // Kiểm tra tồn kho khả dụng
         $availableQuantity = $this->getAvailableStock($product, $variant);
         if ($availableQuantity < $quantity) {
             throw new Exception("Sản phẩm này chỉ còn lại {$availableQuantity} sản phẩm trong kho.");
@@ -119,7 +111,6 @@ class CartService
             return $cartItem;
         }
 
-        // Lưu vào session nếu là khách vãng lai
         $sessionCart = session()->get('cart', []);
         $key = $this->generateSessionKey($productId, $variantId);
 
@@ -173,7 +164,6 @@ class CartService
             return $cartItem;
         }
 
-        // Cập nhật session
         $sessionCart = session()->get('cart', []);
         if (! isset($sessionCart[$itemIdOrKey])) {
             throw new Exception("Sản phẩm không có trong giỏ hàng.");
@@ -202,7 +192,9 @@ class CartService
     }
 
     /**
-     * Xóa sản phẩm khỏi giỏ hàng.
+     * Xóa một sản phẩm khỏi giỏ hàng.
+     * - Nếu đã đăng nhập: xóa CartItem trong DB.
+     * - Nếu chưa đăng nhập: xóa khỏi session theo key.
      */
     public function remove($itemIdOrKey): ?CartItem
     {

@@ -126,4 +126,12 @@ class CartController extends Controller
             return redirect()->route('cart.index')->with('error', $e->getMessage());
         }
     }
+    public function clear()
+    {
+        $this->cartService->clear();
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa toàn bộ giỏ hàng.',
+        ]);
+    }
 }

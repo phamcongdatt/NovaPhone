@@ -9,7 +9,7 @@
 
 <div class="bg-night text-gray-100 min-h-[calc(100vh-68px-340px)] py-8">
     <div class="mx-auto max-w-7xl px-4 sm:px-6">
-        
+
         {{-- Breadcrumb --}}
         <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
             <a href="{{ route('home') }}" class="transition-colors hover:text-brand-400">Trang chủ</a>
@@ -17,7 +17,21 @@
             <span class="font-medium text-gray-300">Giỏ hàng</span>
         </nav>
 
-        <h1 class="text-3xl font-black text-white tracking-tight mb-8">Giỏ hàng của bạn</h1>
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-black text-white tracking-tight">Giỏ hàng của bạn</h1>
+            @if ($items->isNotEmpty())
+                <button
+                    type="button"
+                    onclick="clearCart()"
+                    class="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500 hover:text-white"
+                >
+                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.34 6.6m-3.6 0L10.3 9m4.7-3.6-.3-1.8a2.25 2.25 0 0 0-2.25-2.25h-3a2.25 2.25 0 0 0-2.25 2.25L6.74 5.4M19.5 5.4h-15"/>
+                    </svg>
+                    Xóa tất cả
+                </button>
+            @endif
+        </div>
 
         {{-- Nếu giỏ hàng trống --}}
         <div id="empty-cart-view" class="{{ $items->isEmpty() ? '' : 'hidden' }} rounded-3xl border border-white/5 bg-night-soft p-12 text-center shadow-xl shadow-black/30">
@@ -35,17 +49,17 @@
 
         {{-- Bố cục Giỏ hàng --}}
         <div id="cart-content-view" class="{{ $items->isEmpty() ? 'hidden' : 'grid' }} gap-8 lg:grid-cols-3">
-            
+
             {{-- Danh sách sản phẩm --}}
             <div class="lg:col-span-2 space-y-4">
                 @foreach ($items as $item)
                     @php
-                        $product = $item->product;
-                        $variant = $item->variant;
+                        $product   = $item->product;
+                        $variant   = $item->variant;
                         $thumbnail = $product->thumbnail ?: 'https://placehold.co/300x300/12151d/93c5fd?text='.urlencode($product->name);
                     @endphp
                     <div data-cart-row="{{ $item->id }}" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-2xl border border-white/5 bg-night-soft p-4 shadow-lg transition duration-300 hover:border-white/10 hover:bg-white/[0.02]">
-                        
+
                         {{-- Ảnh sản phẩm --}}
                         <div class="size-20 shrink-0 overflow-hidden rounded-xl bg-night-card p-1.5 border border-white/5">
                             <img src="{{ $thumbnail }}" alt="{{ $product->name }}" class="size-full object-contain">
@@ -64,8 +78,8 @@
 
                         {{-- Bộ chọn số lượng --}}
                         <div class="flex items-center gap-2.5 bg-white/5 rounded-xl border border-white/10 p-1">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onclick="updateQuantity('{{ $item->id }}', -1)"
                                 class="flex size-7 items-center justify-center rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition"
                                 aria-label="Giảm"
@@ -74,16 +88,16 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
                                 </svg>
                             </button>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 id="quantity-input-{{ $item->id }}"
-                                value="{{ $item->quantity }}" 
-                                min="1" 
+                                value="{{ $item->quantity }}"
+                                min="1"
                                 readonly
                                 class="w-10 text-center bg-transparent border-0 text-sm font-bold text-white focus:ring-0 select-none pointer-events-none"
                             >
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onclick="updateQuantity('{{ $item->id }}', 1)"
                                 class="flex size-7 items-center justify-center rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition"
                                 aria-label="Tăng"
@@ -102,8 +116,8 @@
                                     {{ $money($item->price * $item->quantity) }}
                                 </p>
                             </div>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onclick="removeItem('{{ $item->id }}')"
                                 class="flex size-9 items-center justify-center rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 transition hover:bg-red-500 hover:text-white"
                                 aria-label="Xóa sản phẩm"
@@ -122,7 +136,7 @@
             <div>
                 <div class="sticky top-24 rounded-3xl border border-white/5 bg-night-soft p-6 shadow-xl shadow-black/30">
                     <h2 class="text-lg font-extrabold text-white mb-4">Chi tiết thanh toán</h2>
-                    
+
                     <div class="space-y-3 border-b border-white/10 pb-4 mb-4">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-400">Tổng phụ sản phẩm</span>
@@ -144,14 +158,14 @@
                     </div>
 
                     <div class="grid gap-3">
-                        <a 
-                            href="{{ route('checkout') }}" 
+                        <a
+                            href="{{ route('checkout') }}"
                             class="flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-4 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 hover:shadow-amber-500/30"
                         >
                             Tiến hành thanh toán
                         </a>
-                        <a 
-                            href="{{ route('home') }}" 
+                        <a
+                            href="{{ route('home') }}"
                             class="flex items-center justify-center rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
                         >
                             Tiếp tục mua điện thoại
@@ -161,11 +175,10 @@
             </div>
 
         </div>
-
     </div>
 </div>
 
-{{-- Popup Alert / Toast --}}
+{{-- Toast --}}
 <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
 
 @push('scripts')
@@ -173,45 +186,31 @@
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `flex items-center gap-3 rounded-2xl border px-5 py-3.5 shadow-2xl backdrop-blur-xl transition duration-300 transform translate-y-5 opacity-0 ${
-            type === 'success' 
-                ? 'border-emerald-500/20 bg-emerald-950/80 text-emerald-300' 
+            type === 'success'
+                ? 'border-emerald-500/20 bg-emerald-950/80 text-emerald-300'
                 : 'border-red-500/20 bg-red-950/80 text-red-300'
         }`;
-        
-        const icon = type === 'success' 
+        const icon = type === 'success'
             ? `<svg class="size-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`
             : `<svg class="size-5 text-red-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`;
-
         toast.innerHTML = `${icon}<span class="text-sm font-semibold">${message}</span>`;
         document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => toast.classList.remove('translate-y-5', 'opacity-0'), 10);
+        setTimeout(() => { toast.classList.add('translate-y-5', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+    }
 
-        // Animation in
-        setTimeout(() => {
-            toast.classList.remove('translate-y-5', 'opacity-0');
-        }, 10);
-
-        // Animation out & remove
-        setTimeout(() => {
-            toast.classList.add('translate-y-5', 'opacity-0');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+    function updateCartHeader(count) {
+        document.querySelectorAll('[data-cart-count]').forEach(el => el.textContent = count);
     }
 
     function updateQuantity(itemId, change) {
         const input = document.getElementById(`quantity-input-${itemId}`);
-        const currentQty = parseInt(input.value);
-        const newQty = currentQty + change;
-        
+        const newQty = parseInt(input.value) + change;
         if (newQty < 1) return;
 
-        // Gọi AJAX cập nhật
         fetch(`/cart/update/${itemId}`, {
             method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
             body: JSON.stringify({ quantity: newQty })
         })
         .then(async response => {
@@ -221,66 +220,65 @@
                 document.getElementById(`item-subtotal-${itemId}`).textContent = data.item_subtotal;
                 document.getElementById('cart-subtotal').textContent = data.cart_total;
                 document.getElementById('cart-total').textContent = data.cart_total;
-                
-                // Cập nhật số trên header
-                const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
-                headerCounts.forEach(el => el.textContent = data.cart_count);
-                
+                updateCartHeader(data.cart_count);
                 showToast('Đã cập nhật số lượng thành công!');
             } else {
                 showToast(data.message || 'Có lỗi xảy ra', 'error');
             }
         })
-        .catch(err => {
-            console.error(err);
-            showToast('Không thể kết nối đến máy chủ.', 'error');
-        });
+        .catch(() => showToast('Không thể kết nối đến máy chủ.', 'error'));
     }
 
     function removeItem(itemId) {
         if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?')) return;
 
         const row = document.querySelector(`[data-cart-row="${itemId}"]`);
-        
+
         fetch(`/cart/remove/${itemId}`, {
             method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
         })
         .then(async response => {
             const data = await response.json();
             if (response.ok) {
-                // Hiệu ứng biến mất
                 row.classList.add('transition-all', 'duration-300', 'scale-95', 'opacity-0');
-                
                 setTimeout(() => {
                     row.remove();
-                    
-                    // Cập nhật tiền
                     document.getElementById('cart-subtotal').textContent = data.cart_total;
                     document.getElementById('cart-total').textContent = data.cart_total;
-                    
-                    // Cập nhật số trên header
-                    const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
-                    headerCounts.forEach(el => el.textContent = data.cart_count);
-
+                    updateCartHeader(data.cart_count);
                     if (data.cart_total_raw <= 0) {
                         document.getElementById('cart-content-view').classList.add('hidden');
                         document.getElementById('empty-cart-view').classList.remove('hidden');
                     }
-                    
                     showToast('Đã xóa sản phẩm khỏi giỏ hàng.');
                 }, 300);
             } else {
                 showToast(data.message || 'Không thể xóa sản phẩm.', 'error');
             }
         })
-        .catch(err => {
-            console.error(err);
-            showToast('Không thể kết nối đến máy chủ.', 'error');
-        });
+        .catch(() => showToast('Không thể kết nối đến máy chủ.', 'error'));
+    }
+
+    function clearCart() {
+        if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng không?')) return;
+
+        fetch('/cart/clear', {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+        })
+        .then(async response => {
+            const data = await response.json();
+            if (response.ok) {
+                document.getElementById('cart-content-view').classList.add('hidden');
+                document.getElementById('empty-cart-view').classList.remove('hidden');
+                updateCartHeader(0);
+                showToast('Đã xóa toàn bộ giỏ hàng.');
+            } else {
+                showToast(data.message || 'Có lỗi xảy ra.', 'error');
+            }
+        })
+        .catch(() => showToast('Không thể kết nối đến máy chủ.', 'error'));
     }
 </script>
 @endpush
