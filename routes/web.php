@@ -150,19 +150,31 @@ Route::middleware(['auth', 'admin'])
             ->name('users.toggle-status');
 
         // Thống kê đơn hàng (đặt TRƯỚC {order} để tránh conflict)
- Route::get('orders/statistics', [App\Http\Controllers\Admin\OrderStatisticsController::class, 'index'])->name('orders.statistics');
- // Đơn hàng (xem danh sách, chi tiết, xác nhận/cập nhật trạng thái, hủy)
- Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
- Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
- Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
- ->name('orders.update-status');
- Route::patch('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])
- ->name('orders.cancel');
+        Route::get('orders/statistics', [App\Http\Controllers\Admin\OrderStatisticsController::class, 'index'])->name('orders.statistics');
+        // Đơn hàng (xem danh sách, chi tiết, xác nhận/cập nhật trạng thái, hủy)
+        Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
+            ->name('orders.update-status');
+        Route::patch('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])
+            ->name('orders.cancel');
 
- /* // Bình luận / đánh giá
- Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
- Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
- Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-*/
-//   GEMMINI CHAT
-});
+        // Quản lý tồn kho
+        Route::get('inventory', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');
+        Route::post('inventory/{inventory}/import', [App\Http\Controllers\Admin\InventoryController::class, 'import'])->name('inventory.import');
+        Route::post('inventory/{inventory}/export', [App\Http\Controllers\Admin\InventoryController::class, 'export'])->name('inventory.export');
+        Route::post('inventory/{inventory}/adjust', [App\Http\Controllers\Admin\InventoryController::class, 'adjust'])->name('inventory.adjust');
+        Route::get('inventory/history', [App\Http\Controllers\Admin\InventoryController::class, 'history'])->name('inventory.history');
+
+        // Thống kê doanh thu & xuất báo cáo
+        Route::get('revenue', [App\Http\Controllers\Admin\RevenueController::class, 'index'])->name('revenue.index');
+        Route::get('reports/revenue/excel', [App\Http\Controllers\Admin\ReportController::class, 'revenueExcel'])->name('reports.revenue.excel');
+        Route::get('reports/revenue/pdf', [App\Http\Controllers\Admin\ReportController::class, 'revenuePdf'])->name('reports.revenue.pdf');
+
+        /* // Bình luận / đánh giá
+        Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+        Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
+        Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+        */
+        //   GEMMINI CHAT
+    });
