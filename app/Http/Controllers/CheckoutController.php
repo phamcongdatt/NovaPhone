@@ -116,6 +116,16 @@ class CheckoutController extends Controller
                     $inventory = $variant ? $variant->inventory : $product->inventory;
                     if ($inventory) {
                         $inventory->decrement('quantity', $item->quantity);
+
+                        // Ghi nhận lịch sử xuất kho
+                        \App\Models\InventoryHistory::create([
+                            'product_id' => $product->id,
+                            'variant_id' => $variant ? $variant->id : null,
+                            'type'       => 'export',
+                            'quantity'   => $item->quantity,
+                            'note'       => 'Xuất kho tự động cho đơn hàng #' . $order->order_code,
+                            'user_id'    => Auth::id(),
+                        ]);
                     }
                 }
 

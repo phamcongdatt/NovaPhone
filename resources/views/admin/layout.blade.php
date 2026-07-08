@@ -60,7 +60,15 @@ $navActive = 'border border-blue-400/25 bg-gradient-to-r from-blue-600/30 to-blu
 @endforeach
 <a href="{{ route('admin.orders.statistics') }}" class="{{ $navItem }} {{ request()->routeIs('admin.orders.statistics') ? $navActive : $navIdle }}">
 <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 20V10m5 10V4m6 16v-7m5 7V7"/></svg>
-<span class="flex-1">Thống kê</span><span class="text-slate-600">›</span>
+<span class="flex-1">Thống kê đơn hàng</span><span class="text-slate-600">›</span>
+</a>
+<a href="{{ route('admin.inventory.index') }}" class="{{ $navItem }} {{ request()->routeIs('admin.inventory.*') ? $navActive : $navIdle }}">
+<svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg>
+<span class="flex-1">Quản lý kho</span><span class="text-slate-600">›</span>
+</a>
+<a href="{{ route('admin.revenue.index') }}" class="{{ $navItem }} {{ request()->routeIs('admin.revenue.*') ? $navActive : $navIdle }}">
+<svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+<span class="flex-1">Thống kê doanh thu</span><span class="text-slate-600">›</span>
 </a>
 </nav>
 
