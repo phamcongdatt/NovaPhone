@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentTransaction;
 use App\Services\CartService;
+use App\Services\SoldCountService;
 use App\Services\TelegramNotificationService;
 use App\Services\VnpayService;
 use Exception;
@@ -18,12 +19,18 @@ class CheckoutController extends Controller
     protected CartService $cartService;
     protected VnpayService $vnpayService;
     protected TelegramNotificationService $telegramNotificationService;
+    protected SoldCountService $soldCountService;
 
-    public function __construct(CartService $cartService, VnpayService $vnpayService, TelegramNotificationService $telegramNotificationService)
-    {
+    public function __construct(
+        CartService $cartService,
+        VnpayService $vnpayService,
+        TelegramNotificationService $telegramNotificationService,
+        SoldCountService $soldCountService
+    ) {
         $this->cartService = $cartService;
         $this->vnpayService = $vnpayService;
         $this->telegramNotificationService = $telegramNotificationService;
+        $this->soldCountService = $soldCountService;
     }
 
     /**
@@ -256,10 +263,15 @@ class CheckoutController extends Controller
 
         // 3. Cập nhật đơn hàng (chỉ khi chưa thanh toán để tránh xử lý lặp)
         if ($isSuccess && $amountMatched && $order->payment_status !== 'paid') {
+            $oldStatus = $order->status;
+
             $order->update([
                 'payment_status' => 'paid',
                 'status'         => 'confirmed',
             ]);
+
+            // pending → confirmed: cộng sold_count
+            $this->soldCountService->syncOnStatusChange($order, $oldStatus, 'confirmed');
 
             return redirect()->route('checkout.success', $order)
                 ->with('success', 'Thanh toán VNPay thành công!');
