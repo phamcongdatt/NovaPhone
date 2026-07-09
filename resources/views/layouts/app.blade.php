@@ -77,8 +77,12 @@
             {{-- Cụm hành động bên phải --}}
             <div class="flex shrink-0 items-center gap-1 sm:gap-2">
                 {{-- Yêu thích --}}
-                <a href="#" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+                <a href="{{ route('wishlist.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                    <span class="relative">
+                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+                        <span id="wishlist-count-badge"
+                              class="absolute -right-2 -top-1.5 {{ ($wishlistCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $wishlistCount ?? 0 }}</span>
+                    </span>
                     <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
                 </a>
                 {{-- Giỏ hàng --}}
@@ -350,6 +354,85 @@
                     }
                 });
             }
+
+            // Wishlist Toggle
+            document.querySelectorAll('[data-wishlist-toggle]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const productId = this.getAttribute('data-wishlist-toggle');
+                    const svg = this.querySelector('svg');
+                    const originalHTML = this.innerHTML;
+
+                    svg.style.opacity = '0.5';
+
+                    fetch('{{ route("wishlist.toggle") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ product_id: productId })
+                    })
+                    .then(response => {
+                        if (response.status === 401) {
+                            window.location.href = '{{ route("login") }}';
+                            throw new Error('Unauthorized');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        svg.style.opacity = '1';
+                        if (data.status === 'added') {
+                            svg.classList.remove('fill-transparent', 'text-white', 'hover:text-red-400');
+                            svg.classList.add('fill-red-500', 'text-red-500');
+                            this.setAttribute('aria-label', 'Xóa khỏi yêu thích');
+                        } else if (data.status === 'removed') {
+                            svg.classList.remove('fill-red-500', 'text-red-500');
+                            svg.classList.add('fill-transparent', 'text-white', 'hover:text-red-400');
+                            this.setAttribute('aria-label', 'Thêm vào yêu thích');
+                        }
+
+                        // Cập nhật badge
+                        const badge = document.getElementById('wishlist-count-badge');
+                        if (badge) {
+                            badge.textContent = data.count;
+                            if (data.count > 0) {
+                                badge.classList.remove('hidden');
+                                badge.classList.add('flex');
+                            } else {
+                                badge.classList.add('hidden');
+                                badge.classList.remove('flex');
+                            }
+                        }
+                        
+                        // Nếu đang ở trang wishlist, ẩn thẻ sản phẩm và cập nhật tổng số lượng
+                        if (data.status === 'removed' && window.location.pathname.includes('wishlist')) {
+                            const card = this.closest('.wishlist-item');
+                            if (card) {
+                                card.remove();
+                            }
+                            const totalCountEl = document.getElementById('wishlist-total-count');
+                            if (totalCountEl) {
+                                totalCountEl.textContent = data.count;
+                            }
+                            
+                            // Nếu hết sản phẩm, có thể reload để hiện màn hình trống
+                            if (data.count === 0) {
+                                window.location.reload();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        if (error.message !== 'Unauthorized') {
+                            console.error('Error toggling wishlist:', error);
+                            svg.style.opacity = '1';
+                        }
+                    });
+                });
+            });
         });
     </script>
 

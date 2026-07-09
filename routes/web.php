@@ -18,6 +18,7 @@ use App\Http\Controllers\ProductDetailController;
 use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +79,12 @@ Route::middleware('auth')->group(function () {
 Route::get('/account', [AccountController::class, 'show'])
     ->middleware('auth')
     ->name('account.show');
+
+// ---------- Wishlist Routes ----------
+Route::middleware('auth')->group(function () {
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+});
 
 // ---------- Profile ----------
 Route::middleware('auth')->group(function () {
