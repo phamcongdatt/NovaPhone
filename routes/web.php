@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\GeminiChatbotController;
 use App\Http\Controllers\AuthController;
@@ -187,4 +188,8 @@ Route::middleware(['auth', 'admin'])
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
         */
         //   GEMMINI CHAT
+        
+        // Cài đặt
+        Route::get('/settings/notifications', [SettingController::class, 'notifications'])->name('settings.notifications');
+        Route::post('/settings/notifications', [SettingController::class, 'updateNotifications']);
     });

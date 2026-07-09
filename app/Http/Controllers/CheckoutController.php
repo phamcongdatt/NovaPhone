@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentTransaction;
 use App\Services\CartService;
+use App\Services\TelegramNotificationService;
 use App\Services\VnpayService;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,11 +17,13 @@ class CheckoutController extends Controller
 {
     protected CartService $cartService;
     protected VnpayService $vnpayService;
+    protected TelegramNotificationService $telegramNotificationService;
 
-    public function __construct(CartService $cartService, VnpayService $vnpayService)
+    public function __construct(CartService $cartService, VnpayService $vnpayService, TelegramNotificationService $telegramNotificationService)
     {
         $this->cartService = $cartService;
         $this->vnpayService = $vnpayService;
+        $this->telegramNotificationService = $telegramNotificationService;
     }
 
     /**
@@ -134,6 +137,9 @@ class CheckoutController extends Controller
 
                 return $order;
             });
+
+            // Gửi thông báo Telegram cho đơn hàng mới tạo
+            $this->telegramNotificationService->notifyNewOrder($order);
 
             // 5. Điều hướng theo phương thức thanh toán
             if ($order->payment_method === 'cod') {
