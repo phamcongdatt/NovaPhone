@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\GeminiChatbotController;
 use App\Http\Controllers\AuthController;
@@ -150,6 +151,9 @@ Route::middleware(['auth', 'admin'])
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
 
+        // Flash Sale
+        Route::resource('flash-sales', \App\Http\Controllers\Admin\FlashSaleController::class);
+
         // Người dùng / Khách hàng (xem danh sách, chi tiết, khóa/mở khóa)
         Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
@@ -184,4 +188,8 @@ Route::middleware(['auth', 'admin'])
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
         */
         //   GEMMINI CHAT
+        
+        // Cài đặt
+        Route::get('/settings/notifications', [SettingController::class, 'notifications'])->name('settings.notifications');
+        Route::post('/settings/notifications', [SettingController::class, 'updateNotifications']);
     });

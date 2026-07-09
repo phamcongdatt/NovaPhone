@@ -29,8 +29,54 @@ class Product extends Model
         ];
     }
 
+    public function getFlashSalePurchasedCount(): int
+    {
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        if (!$userId) {
+            return 0;
+        }
+
+        $activeSale = $this->activeFlashSaleItem;
+        if (!$activeSale) {
+            return 0;
+        }
+
+        $flashSale = $activeSale->flashSale;
+        return \App\Models\OrderItem::where('product_id', $this->id)
+            ->whereHas('order', function ($query) use ($userId, $flashSale) {
+                $query->where('user_id', $userId)
+                      ->whereNotIn('status', ['cancelled', 'returned'])
+                      ->whereBetween('created_at', [$flashSale->start_time, $flashSale->end_time]);
+            })
+            ->sum('quantity');
+    }
+
+    public function getFlashSaleRemainingQuota(): int
+    {
+        $activeSale = $this->activeFlashSaleItem;
+        if (!$activeSale) {
+            return 0;
+        }
+
+        $purchasedCount = $this->getFlashSalePurchasedCount();
+        $remaining = $activeSale->max_per_user - $purchasedCount;
+        return $remaining > 0 ? $remaining : 0;
+    }
+
     public function getEffectivePriceAttribute(): float
     {
+        $activeSale = $this->activeFlashSaleItem;
+        if ($activeSale) {
+            // Kiểm tra giới hạn mua của người dùng hiện tại (nếu đã đăng nhập)
+            $remaining = $this->getFlashSaleRemainingQuota();
+            
+            // Nếu người dùng đã mua hết hoặc vượt số lượng cho phép, trả về giá gốc (sale_price thường hoặc price)
+            if ($remaining <= 0 && \Illuminate\Support\Facades\Auth::check()) {
+                return (float) ($this->sale_price ?? $this->price);
+            }
+            
+            return (float) ($this->price * (1 - $activeSale->discount_percent / 100));
+        }
         return (float) ($this->sale_price ?? $this->price);
     }
 
@@ -77,5 +123,21 @@ class Product extends Model
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    public function flashSaleItems(): HasMany
+    {
+        return $this->hasMany(FlashSaleItem::class);
+    }
+
+    public function activeFlashSaleItem(): HasOne
+    {
+        return $this->hasOne(FlashSaleItem::class)
+            ->whereHas('flashSale', function ($q) {
+                $q->where('is_active', true)
+                  ->where('start_time', '<=', now())
+                  ->where('end_time', '>=', now());
+            })
+            ->whereColumn('sold', '<', 'quantity');
     }
 }

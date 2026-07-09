@@ -58,6 +58,14 @@ $navActive = 'border border-blue-400/25 bg-gradient-to-r from-blue-600/30 to-blu
 <span class="flex-1">{{ $label }}</span><span class="text-slate-600">›</span>
 </a>
 @endforeach
+<a href="{{ route('admin.settings.notifications') }}" class="{{ $navItem }} {{ request()->routeIs('admin.settings.notifications') ? $navActive : $navIdle }}">
+<svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+<span class="flex-1">Send noti Social</span><span class="text-slate-600">›</span>
+</a>
+<a href="{{ route('admin.flash-sales.index') }}" class="{{ $navItem }} {{ request()->routeIs('admin.flash-sales.*') ? $navActive : $navIdle }}">
+<svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m13 10-2-9-9 14h6l2 9 9-14h-6Z" /></svg>
+<span class="flex-1">Flash Sale</span><span class="text-slate-600">›</span>
+</a>
 <a href="{{ route('admin.orders.statistics') }}" class="{{ $navItem }} {{ request()->routeIs('admin.orders.statistics') ? $navActive : $navIdle }}">
 <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 20V10m5 10V4m6 16v-7m5 7V7"/></svg>
 <span class="flex-1">Thống kê đơn hàng</span><span class="text-slate-600">›</span>
