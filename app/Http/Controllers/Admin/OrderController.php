@@ -6,11 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OrdrerRequest;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
+use App\Services\SoldCountService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private readonly SoldCountService $soldCountService
+    ) {
+    }
+
     /**
      * Các bước chuyển trạng thái hợp lệ (state machine).
      * Đơn đã "delivered" hoặc "cancelled" là trạng thái kết thúc.
@@ -101,6 +107,8 @@ class OrderController extends Controller
         }
 
         DB::transaction(function () use ($order, $newStatus, $request) {
+            $oldStatus = $order->status;
+
             $order->update(['status' => $newStatus]);
 
             OrderStatusHistory::create([
@@ -109,6 +117,8 @@ class OrderController extends Controller
                 'note'       => $request->input('note'),
                 'created_by' => $request->user()->id,
             ]);
+
+            $this->soldCountService->syncOnStatusChange($order, $oldStatus, $newStatus);
         });
 
         return back()->with('success', 'Đã cập nhật trạng thái đơn sang "' . self::STATUS_LABELS[$newStatus] . '".');
@@ -131,6 +141,8 @@ class OrderController extends Controller
         }
 
         DB::transaction(function () use ($order, $validated, $request) {
+            $oldStatus = $order->status;
+
             $order->update([
                 'status'           => 'cancelled',
                 'cancelled_reason' => $validated['cancelled_reason'],
@@ -143,6 +155,9 @@ class OrderController extends Controller
                 'note'       => $validated['cancelled_reason'],
                 'created_by' => $request->user()->id,
             ]);
+
+            // Nếu đơn đã thuộc nhóm sales thì trừ sold_count
+            $this->soldCountService->syncOnStatusChange($order, $oldStatus, 'cancelled');
 
             // Hoàn lại tồn kho & ghi lịch sử
             foreach ($order->items as $item) {

@@ -6,16 +6,19 @@ use App\Models\Brand;
 use App\Models\FlashSale;
 use App\Models\Product;
 use App\Services\CartService;
+use App\Services\ProductRankingService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
     protected CartService $cartService;
+    protected ProductRankingService $productRankingService;
 
-    public function __construct(CartService $cartService)
+    public function __construct(CartService $cartService, ProductRankingService $productRankingService)
     {
         $this->cartService = $cartService;
+        $this->productRankingService = $productRankingService;
     }
 
     public function index(Request $request): View
@@ -95,8 +98,11 @@ class HomeController extends Controller
         ->latest()
         ->first();
 
+        $bestSellerProducts = $this->productRankingService->bestSellers(4);
+
         return view('home', [
             'activeFlashSale' => $activeFlashSale,
+            'bestSellerProducts' => $bestSellerProducts,
             'catalogProducts' => $catalogProducts,
             'cartCount' => $this->cartService->getCount(),
             'featureFilters' => $featureFilters,
