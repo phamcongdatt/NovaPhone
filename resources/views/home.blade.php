@@ -31,13 +31,6 @@
         ['name' => 'Realme GT 6 512GB', 'image' => $productImage('Realme GT 6 512GB'), 'price' => 11990000, 'oldPrice' => 14990000, 'discount' => 20, 'sold' => '47', 'soldPercent' => 35],
     ];
 
-    $bestSeller = [
-        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => $productImage('iPhone 15 Pro Max 256GB'), 'price' => 28990000, 'rating' => 4.9, 'sold' => '2,3k'],
-        ['name' => 'Samsung Galaxy S24 Ultra', 'image' => $productImage('Samsung Galaxy S24 Ultra'), 'price' => 25990000, 'rating' => 4.8, 'sold' => '1,8k'],
-        ['name' => 'iPhone 15 128GB', 'image' => $productImage('iPhone 15 128GB'), 'price' => 20990000, 'rating' => 4.8, 'sold' => '1,6k'],
-        ['name' => 'Xiaomi Redmi Note 13 Pro', 'image' => $productImage('Xiaomi Redmi Note 13 Pro'), 'price' => 6990000, 'rating' => 4.6, 'sold' => '1,2k'],
-    ];
-
     $newArrival = [
         ['name' => 'iPhone 16 128GB', 'image' => $productImage('iPhone 16 128GB'), 'price' => 22990000, 'rating' => 5.0, 'badge' => 'Mới'],
         ['name' => 'Samsung Galaxy Z Flip6', 'image' => $productImage('Samsung Galaxy Z Flip6'), 'price' => 26990000, 'rating' => 5.0, 'badge' => 'Mới'],
@@ -361,34 +354,73 @@
 {{-- ===================== 5. Best Seller + New Arrival ===================== --}}
 <section class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
     <div class="grid gap-10 lg:grid-cols-2 lg:gap-8">
-        @foreach ([
-            ['title' => 'Best Seller', 'iconColor' => 'text-amber-400 bg-amber-400/15', 'items' => $bestSeller, 'icon' => 'M13 2 4.09 12.69a.6.6 0 0 0 .46.99H11l-1.27 7.4a.6.6 0 0 0 1.07.47l8.91-10.68a.6.6 0 0 0-.46-.99H13l1.27-7.4A.6.6 0 0 0 13.2 2H13Z'],
-            ['title' => 'New Arrival', 'iconColor' => 'text-violet-400 bg-violet-400/15', 'items' => $newArrival, 'icon' => 'M11.48 3.5c.2-.6 1.04-.6 1.24 0l1.65 5.06a.65.65 0 0 0 .62.45h5.32c.63 0 .9.81.38 1.18l-4.3 3.13a.65.65 0 0 0-.24.73l1.64 5.06c.2.6-.49 1.1-1 .73l-4.3-3.13a.65.65 0 0 0-.77 0l-4.3 3.13c-.51.37-1.2-.13-1-.73l1.64-5.06a.65.65 0 0 0-.24-.73l-4.3-3.13c-.51-.37-.25-1.18.38-1.18h5.32a.65.65 0 0 0 .62-.45l1.65-5.06Z'],
-        ] as $block)
-            <div class="reveal">
-                <div class="mb-5 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="flex size-9 items-center justify-center rounded-xl {{ $block['iconColor'] }}">
-                            <svg class="size-4.5" fill="currentColor" viewBox="0 0 24 24"><path d="{{ $block['icon'] }}"/></svg>
-                        </span>
-                        <h2 class="text-lg font-extrabold tracking-tight text-white sm:text-xl">{{ $block['title'] }}</h2>
-                    </div>
-                    <a href="#" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-400 transition-colors duration-200 hover:text-brand-300">
-                        Xem tất cả
-                        <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-                    </a>
+        {{-- Best Seller (dữ liệu thật từ OrderItem → sold_count) --}}
+        <div class="reveal">
+            <div class="mb-5 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="flex size-9 items-center justify-center rounded-xl text-amber-400 bg-amber-400/15">
+                        <svg class="size-4.5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2 4.09 12.69a.6.6 0 0 0 .46.99H11l-1.27 7.4a.6.6 0 0 0 1.07.47l8.91-10.68a.6.6 0 0 0-.46-.99H13l1.27-7.4A.6.6 0 0 0 13.2 2H13Z"/></svg>
+                    </span>
+                    <h2 class="text-lg font-extrabold tracking-tight text-white sm:text-xl">Best Seller</h2>
                 </div>
-                <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-                    @foreach ($block['items'] as $p)
-                        <x-product-card
-                            :name="$p['name']" :image="$p['image']" :price="$p['price']"
-                            :rating="$p['rating']" :sold="$p['sold'] ?? null" :badge="$p['badge'] ?? null"
-                            :href="$detailHref($p['name'])"
-                        />
-                    @endforeach
-                </div>
+                <a href="{{ route('home', ['sort' => 'best-selling']) }}#san-pham"
+                   class="inline-flex items-center gap-1 text-xs font-semibold text-brand-400 transition-colors duration-200 hover:text-brand-300">
+                    Xem tất cả
+                    <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                </a>
             </div>
-        @endforeach
+            <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+                @forelse ($bestSellerProducts as $product)
+                    @php
+                        $discount = null;
+                        if ($product->sale_price && $product->sale_price < $product->price) {
+                            $discount = (int) round((($product->price - $product->sale_price) / $product->price) * 100);
+                        }
+                    @endphp
+                    <x-product-card
+                        :id="$product->id"
+                        :name="$product->name"
+                        :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)"
+                        :price="$product->effective_price"
+                        :old-price="$product->sale_price ? $product->price : null"
+                        :discount="$discount"
+                        :rating="$product->rating_average ? round($product->rating_average, 1) : null"
+                        :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                        :href="route('products.show', $product)"
+                    />
+                @empty
+                    <div class="col-span-full rounded-2xl border border-white/5 bg-night-soft p-6 text-center">
+                        <p class="text-sm text-gray-400">Chưa có sản phẩm bán chạy.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- New Arrival (tạm thời vẫn dùng dữ liệu tĩnh) --}}
+        <div class="reveal">
+            <div class="mb-5 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="flex size-9 items-center justify-center rounded-xl text-violet-400 bg-violet-400/15">
+                        <svg class="size-4.5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.48 3.5c.2-.6 1.04-.6 1.24 0l1.65 5.06a.65.65 0 0 0 .62.45h5.32c.63 0 .9.81.38 1.18l-4.3 3.13a.65.65 0 0 0-.24.73l1.64 5.06c.2.6-.49 1.1-1 .73l-4.3-3.13a.65.65 0 0 0-.77 0l-4.3 3.13c-.51.37-1.2-.13-1-.73l1.64-5.06a.65.65 0 0 0-.24-.73l-4.3-3.13c-.51-.37-.25-1.18.38-1.18h5.32a.65.65 0 0 0 .62-.45l1.65-5.06Z"/></svg>
+                    </span>
+                    <h2 class="text-lg font-extrabold tracking-tight text-white sm:text-xl">New Arrival</h2>
+                </div>
+                <a href="{{ route('home', ['sort' => 'newest']) }}#san-pham"
+                   class="inline-flex items-center gap-1 text-xs font-semibold text-brand-400 transition-colors duration-200 hover:text-brand-300">
+                    Xem tất cả
+                    <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                </a>
+            </div>
+            <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+                @foreach ($newArrival as $p)
+                    <x-product-card
+                        :name="$p['name']" :image="$p['image']" :price="$p['price']"
+                        :rating="$p['rating']" :sold="$p['sold'] ?? null" :badge="$p['badge'] ?? null"
+                        :href="$detailHref($p['name'])"
+                    />
+                @endforeach
+            </div>
+        </div>
     </div>
 </section>
 

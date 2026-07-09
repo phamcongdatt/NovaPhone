@@ -29,6 +29,11 @@ class Order extends Model
         ];
     }
 
+    /**
+     * Các trạng thái đơn hàng được tính vào doanh số / sản phẩm bán chạy.
+     */
+    public const SALES_STATUSES = ['confirmed', 'processing', 'shipping', 'delivered'];
+
     protected static function booted(): void
     {
         static::creating(function (Order $order) {
