@@ -28,6 +28,32 @@
 
         <h1 class="text-3xl font-black text-white tracking-tight mb-8">Đơn hàng của tôi</h1>
 
+        <form method="GET" action="{{ route('orders.index') }}" class="mb-6 grid gap-4 lg:grid-cols-[1fr_auto]">
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div>
+                    <label class="text-xs uppercase tracking-wider text-gray-500">Mã đơn</label>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Tìm mã đơn" class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none" />
+                </div>
+                <div>
+                    <label class="text-xs uppercase tracking-wider text-gray-500">Trạng thái</label>
+                    <select name="status" class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none">
+                        <option value="">Tất cả</option>
+                        @foreach (['pending' => 'Chờ xác nhận', 'confirmed' => 'Đã xác nhận', 'processing' => 'Đang xử lý', 'shipping' => 'Đang giao', 'delivered' => 'Đã hoàn thành', 'cancelled' => 'Đã hủy'] as $value => $label)
+                            <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs uppercase tracking-wider text-gray-500">Ngày đặt</label>
+                    <input type="date" name="order_date" value="{{ request('order_date') }}" class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none" />
+                </div>
+            </div>
+            <div class="flex items-end gap-3">
+                <button type="submit" class="rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Lọc</button>
+                <a href="{{ route('orders.index') }}" class="rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-gray-300 transition hover:bg-white/5">Xóa lọc</a>
+            </div>
+        </form>
+
         @if ($orders->isEmpty())
             <div class="rounded-3xl border border-white/5 bg-night-soft p-12 text-center shadow-xl shadow-black/30">
                 <div class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-white/5 text-gray-400 mb-4">
@@ -82,17 +108,28 @@
                             </div>
                             
                             {{-- Tổng tiền & Xem chi tiết --}}
-                            <div class="flex items-center justify-between md:justify-end gap-6 border-t border-white/5 pt-4 md:border-t-0 md:pt-0 shrink-0">
+                            <div class="flex flex-col gap-3 border-t border-white/5 pt-4 md:flex-row md:justify-end md:items-center md:border-t-0 md:pt-0 shrink-0">
                                 <div>
                                     <span class="text-xs text-gray-500 block sm:text-right">Tổng tiền thanh toán</span>
                                     <span class="text-lg font-black text-brand-400 mt-0.5 block">{{ $money($order->total_amount) }}</span>
                                 </div>
-                                <a 
-                                    href="{{ route('orders.show', $order) }}" 
-                                    class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
-                                >
-                                    Xem chi tiết
-                                </a>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <a 
+                                        href="{{ route('orders.show', $order) }}" 
+                                        class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
+                                    >
+                                        Xem chi tiết
+                                    </a>
+
+                                    @if ($order->status === 'pending')
+                                        <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                            @csrf
+                                            <button type="submit" class="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-xs font-bold text-red-300 transition hover:bg-red-500/20 hover:text-red-100">
+                                                Hủy đơn
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>

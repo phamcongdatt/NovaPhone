@@ -101,9 +101,15 @@ Route::patch('/cart/update/{item}', [CartController::class, 'update'])->name('ca
 Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
 
 // ---------- Checkout Routes ----------
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-Route::post('/checkout/place-order', [CheckoutController::class, 'store'])->name('checkout.place-order');
-Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::middleware('auth')->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
+    Route::get('/checkout/payment-gateway/{order}', [CheckoutController::class, 'paymentGateway'])->name('checkout.payment-gateway');
+    Route::post('/checkout/payment-process/{order}', [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
+    Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+});
 
 // VNPay - cổng thanh toán thật
 Route::get('/checkout/vnpay/create/{order}', [CheckoutController::class, 'vnpayCreate'])->name('checkout.vnpay.create');
@@ -182,11 +188,11 @@ Route::middleware(['auth', 'admin'])
         Route::get('reports/revenue/excel', [App\Http\Controllers\Admin\ReportController::class, 'revenueExcel'])->name('reports.revenue.excel');
         Route::get('reports/revenue/pdf', [App\Http\Controllers\Admin\ReportController::class, 'revenuePdf'])->name('reports.revenue.pdf');
 
-        /* // Bình luận / đánh giá
+        // Bình luận / đánh giá (Admin Reviews management)
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
-        Route::patch('reviews/{review}/toggle', [ReviewController::class, 'toggle'])->name('reviews.toggle');
+        Route::patch('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
+        Route::patch('reviews/{review}/hide', [ReviewController::class, 'hide'])->name('reviews.hide');
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-        */
         //   GEMMINI CHAT
         
         // Cài đặt

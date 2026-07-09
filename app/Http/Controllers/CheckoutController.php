@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentTransaction;
@@ -19,6 +20,10 @@ class CheckoutController extends Controller
     protected CartService $cartService;
     protected VnpayService $vnpayService;
     protected TelegramNotificationService $telegramNotificationService;
+
+    public function __construct(CartService $cartService, VnpayService $vnpayService, TelegramNotificationService $telegramNotificationService)
+    {
+        $this->middleware('auth');
     protected SoldCountService $soldCountService;
 
     public function __construct(
@@ -56,7 +61,7 @@ class CheckoutController extends Controller
     /**
      * Xử lý đặt hàng.
      */
-    public function store(Request $request)
+    public function store(CheckoutRequest $request)
     {
         $request->validate([
             'shipping_full_name' => 'required|string|max:255',
