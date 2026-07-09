@@ -71,11 +71,28 @@ class CheckoutController extends Controller
 
         try {
             $order = DB::transaction(function () use ($request, $items, $total) {
-                // 1. Kiểm tra tồn kho của tất cả sản phẩm
+                // 1. Kiểm tra tồn kho và Flash Sale của tất cả sản phẩm
                 foreach ($items as $item) {
                     $available = $this->cartService->getAvailableStock($item->product, $item->variant);
                     if ($available < $item->quantity) {
                         throw new Exception("Sản phẩm {$item->product->name} (" . ($item->variant ? $item->variant->name : 'Mặc định') . ") chỉ còn lại {$available} trong kho.");
+                    }
+                    
+                    $product = $item->product;
+                    $activeSale = $product->activeFlashSaleItem;
+                    if ($activeSale) {
+                        $flashSalePrice = (float) ($product->price * (1 - $activeSale->discount_percent / 100));
+                        $basePrice = $flashSalePrice + ($item->variant ? (float) $item->variant->additional_price : 0);
+                        
+                        if (abs((float)$item->price - $basePrice) < 0.01) {
+                            if ($activeSale->sold + $item->quantity > $activeSale->quantity) {
+                                throw new Exception("Sản phẩm {$product->name} đã hết suất bán Flash Sale. Vui lòng cập nhật lại giỏ hàng.");
+                            }
+                            $remainingQuota = $product->getFlashSaleRemainingQuota();
+                            if ($remainingQuota < $item->quantity) {
+                                throw new Exception("Bạn chỉ còn {$remainingQuota} lượt mua giá Flash Sale cho {$product->name}. Vui lòng cập nhật lại giỏ hàng.");
+                            }
+                        }
                     }
                 }
 
@@ -129,6 +146,16 @@ class CheckoutController extends Controller
                             'note'       => 'Xuất kho tự động cho đơn hàng #' . $order->order_code,
                             'user_id'    => Auth::id(),
                         ]);
+                    }
+                    
+                    // Tăng số lượng đã bán của Flash Sale (nếu mua với giá Flash Sale)
+                    $activeSale = $product->activeFlashSaleItem;
+                    if ($activeSale) {
+                        $flashSalePrice = (float) ($product->price * (1 - $activeSale->discount_percent / 100));
+                        $basePrice = $flashSalePrice + ($variant ? (float) $variant->additional_price : 0);
+                        if (abs((float)$item->price - $basePrice) < 0.01) {
+                            $activeSale->increment('sold', $item->quantity);
+                        }
                     }
                 }
 

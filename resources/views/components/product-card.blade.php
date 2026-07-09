@@ -68,16 +68,23 @@
     @if (! is_null($soldPercent))
         @php
             $soldWidth = max(0, min(100, (int) $soldPercent));
+            $isSoldOut = $soldWidth >= 100;
         @endphp
 
         <div class="mt-auto">
-            <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div
-                    class="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400 [width:var(--sold-width)]"
-                    style="--sold-width: {{ $soldWidth }}%;"
-                ></div>
-            </div>
-            <p class="mt-1.5 text-[11px] text-gray-400">Đã bán {{ $sold }}</p>
+            @if ($isSoldOut)
+                <div class="rounded-full bg-gray-500/20 py-1.5 text-center text-[11px] font-bold text-gray-400">
+                    Đã bán hết
+                </div>
+            @else
+                <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                        class="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400 [width:var(--sold-width)]"
+                        style="--sold-width: {{ $soldWidth }}%;"
+                    ></div>
+                </div>
+                <p class="mt-1.5 text-[11px] text-gray-400">Đã bán {{ $sold }}</p>
+            @endif
         </div>
     @else
         <div class="mt-auto flex items-center gap-1 text-xs text-gray-400">

@@ -93,7 +93,7 @@ class CartService
         }
 
         $activeSale = $product->activeFlashSaleItem;
-        $maxFlashSaleQty = $activeSale ? $activeSale->max_per_user : null;
+        $remainingFlashSaleQty = Auth::check() ? $product->getFlashSaleRemainingQuota() : ($activeSale ? $activeSale->max_per_user : null);
 
         if (Auth::check()) {
             $cart = Cart::firstOrCreate(['user_id' => Auth::id()]);
@@ -108,13 +108,16 @@ class CartService
                 if ($availableQuantity < $newQty) {
                     throw new Exception("Không thể thêm số lượng đã chọn. Kho chỉ còn lại {$availableQuantity} sản phẩm.");
                 }
-                if ($maxFlashSaleQty && $newQty > $maxFlashSaleQty) {
-                    throw new Exception("Sản phẩm này đang trong Flash Sale, chỉ được mua tối đa {$maxFlashSaleQty} sản phẩm.");
+                
+                // Nếu chưa hết quota flash sale, chặn nếu cố tình mua vượt quota để hưởng giá rẻ
+                if ($activeSale && $remainingFlashSaleQty > 0 && $newQty > $remainingFlashSaleQty) {
+                    throw new Exception("Sản phẩm đang Flash Sale. Bạn chỉ còn {$remainingFlashSaleQty} lượt mua giá sốc. Vui lòng giảm số lượng.");
                 }
+                
                 $cartItem->update(['quantity' => $newQty]);
             } else {
-                if ($maxFlashSaleQty && $quantity > $maxFlashSaleQty) {
-                    throw new Exception("Sản phẩm này đang trong Flash Sale, chỉ được mua tối đa {$maxFlashSaleQty} sản phẩm.");
+                if ($activeSale && $remainingFlashSaleQty > 0 && $quantity > $remainingFlashSaleQty) {
+                    throw new Exception("Sản phẩm đang Flash Sale. Bạn chỉ còn {$remainingFlashSaleQty} lượt mua giá sốc. Vui lòng giảm số lượng.");
                 }
                 $cartItem = CartItem::create([
                     'cart_id' => $cart->id,
@@ -137,13 +140,13 @@ class CartService
             if ($availableQuantity < $newQty) {
                 throw new Exception("Không thể thêm số lượng đã chọn. Kho chỉ còn lại {$availableQuantity} sản phẩm.");
             }
-            if ($maxFlashSaleQty && $newQty > $maxFlashSaleQty) {
-                throw new Exception("Sản phẩm này đang trong Flash Sale, chỉ được mua tối đa {$maxFlashSaleQty} sản phẩm.");
+            if ($activeSale && $remainingFlashSaleQty !== null && $remainingFlashSaleQty > 0 && $newQty > $remainingFlashSaleQty) {
+                throw new Exception("Sản phẩm đang Flash Sale, chỉ được mua tối đa {$remainingFlashSaleQty} sản phẩm giá sốc.");
             }
             $sessionCart[$key]['quantity'] = $newQty;
         } else {
-            if ($maxFlashSaleQty && $quantity > $maxFlashSaleQty) {
-                throw new Exception("Sản phẩm này đang trong Flash Sale, chỉ được mua tối đa {$maxFlashSaleQty} sản phẩm.");
+            if ($activeSale && $remainingFlashSaleQty !== null && $remainingFlashSaleQty > 0 && $quantity > $remainingFlashSaleQty) {
+                throw new Exception("Sản phẩm đang Flash Sale, chỉ được mua tối đa {$remainingFlashSaleQty} sản phẩm giá sốc.");
             }
             $sessionCart[$key] = [
                 'product_id' => $productId,
@@ -185,8 +188,9 @@ class CartService
             }
 
             $activeSale = $cartItem->product->activeFlashSaleItem;
-            if ($activeSale && $quantity > $activeSale->max_per_user) {
-                throw new Exception("Sản phẩm đang Flash Sale, tối đa {$activeSale->max_per_user} sản phẩm.");
+            $remainingFlashSaleQty = $cartItem->product->getFlashSaleRemainingQuota();
+            if ($activeSale && $remainingFlashSaleQty > 0 && $quantity > $remainingFlashSaleQty) {
+                throw new Exception("Sản phẩm đang Flash Sale. Bạn chỉ còn {$remainingFlashSaleQty} lượt mua giá sốc. Vui lòng giảm số lượng.");
             }
 
             $cartItem->update(['quantity' => $quantity]);
@@ -209,8 +213,10 @@ class CartService
         }
 
         $activeSale = $product->activeFlashSaleItem;
-        if ($activeSale && $quantity > $activeSale->max_per_user) {
-            throw new Exception("Sản phẩm đang Flash Sale, tối đa {$activeSale->max_per_user} sản phẩm.");
+        $remainingFlashSaleQty = Auth::check() ? $product->getFlashSaleRemainingQuota() : ($activeSale ? $activeSale->max_per_user : null);
+        
+        if ($activeSale && $remainingFlashSaleQty !== null && $remainingFlashSaleQty > 0 && $quantity > $remainingFlashSaleQty) {
+            throw new Exception("Sản phẩm đang Flash Sale, chỉ được mua tối đa {$remainingFlashSaleQty} sản phẩm giá sốc.");
         }
 
         $sessionCart[$itemIdOrKey]['quantity'] = $quantity;
