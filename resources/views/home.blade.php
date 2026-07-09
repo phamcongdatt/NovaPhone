@@ -184,6 +184,7 @@
 </section>
 
 {{-- ===================== 4. Flash Sale ===================== --}}
+@if(isset($activeFlashSale))
 <section id="flash-sale" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-10 sm:px-6">
     <div class="reveal rounded-3xl border border-white/5 bg-night-soft p-5 sm:p-7">
         {{-- Tiêu đề + đếm ngược --}}
@@ -192,12 +193,12 @@
                 <span class="flex size-10 items-center justify-center rounded-xl bg-amber-400/15 text-amber-400">
                     <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2 4.09 12.69a.6.6 0 0 0 .46.99H11l-1.27 7.4a.6.6 0 0 0 1.07.47l8.91-10.68a.6.6 0 0 0-.46-.99H13l1.27-7.4A.6.6 0 0 0 13.2 2H13Z"/></svg>
                 </span>
-                <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">Flash Sale</h2>
+                <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">{{ $activeFlashSale->name ?? 'Flash Sale' }}</h2>
             </div>
 
             <div class="flex items-center gap-4">
                 {{-- Countdown --}}
-                <div class="flex items-center gap-1.5" data-countdown role="timer" aria-label="Thời gian còn lại của Flash Sale">
+                <div class="flex items-center gap-1.5" data-countdown="{{ $activeFlashSale->end_time->format('Y-m-d\TH:i:s') }}" role="timer" aria-label="Thời gian còn lại của Flash Sale">
                     <span class="mr-1 text-xs text-gray-500">Kết thúc sau:</span>
                     @foreach ([['gio', 'Giờ'], ['phut', 'Phút'], ['giay', 'Giây']] as $i => [$key, $label])
                         @if ($i > 0)
@@ -218,16 +219,29 @@
 
         {{-- Lưới sản phẩm sale --}}
         <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            @foreach ($flashSale as $p)
-                <x-product-card
-                    :name="$p['name']" :image="$p['image']" :price="$p['price']" :old-price="$p['oldPrice']"
-                    :discount="$p['discount']" :sold="$p['sold']" :sold-percent="$p['soldPercent']"
-                    :href="$detailHref($p['name'])"
-                />
+            @foreach ($activeFlashSale->items as $item)
+                @if($item->product)
+                    @php
+                        $product = $item->product;
+                        $soldPercent = $item->quantity > 0 ? min(100, round(($item->sold / $item->quantity) * 100)) : 0;
+                    @endphp
+                    <x-product-card
+                        :id="$product->id"
+                        :name="$product->name" 
+                        :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)" 
+                        :price="$product->price * (1 - $item->discount_percent / 100)" 
+                        :old-price="$product->price"
+                        :discount="$item->discount_percent" 
+                        :sold="$item->sold" 
+                        :sold-percent="$soldPercent"
+                        :href="route('products.show', $product)"
+                    />
+                @endif
             @endforeach
         </div>
     </div>
 </section>
+@endif
 
 {{-- ===================== 5. Điện thoại / Lọc theo giá, thương hiệu, tính năng ===================== --}}
 <section id="san-pham" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
@@ -319,6 +333,7 @@
                 }
             @endphp
             <x-product-card
+                :id="$product->id"
                 :name="$product->name"
                 :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)"
                 :price="$product->effective_price"
@@ -492,10 +507,10 @@
 
         function tick() {
             const now = new Date();
-            const end = new Date(now);
-            end.setHours(24, 0, 0, 0); // hết ngày hôm nay
+            const endStr = box.getAttribute('data-countdown');
+            const end = endStr ? new Date(endStr) : new Date(now.setHours(24, 0, 0, 0));
 
-            let diff = Math.max(0, Math.floor((end - now) / 1000));
+            let diff = Math.max(0, Math.floor((end - new Date()) / 1000));
             el.gio.textContent = pad(Math.floor(diff / 3600));
             el.phut.textContent = pad(Math.floor((diff % 3600) / 60));
             el.giay.textContent = pad(diff % 60);

@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentTransaction;
 use App\Services\CartService;
+use App\Services\TelegramNotificationService;
+use App\Services\VnpayService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,11 +17,15 @@ use Illuminate\Support\Facades\DB;
 class CheckoutController extends Controller
 {
     protected CartService $cartService;
+    protected VnpayService $vnpayService;
+    protected TelegramNotificationService $telegramNotificationService;
 
-    public function __construct(CartService $cartService)
+    public function __construct(CartService $cartService, VnpayService $vnpayService, TelegramNotificationService $telegramNotificationService)
     {
         $this->middleware('auth');
         $this->cartService = $cartService;
+        $this->vnpayService = $vnpayService;
+        $this->telegramNotificationService = $telegramNotificationService;
     }
 
     /**
@@ -46,6 +53,19 @@ class CheckoutController extends Controller
      */
     public function store(CheckoutRequest $request)
     {
+<<<<<<< HEAD
+=======
+        $request->validate([
+            'shipping_full_name' => 'required|string|max:255',
+            'shipping_phone' => 'required|string|max:15',
+            'shipping_province' => 'required|string|max:255',
+            'shipping_district' => 'required|string|max:255',
+            'shipping_ward' => 'required|string|max:255',
+            'shipping_address' => 'required|string|max:255',
+            'payment_method' => 'required|in:cod,vnpay',
+            'note' => 'nullable|string',
+        ]);
+>>>>>>> 869a03c86c0b10716c8be875a143847e892dbe9d
 
         $items = $this->cartService->getItems();
         if ($items->isEmpty()) {
@@ -56,11 +76,28 @@ class CheckoutController extends Controller
 
         try {
             $order = DB::transaction(function () use ($request, $items, $total) {
-                // 1. Kiểm tra tồn kho của tất cả sản phẩm
+                // 1. Kiểm tra tồn kho và Flash Sale của tất cả sản phẩm
                 foreach ($items as $item) {
                     $available = $this->cartService->getAvailableStock($item->product, $item->variant);
                     if ($available < $item->quantity) {
                         throw new Exception("Sản phẩm {$item->product->name} (" . ($item->variant ? $item->variant->name : 'Mặc định') . ") chỉ còn lại {$available} trong kho.");
+                    }
+                    
+                    $product = $item->product;
+                    $activeSale = $product->activeFlashSaleItem;
+                    if ($activeSale) {
+                        $flashSalePrice = (float) ($product->price * (1 - $activeSale->discount_percent / 100));
+                        $basePrice = $flashSalePrice + ($item->variant ? (float) $item->variant->additional_price : 0);
+                        
+                        if (abs((float)$item->price - $basePrice) < 0.01) {
+                            if ($activeSale->sold + $item->quantity > $activeSale->quantity) {
+                                throw new Exception("Sản phẩm {$product->name} đã hết suất bán Flash Sale. Vui lòng cập nhật lại giỏ hàng.");
+                            }
+                            $remainingQuota = $product->getFlashSaleRemainingQuota();
+                            if ($remainingQuota < $item->quantity) {
+                                throw new Exception("Bạn chỉ còn {$remainingQuota} lượt mua giá Flash Sale cho {$product->name}. Vui lòng cập nhật lại giỏ hàng.");
+                            }
+                        }
                     }
                 }
 
@@ -104,6 +141,26 @@ class CheckoutController extends Controller
                     $inventory = $variant ? $variant->inventory : $product->inventory;
                     if ($inventory) {
                         $inventory->decrement('quantity', $item->quantity);
+
+                        // Ghi nhận lịch sử xuất kho
+                        \App\Models\InventoryHistory::create([
+                            'product_id' => $product->id,
+                            'variant_id' => $variant ? $variant->id : null,
+                            'type'       => 'export',
+                            'quantity'   => $item->quantity,
+                            'note'       => 'Xuất kho tự động cho đơn hàng #' . $order->order_code,
+                            'user_id'    => Auth::id(),
+                        ]);
+                    }
+                    
+                    // Tăng số lượng đã bán của Flash Sale (nếu mua với giá Flash Sale)
+                    $activeSale = $product->activeFlashSaleItem;
+                    if ($activeSale) {
+                        $flashSalePrice = (float) ($product->price * (1 - $activeSale->discount_percent / 100));
+                        $basePrice = $flashSalePrice + ($variant ? (float) $variant->additional_price : 0);
+                        if (abs((float)$item->price - $basePrice) < 0.01) {
+                            $activeSale->increment('sold', $item->quantity);
+                        }
                     }
                 }
 
@@ -113,54 +170,21 @@ class CheckoutController extends Controller
                 return $order;
             });
 
+            // Gửi thông báo Telegram cho đơn hàng mới tạo
+            $this->telegramNotificationService->notifyNewOrder($order);
+
             // 5. Điều hướng theo phương thức thanh toán
             if ($order->payment_method === 'cod') {
                 return redirect()->route('checkout.success', $order)
                     ->with('success', 'Đặt hàng thành công!');
             }
 
-            // Đối với Momo/VNPay chuyển sang trang giả lập thanh toán
-            return redirect()->route('checkout.payment-gateway', $order);
+            // VNPay: chuyển thẳng sang cổng thanh toán thật
+            return redirect()->route('checkout.vnpay.create', $order);
 
         } catch (Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
-    }
-
-    /**
-     * Màn hình giả lập thanh toán Momo/VNPay.
-     */
-    public function paymentGateway(Order $order)
-    {
-        // Bảo vệ route: chỉ user sở hữu đơn hàng mới xem được
-        if ($order->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        if ($order->payment_status === 'paid') {
-            return redirect()->route('checkout.success', $order);
-        }
-
-        return view('checkout.payment_gateway', compact('order'));
-    }
-
-    /**
-     * Xác nhận thanh toán thành công (Simulated Callback).
-     */
-    public function processPayment(Request $request, Order $order)
-    {
-        if ($order->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        // Cập nhật trạng thái đã thanh toán
-        $order->update([
-            'payment_status' => 'paid',
-            'status' => 'confirmed' // Đã xác nhận vì đã trả tiền
-        ]);
-
-        return redirect()->route('checkout.success', $order)
-            ->with('success', 'Thanh toán trực tuyến thành công!');
     }
 
     /**
@@ -173,5 +197,80 @@ class CheckoutController extends Controller
         }
 
         return view('checkout.success', compact('order'));
+    }
+
+    /**
+     * Tạo URL và chuyển hướng người dùng sang cổng VNPay.
+     */
+    public function vnpayCreate(Request $request, Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($order->payment_status === 'paid') {
+            return redirect()->route('checkout.success', $order);
+        }
+
+        // Ghi nhận một giao dịch chờ xử lý để đối soát
+        PaymentTransaction::create([
+            'order_id' => $order->id,
+            'gateway'  => 'vnpay',
+            'amount'   => $order->total_amount,
+            'status'   => 'pending',
+        ]);
+
+        $paymentUrl = $this->vnpayService->createPaymentUrl($order, $request->ip());
+
+        return redirect()->away($paymentUrl);
+    }
+
+    /**
+     * Xử lý dữ liệu VNPay trả về (Return URL).
+     */
+    public function vnpayReturn(Request $request)
+    {
+        $order = Order::where('order_code', $request->query('vnp_TxnRef'))->first();
+
+        if (! $order) {
+            return redirect()->route('home')->with('error', 'Không tìm thấy đơn hàng tương ứng.');
+        }
+
+        // 1. Xác thực chữ ký
+        if (! $this->vnpayService->validateReturn($request)) {
+            return redirect()->route('checkout.success', $order)
+                ->with('error', 'Chữ ký thanh toán không hợp lệ. Vui lòng liên hệ hỗ trợ.');
+        }
+
+        $isSuccess     = $this->vnpayService->isSuccessful($request);
+        $responseCode  = $request->query('vnp_ResponseCode');
+        $amountMatched = (int) round($order->total_amount * 100) === (int) $request->query('vnp_Amount');
+
+        // 2. Cập nhật nhật ký giao dịch
+        $transaction = $order->payments()->where('gateway', 'vnpay')->latest()->first();
+        if ($transaction) {
+            $transaction->update([
+                'transaction_code' => $request->query('vnp_TransactionNo'),
+                'status'           => ($isSuccess && $amountMatched) ? 'success' : 'failed',
+                'response_code'    => $responseCode,
+                'response_message' => $isSuccess ? 'Giao dịch thành công' : 'Giao dịch thất bại',
+                'payload'          => $request->query(),
+                'paid_at'          => ($isSuccess && $amountMatched) ? now() : null,
+            ]);
+        }
+
+        // 3. Cập nhật đơn hàng (chỉ khi chưa thanh toán để tránh xử lý lặp)
+        if ($isSuccess && $amountMatched && $order->payment_status !== 'paid') {
+            $order->update([
+                'payment_status' => 'paid',
+                'status'         => 'confirmed',
+            ]);
+
+            return redirect()->route('checkout.success', $order)
+                ->with('success', 'Thanh toán VNPay thành công!');
+        }
+
+        return redirect()->route('checkout.success', $order)
+            ->with('error', 'Thanh toán không thành công (mã lỗi: ' . $responseCode . ').');
     }
 }

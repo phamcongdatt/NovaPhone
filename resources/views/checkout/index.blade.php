@@ -184,22 +184,6 @@
                                 </div>
                             </label>
 
-                            {{-- Momo --}}
-                            <label class="relative flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 cursor-pointer select-none transition hover:border-brand-500/50 hover:bg-white/[0.08] has-[:checked]:border-brand-500 has-[:checked]:bg-brand-600/10 text-center">
-                                <input 
-                                    type="radio" 
-                                    name="payment_method" 
-                                    value="momo" 
-                                    {{ old('payment_method') === 'momo' ? 'checked' : '' }}
-                                    class="sr-only"
-                                >
-                                <span class="flex size-10 items-center justify-center rounded-xl bg-pink-500/15 text-pink-400 font-bold text-xs">MOMO</span>
-                                <div>
-                                    <span class="block text-sm font-bold text-white">Ví điện tử MoMo</span>
-                                    <span class="block text-[11px] text-gray-400 mt-1">Giả lập thanh toán nhanh</span>
-                                </div>
-                            </label>
-
                             {{-- VNPay --}}
                             <label class="relative flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 cursor-pointer select-none transition hover:border-brand-500/50 hover:bg-white/[0.08] has-[:checked]:border-brand-500 has-[:checked]:bg-brand-600/10 text-center">
                                 <input 

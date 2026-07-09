@@ -40,12 +40,16 @@ class AppServiceProvider extends ServiceProvider
                     'cartCount' => $cartService->getCount(),
                     'cartTotal' => $cartService->getTotal(),
                     'cartItems' => $cartService->getItems(),
+                    'wishlistCount' => auth()->check() ? auth()->user()->wishlists()->count() : 0,
+                    'wishlistProductIds' => auth()->check() ? auth()->user()->wishlists()->pluck('product_id')->toArray() : [],
                 ]);
             } else {
                 $view->with([
                     'cartCount' => 0,
                     'cartTotal' => 0,
                     'cartItems' => collect(),
+                    'wishlistCount' => 0,
+                    'wishlistProductIds' => [],
                 ]);
             }
         });

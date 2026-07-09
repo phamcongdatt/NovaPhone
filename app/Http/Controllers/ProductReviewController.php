@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreProductReviewRequest;
+use App\Models\Product;
+use App\Models\Review;
+use Illuminate\Http\JsonResponse;
+
+class ProductReviewController extends Controller
+{
+    public function store(StoreProductReviewRequest $request, Product $product): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->reviews()->where('product_id', $product->id)->exists()) {
+            return response()->json([
+                'message' => 'Bạn đã đánh giá sản phẩm này rồi.',
+            ], 409);
+        }
+
+        $order = $user->orders()
+            ->where('status', 'delivered')
+            ->where('payment_status', 'paid')
+            ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
+            ->latest()
+            ->first();
+
+        if (! $order) {
+            return response()->json([
+                'message' => 'Chỉ khách hàng đã mua hàng thành công và thanh toán thành công mới được đánh giá.',
+            ], 403);
+        }
+
+        $review = Review::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'order_id' => $order->id,
+            'rating' => $request->integer('rating'),
+            'comment' => $request->input('comment'),
+            'images' => $request->input('images'),
+            'is_visible' => true,
+        ]);
+
+        return response()->json([
+            'message' => 'Đánh giá sản phẩm thành công.',
+            'data' => [
+                'id' => $review->id,
+                'product_id' => $review->product_id,
+                'order_id' => $review->order_id,
+                'rating' => $review->rating,
+                'comment' => $review->comment,
+                'images' => $review->images ?? [],
+                'is_visible' => $review->is_visible,
+                'created_at' => $review->created_at?->toISOString(),
+            ],
+        ], 201);
+    }
+}

@@ -143,6 +143,26 @@ class OrderController extends Controller
                 'note'       => $validated['cancelled_reason'],
                 'created_by' => $request->user()->id,
             ]);
+
+            // Hoàn lại tồn kho & ghi lịch sử
+            foreach ($order->items as $item) {
+                $inventory = $item->variant_id
+                    ? \App\Models\Inventory::where('product_id', $item->product_id)->where('variant_id', $item->variant_id)->first()
+                    : \App\Models\Inventory::where('product_id', $item->product_id)->whereNull('variant_id')->first();
+
+                if ($inventory) {
+                    $inventory->increment('quantity', $item->quantity);
+                }
+
+                \App\Models\InventoryHistory::create([
+                    'product_id' => $item->product_id,
+                    'variant_id' => $item->variant_id,
+                    'type'       => 'import',
+                    'quantity'   => $item->quantity,
+                    'note'       => 'Hoàn kho tự động do huỷ đơn hàng #' . $order->order_code,
+                    'user_id'    => $request->user()->id,
+                ]);
+            }
         });
 
         return back()->with('success', 'Đã hủy đơn hàng "' . $order->order_code . '".');
