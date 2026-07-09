@@ -31,6 +31,10 @@ class Product extends Model
 
     public function getEffectivePriceAttribute(): float
     {
+        $activeSale = $this->activeFlashSaleItem;
+        if ($activeSale) {
+            return (float) ($this->price * (1 - $activeSale->discount_percent / 100));
+        }
         return (float) ($this->sale_price ?? $this->price);
     }
 
@@ -77,5 +81,21 @@ class Product extends Model
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    public function flashSaleItems(): HasMany
+    {
+        return $this->hasMany(FlashSaleItem::class);
+    }
+
+    public function activeFlashSaleItem(): HasOne
+    {
+        return $this->hasOne(FlashSaleItem::class)
+            ->whereHas('flashSale', function ($q) {
+                $q->where('is_active', true)
+                  ->where('start_time', '<=', now())
+                  ->where('end_time', '>=', now());
+            })
+            ->whereColumn('sold', '<', 'quantity');
     }
 }

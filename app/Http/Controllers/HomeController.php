@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\FlashSale;
 use App\Models\Product;
 use App\Services\CartService;
 use Illuminate\Http\Request;
@@ -85,7 +86,17 @@ class HomeController extends Controller
             ->withQueryString()
             ->fragment('san-pham');
 
+        $activeFlashSale = FlashSale::with(['items.product' => function ($q) {
+            $q->where('is_active', true);
+        }])
+        ->where('is_active', true)
+        ->where('start_time', '<=', now())
+        ->where('end_time', '>=', now())
+        ->latest()
+        ->first();
+
         return view('home', [
+            'activeFlashSale' => $activeFlashSale,
             'catalogProducts' => $catalogProducts,
             'cartCount' => $this->cartService->getCount(),
             'featureFilters' => $featureFilters,

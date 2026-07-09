@@ -150,6 +150,9 @@ Route::middleware(['auth', 'admin'])
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
 
+        // Flash Sale
+        Route::resource('flash-sales', \App\Http\Controllers\Admin\FlashSaleController::class);
+
         // Người dùng / Khách hàng (xem danh sách, chi tiết, khóa/mở khóa)
         Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
