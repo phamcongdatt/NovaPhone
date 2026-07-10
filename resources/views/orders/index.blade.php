@@ -98,7 +98,7 @@
                                     @foreach ($order->items as $item)
                                         <div class="inline-flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 p-1.5 pr-3 text-xs">
                                             <div class="size-6 shrink-0 rounded bg-night p-0.5">
-                                                <img src="{{ $item->product_thumbnail ?: 'https://placehold.co/50x50' }}" alt="" class="size-full object-contain">
+                                                <img src="{{ $item->product_thumbnail ?: asset('images/placeholder.svg') }}" alt="" class="size-full object-contain">
                                             </div>
                                             <span class="font-bold text-white max-w-[150px] truncate">{{ $item->product_name }}</span>
                                             <span class="text-gray-500">x{{ $item->quantity }}</span>

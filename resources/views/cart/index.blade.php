@@ -44,7 +44,7 @@
                     @php
                         $product = $item->product;
                         $variant = $item->variant;
-                        $thumbnail = $product->thumbnail ?: 'https://placehold.co/300x300/12151d/93c5fd?text='.urlencode($product->name);
+                        $thumbnail = $product->thumbnail ?: asset('images/placeholder.svg');
                     @endphp
                     <div data-cart-row="{{ $item->id }}" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-2xl border border-white/5 bg-night-soft p-4 shadow-lg transition duration-300 hover:border-white/10 hover:bg-white/[0.02]">
 

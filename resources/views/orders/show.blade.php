@@ -137,7 +137,7 @@
                     <div class="divide-y divide-white/10">
                         @foreach ($order->items as $item)
                             @php
-                                $thumbnail = $item->product_thumbnail ?: 'https://placehold.co/100x100/12151d/93c5fd?text='.urlencode($item->product_name);
+                                $thumbnail = $item->product_thumbnail ?: asset('images/placeholder.svg');
                             @endphp
                             <div class="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
                                 

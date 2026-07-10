@@ -328,3 +328,5 @@ document.addEventListener('click', (e) => {
         }
     }
 });
+
+import './charts';

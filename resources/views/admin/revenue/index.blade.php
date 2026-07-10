@@ -196,7 +196,7 @@
                             {{ $index + 1 }}
                         </span>
                         <img
-                            src="{{ $prod->product_thumbnail ? asset('storage/' . $prod->product_thumbnail) : 'https://placehold.co/64x64/12151d/93c5fd?text=No+Img' }}"
+                            src="{{ $prod->product_thumbnail ? asset('storage/' . $prod->product_thumbnail) : asset('images/placeholder.svg') }}"
                             alt="{{ $prod->product_name }}"
                             class="size-10 shrink-0 rounded-lg border border-white/10 object-cover bg-white/5"
                         >
@@ -285,15 +285,9 @@
 
 </div>
 
-{{-- BOOTSTRAP ICONS CDN LINK --}}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-{{-- CHART.JS CDN --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    novaChartJs(function (Chart) {
         // Thiết lập cấu hình chung cho các biểu đồ Chart.js (Dark theme style)
         Chart.defaults.color = '#94a3b8'; // text labels color
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)'; // grid line color

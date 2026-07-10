@@ -216,7 +216,7 @@
                                 @php
                                     $product = $item->product;
                                     $variant = $item->variant;
-                                    $thumbnail = $product->thumbnail ?: 'https://placehold.co/100x100/12151d/93c5fd?text='.urlencode($product->name);
+                                    $thumbnail = $product->thumbnail ?: asset('images/placeholder.svg');
                                 @endphp
                                 <div class="flex items-center gap-3">
                                     <div class="size-11 shrink-0 overflow-hidden rounded-lg bg-night-card p-1 border border-white/10">

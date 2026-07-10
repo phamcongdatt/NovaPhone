@@ -119,7 +119,7 @@
 
         <div class="">
         <a href="{{ route('home') }}" class="mx-auto mb-7 flex w-fit items-center justify-center" aria-label="NovaPhone - Trang chủ">
-            <img src="{{ asset('images/brand/nova-phone-logo.png') }}" alt="NovaPhone" class="h-16 w-auto max-w-[240px] object-contain sm:h-[72px]">
+            <img src="{{ asset('images/brand/nova-phone-logo.webp') }}" alt="NovaPhone" class="h-16 w-auto max-w-[240px] object-contain sm:h-[72px]">
         </a>
 
         {{-- Khung chính với viền phát sáng --}}

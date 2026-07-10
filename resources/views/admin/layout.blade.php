@@ -5,7 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title', 'Quản trị') — NovaPhone Admin</title>
-@vite(['resources/css/app.css', 'resources/js/app.js'])
+{{-- Stub chạy trước module app.js: gom callback biểu đồ vào hàng đợi để charts.js rút ra sau. --}}
+<script>
+    window.__novaChartQueue = [];
+    window.novaChart = (cb) => window.__novaChartQueue.push({ lib: 'apex', cb });
+    window.novaChartJs = (cb) => window.__novaChartQueue.push({ lib: 'chartjs', cb });
+</script>
+
+@vite(['resources/css/app.css', 'resources/css/admin.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen overflow-x-hidden bg-[#050b14] font-sans text-gray-100 antialiased selection:bg-brand-500/30">
 @php
@@ -19,7 +26,7 @@ $navActive = 'border border-blue-400/25 bg-gradient-to-r from-blue-600/30 to-blu
 <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-blue-400/10 bg-[#07111e]/95 shadow-2xl shadow-black/40 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0">
 <div class="flex h-[76px] shrink-0 items-center justify-between border-b border-white/[0.06] px-5">
 <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center" aria-label="NovaPhone Admin">
-<img src="{{ asset('images/brand/nova-phone-logo.png') }}" alt="NovaPhone" class="h-12 w-auto max-w-[178px] object-contain">
+<img src="{{ asset('images/brand/nova-phone-logo.webp') }}" alt="NovaPhone" class="h-12 w-auto max-w-[178px] object-contain">
 </a>
 <button id="admin-sidebar-close" type="button" class="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white lg:hidden" aria-label="Đóng menu">
 <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg>

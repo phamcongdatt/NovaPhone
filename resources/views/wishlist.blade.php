@@ -51,7 +51,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name"
-                        :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)"
+                        :image="$product->thumbnail ?: asset('images/placeholder.svg')"
                         :price="$product->effective_price"
                         :old-price="$product->sale_price ? $product->price : null"
                         :discount="$discount"

@@ -64,9 +64,9 @@
 
     $news = [
         ['title' => 'iPhone 17 Pro Max: Thiết kế titanium mới, nâng cấp đột phá', 'image' => $productImage('iPhone 17 Pro Max'), 'date' => '12/06/2026'],
-        ['title' => 'Galaxy S24 Ultra sau 3 tháng: Có còn đáng mua?', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Galaxy+S24+Ultra', 'date' => '10/06/2026'],
-        ['title' => 'Xiaomi 15 Ultra chính thức ra mắt tại Việt Nam', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Xiaomi+15+Ultra', 'date' => '08/06/2026'],
-        ['title' => 'iPhone 15 Pro Max vs Galaxy S24 Ultra: Đâu là vua Android?', 'image' => 'https://placehold.co/800x500/12151d/93c5fd?text=Flagship+Battle', 'date' => '06/06/2026'],
+        ['title' => 'Galaxy S24 Ultra sau 3 tháng: Có còn đáng mua?', 'image' => asset('images/placeholder.svg'), 'date' => '10/06/2026'],
+        ['title' => 'Xiaomi 15 Ultra chính thức ra mắt tại Việt Nam', 'image' => asset('images/placeholder.svg'), 'date' => '08/06/2026'],
+        ['title' => 'iPhone 15 Pro Max vs Galaxy S24 Ultra: Đâu là vua Android?', 'image' => asset('images/placeholder.svg'), 'date' => '06/06/2026'],
     ];
     $detailHref = fn ($name) => route('products.show', \Illuminate\Support\Str::slug($name));
 @endphp
@@ -221,7 +221,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name" 
-                        :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)" 
+                        :image="$product->thumbnail ?: asset('images/placeholder.svg')" 
                         :price="$product->price * (1 - $item->discount_percent / 100)" 
                         :old-price="$product->price"
                         :discount="$item->discount_percent" 
@@ -328,7 +328,7 @@
             <x-product-card
                 :id="$product->id"
                 :name="$product->name"
-                :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)"
+                :image="$product->thumbnail ?: asset('images/placeholder.svg')"
                 :price="$product->effective_price"
                 :old-price="$product->sale_price ? $product->price : null"
                 :discount="$discount"
@@ -380,7 +380,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name"
-                        :image="$product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name)"
+                        :image="$product->thumbnail ?: asset('images/placeholder.svg')"
                         :price="$product->effective_price"
                         :old-price="$product->sale_price ? $product->price : null"
                         :discount="$discount"
@@ -458,7 +458,7 @@
 
             {{-- Cột phải: hình minh hoạ --}}
             <div class="hidden xl:block">
-                <img src="https://placehold.co/280x180/0d1017/3b82f6?text=Trade-in"
+                <img src="{{ asset('images/placeholder.svg') }}"
                      alt="Thu cũ đổi mới tại NovaPhone"
                      class="w-64 rounded-2xl border border-white/10 shadow-xl shadow-black/40">
             </div>

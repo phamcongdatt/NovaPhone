@@ -6,6 +6,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'NovaPhone — Hệ thống bán lẻ điện thoại chính hãng')</title>
 
+    {{-- Stub chạy trước module app.js: gom callback biểu đồ vào hàng đợi để charts.js rút ra sau. --}}
+    <script>
+        window.__novaChartQueue = [];
+        window.novaChart = (cb) => window.__novaChartQueue.push({ lib: 'apex', cb });
+        window.novaChartJs = (cb) => window.__novaChartQueue.push({ lib: 'chartjs', cb });
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-night font-sans text-gray-100 antialiased">
@@ -45,7 +52,7 @@
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="flex shrink-0 items-center" aria-label="NovaPhone - Trang chủ">
                 <img
-                    src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                    src="{{ asset('images/brand/nova-phone-logo.webp') }}"
                     alt="NovaPhone"
                     class="h-11 w-auto max-w-[180px] object-contain sm:h-12"
                 >
@@ -202,7 +209,7 @@
             <div class="lg:col-span-2 lg:pr-10">
                 <a href="{{ route('home') }}" class="mb-4 inline-flex" aria-label="NovaPhone - Trang chủ">
                     <img
-                        src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                        src="{{ asset('images/brand/nova-phone-logo.webp') }}"
                         alt="NovaPhone"
                         class="h-14 w-auto max-w-[210px] object-contain"
                     >

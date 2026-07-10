@@ -119,7 +119,7 @@
                                     @if($thumb)
                                         <img src="{{ str_starts_with($thumb, 'http') ? $thumb : asset('storage/' . $thumb) }}" alt="{{ $product->name }}" class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110">
                                     @else
-                                        <img src="https://placehold.co/400x400/12151d/93c5fd?text={{ urlencode($product->name) }}" alt="{{ $product->name }}" class="h-full w-full object-contain">
+                                        <img src="{{ asset('images/placeholder.svg') }}" alt="{{ $product->name }}" class="h-full w-full object-contain">
                                     @endif
                                 </div>
                                 

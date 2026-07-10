@@ -130,7 +130,7 @@
                         <td class="px-4 py-3.5">
                             <div class="flex items-center gap-3">
                                 <img
-                                    src="{{ $product->thumbnail ? asset('storage/' . $product->thumbnail) : 'https://placehold.co/64x64/12151d/93c5fd?text=No+Img' }}"
+                                    src="{{ $product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg') }}"
                                     alt="{{ $product->name }}"
                                     class="size-11 shrink-0 rounded-lg border border-white/10 object-cover bg-white/5"
                                 >
@@ -310,7 +310,6 @@
 @endforeach
 
 {{-- BOOTSTRAP ICONS LINK (Cho các biểu tượng đẹp mắt) --}}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 @push('scripts')
 <script>

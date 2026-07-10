@@ -20,10 +20,6 @@ class CheckoutController extends Controller
     protected CartService $cartService;
     protected VnpayService $vnpayService;
     protected TelegramNotificationService $telegramNotificationService;
-
-    public function __construct(CartService $cartService, VnpayService $vnpayService, TelegramNotificationService $telegramNotificationService)
-    {
-        $this->middleware('auth');
     protected SoldCountService $soldCountService;
 
     public function __construct(
@@ -89,13 +85,13 @@ class CheckoutController extends Controller
                     if ($available < $item->quantity) {
                         throw new Exception("Sản phẩm {$item->product->name} (" . ($item->variant ? $item->variant->name : 'Mặc định') . ") chỉ còn lại {$available} trong kho.");
                     }
-                    
+
                     $product = $item->product;
                     $activeSale = $product->activeFlashSaleItem;
                     if ($activeSale) {
                         $flashSalePrice = (float) ($product->price * (1 - $activeSale->discount_percent / 100));
                         $basePrice = $flashSalePrice + ($item->variant ? (float) $item->variant->additional_price : 0);
-                        
+
                         if (abs((float)$item->price - $basePrice) < 0.01) {
                             if ($activeSale->sold + $item->quantity > $activeSale->quantity) {
                                 throw new Exception("Sản phẩm {$product->name} đã hết suất bán Flash Sale. Vui lòng cập nhật lại giỏ hàng.");
@@ -159,7 +155,7 @@ class CheckoutController extends Controller
                             'user_id'    => Auth::id(),
                         ]);
                     }
-                    
+
                     // Tăng số lượng đã bán của Flash Sale (nếu mua với giá Flash Sale)
                     $activeSale = $product->activeFlashSaleItem;
                     if ($activeSale) {
