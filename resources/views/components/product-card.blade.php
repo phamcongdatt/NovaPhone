@@ -14,6 +14,7 @@
 
 @php
     $isWishlisted = $id && in_array($id, $wishlistProductIds ?? []);
+    $isCompared = $id && in_array($id, $compareProductIds ?? []);
 @endphp
 
 <article {{ $attributes->merge(['class' => 'group relative flex flex-col rounded-2xl border border-white/5 bg-night-card p-3 transition-all duration-200 ease-in-out hover:-translate-y-1.5 hover:border-brand-500/40 hover:shadow-xl hover:shadow-black/50']) }}>
@@ -31,15 +32,26 @@
     </div>
 
     @if ($id)
-        <button type="button"
-                data-wishlist-toggle="{{ $id }}"
-                aria-label="{{ $isWishlisted ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích' }}"
-                class="absolute right-3 top-3 z-20 flex size-8 items-center justify-center rounded-full bg-night-soft/60 text-white backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-night-soft">
-            <svg class="size-4.5 transition-colors duration-300 {{ $isWishlisted ? 'fill-red-500 text-red-500' : 'fill-transparent text-white hover:text-red-400' }}"
-                 stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/>
-            </svg>
-        </button>
+        <div class="absolute right-3 top-3 z-20 flex gap-1.5">
+            <button type="button"
+                    data-compare-toggle="{{ $id }}"
+                    data-compared="{{ $isCompared ? 'true' : 'false' }}"
+                    aria-label="{{ $isCompared ? 'Xóa khỏi so sánh' : 'Thêm vào so sánh' }}"
+                    class="flex size-8 items-center justify-center rounded-full bg-night-soft/60 text-white backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-night-soft">
+                <svg class="size-4 transition-colors duration-300 {{ $isCompared ? 'text-brand-300' : 'text-white hover:text-brand-300' }}" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/>
+                </svg>
+            </button>
+            <button type="button"
+                    data-wishlist-toggle="{{ $id }}"
+                    aria-label="{{ $isWishlisted ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích' }}"
+                    class="flex size-8 items-center justify-center rounded-full bg-night-soft/60 text-white backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-night-soft">
+                <svg class="size-4.5 transition-colors duration-300 {{ $isWishlisted ? 'fill-red-500 text-red-500' : 'fill-transparent text-white hover:text-red-400' }}"
+                     stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/>
+                </svg>
+            </button>
+        </div>
     @endif
 
     <a href="{{ $href }}" class="skeleton mb-3 block overflow-hidden rounded-xl bg-white/5">

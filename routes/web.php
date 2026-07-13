@@ -20,6 +20,7 @@ use App\Http\Controllers\ProductDetailController;
 use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\CompareController;
 use App\Http\Controllers\WishlistController;
 use App\Models\FlashSale;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -38,6 +39,12 @@ Route::post('/products/{product:id}/review', [ProductReviewController::class, 's
     ->name('products.review.store');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+// ---------- Product Comparison ----------
+Route::get('/compare', [CompareController::class, 'index'])->name('compare.index');
+Route::post('/compare', [CompareController::class, 'add'])->name('compare.add');
+Route::delete('/compare/{product:id}', [CompareController::class, 'remove'])->name('compare.remove');
+Route::delete('/compare', [CompareController::class, 'clear'])->name('compare.clear');
 
 // ---------- Authentication Routes ----------
 

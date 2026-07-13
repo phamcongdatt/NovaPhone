@@ -107,25 +107,40 @@
                         @foreach($products as $product)
                             @php
                                 $thumb = $product->images->firstWhere('is_primary')?->image_url ?? $product->thumbnail;
+                                $isCompared = in_array($product->id, $compareProductIds ?? [], true);
                             @endphp
-                            <a href="{{ route('products.show', $product->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-night-card p-4 transition-all hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/10">
+                            <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-night-card p-4 transition-all hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/10">
                                 @if ($product->sale_price && $product->sale_price < $product->price)
                                     <span class="absolute left-3 top-3 z-10 rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
                                         -{{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%
                                     </span>
                                 @endif
-                                
-                                <div class="relative aspect-square overflow-hidden rounded-xl bg-white/5 p-4 flex items-center justify-center">
+
+                                <div class="absolute right-3 top-3 z-20">
+                                    <button type="button"
+                                            data-compare-toggle="{{ $product->id }}"
+                                            data-compared="{{ $isCompared ? 'true' : 'false' }}"
+                                            aria-label="{{ $isCompared ? 'Xóa khỏi so sánh' : 'Thêm vào so sánh' }}"
+                                            class="flex size-8 items-center justify-center rounded-full bg-night-soft/60 text-white backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-night-soft">
+                                        <svg class="size-4 transition-colors duration-300 {{ $isCompared ? 'text-brand-300' : 'text-white hover:text-brand-300' }}" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <a href="{{ route('products.show', $product->slug) }}" class="relative aspect-square overflow-hidden rounded-xl bg-white/5 p-4 flex items-center justify-center">
                                     @if($thumb)
                                         <img src="{{ str_starts_with($thumb, 'http') ? $thumb : asset('storage/' . $thumb) }}" alt="{{ $product->name }}" class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110">
                                     @else
                                         <img src="{{ asset('images/placeholder.svg') }}" alt="{{ $product->name }}" class="h-full w-full object-contain">
                                     @endif
-                                </div>
-                                
+                                </a>
+
                                 <div class="mt-4 flex flex-1 flex-col">
-                                    <p class="text-xs font-medium text-brand-400 mb-1">{{ $product->brand->name ?? 'Điện thoại' }}</p>
-                                    <h3 class="line-clamp-2 text-sm font-bold text-gray-100 group-hover:text-brand-300 flex-1">{{ $product->name }}</h3>
+                                    <a href="{{ route('products.show', $product->slug) }}" class="text-xs font-medium text-brand-400 mb-1">{{ $product->brand->name ?? 'Điện thoại' }}</a>
+                                    <h3 class="line-clamp-2 text-sm font-bold text-gray-100 group-hover:text-brand-300 flex-1">
+                                        <a href="{{ route('products.show', $product->slug) }}">{{ $product->name }}</a>
+                                    </h3>
                                     <div class="mt-3 flex flex-wrap items-baseline gap-2">
                                         <span class="text-lg font-black text-brand-400">{{ $money($product->effective_price) }}</span>
                                         @if ($product->sale_price && $product->sale_price < $product->price)
@@ -133,7 +148,7 @@
                                         @endif
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         @endforeach
                     </div>
 
