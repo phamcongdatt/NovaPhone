@@ -92,6 +92,15 @@
                     </span>
                     <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
                 </a>
+                {{-- So sánh --}}
+                <a href="{{ route('compare.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                    <span class="relative">
+                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/></svg>
+                        <span id="compare-count-badge"
+                              class="absolute -right-2 -top-1.5 {{ ($compareCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $compareCount ?? 0 }}</span>
+                    </span>
+                    <span class="hidden text-xs font-semibold xl:block">So sánh</span>
+                </a>
                 {{-- Giỏ hàng --}}
                 <a href="{{ route('cart.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                     <span class="relative">
@@ -361,6 +370,76 @@
                     }
                 });
             }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            const updateCompareBadge = (count) => {
+                const badge = document.getElementById('compare-count-badge');
+                if (!badge) return;
+
+                badge.textContent = count;
+                badge.classList.toggle('hidden', count === 0);
+                badge.classList.toggle('flex', count > 0);
+            };
+
+            const showCompareToast = (message, type = 'success') => {
+                const toast = document.createElement('div');
+                toast.setAttribute('role', 'status');
+                toast.setAttribute('aria-live', 'polite');
+                toast.className = `fixed bottom-5 right-5 z-[100] rounded-xl border px-4 py-3 text-sm font-semibold shadow-2xl transition ${type === 'success' ? 'border-emerald-400/30 bg-emerald-950 text-emerald-200' : 'border-red-400/30 bg-red-950 text-red-200'}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                window.setTimeout(() => toast.remove(), 3200);
+            };
+
+            document.addEventListener('click', async (event) => {
+                const button = event.target.closest('[data-compare-toggle]');
+                if (!button) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const productId = button.dataset.compareToggle;
+                const isCompared = button.dataset.compared === 'true';
+                const url = isCompared
+                    ? `{{ url('/compare') }}/${productId}`
+                    : '{{ route('compare.add') }}';
+
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(url, {
+                        method: isCompared ? 'DELETE' : 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: isCompared ? null : JSON.stringify({ product_id: Number(productId) }),
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Không thể cập nhật danh sách so sánh.');
+                    }
+
+                    const compared = data.action === 'added';
+                    document.querySelectorAll(`[data-compare-toggle="${productId}"]`).forEach((control) => {
+                        control.dataset.compared = compared ? 'true' : 'false';
+                        control.setAttribute('aria-label', compared ? 'Xóa khỏi so sánh' : 'Thêm vào so sánh');
+                        control.querySelector('svg')?.classList.toggle('text-brand-300', compared);
+
+                        const label = control.querySelector('[data-compare-label]');
+                        if (label) label.textContent = compared ? 'Xóa khỏi so sánh' : 'So sánh sản phẩm';
+                    });
+                    updateCompareBadge(data.count);
+                    showCompareToast(data.message);
+                } catch (error) {
+                    showCompareToast(error.message || 'Không thể cập nhật danh sách so sánh.', 'error');
+                } finally {
+                    button.disabled = false;
+                }
+            });
 
             // Wishlist Toggle
             document.querySelectorAll('[data-wishlist-toggle]').forEach(button => {

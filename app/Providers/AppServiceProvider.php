@@ -42,6 +42,8 @@ class AppServiceProvider extends ServiceProvider
                     'cartItems' => $cartService->getItems(),
                     'wishlistCount' => auth()->check() ? auth()->user()->wishlists()->count() : 0,
                     'wishlistProductIds' => auth()->check() ? auth()->user()->wishlists()->pluck('product_id')->toArray() : [],
+                    'compareCount' => app(\App\Services\CompareService::class)->getCount(),
+                    'compareProductIds' => app(\App\Services\CompareService::class)->getProductIds(),
                 ]);
             } else {
                 $view->with([
@@ -50,6 +52,8 @@ class AppServiceProvider extends ServiceProvider
                     'cartItems' => collect(),
                     'wishlistCount' => 0,
                     'wishlistProductIds' => [],
+                    'compareCount' => 0,
+                    'compareProductIds' => [],
                 ]);
             }
         });
