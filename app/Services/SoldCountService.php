@@ -19,8 +19,7 @@ class SoldCountService
     {
         $wasInSales = in_array($oldStatus, Order::SALES_STATUSES, true);
         $nowInSales = in_array($newStatus, Order::SALES_STATUSES, true);
-
-        if ($wasInSales === $nowInSales) {
+       if ($wasInSales === $nowInSales) {
             return;
         }
 

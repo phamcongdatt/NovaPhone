@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FlashSaleController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ReviewController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WishlistController;
+use App\Models\FlashSale;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -63,8 +65,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 });
 
-// Đăng nhập nhanh (demo - chỉ hoạt động ở môi trường local)
-Route::get('/quick-login', [AuthController::class, 'quickLogin'])->name('quick-login');
 
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
@@ -158,7 +158,11 @@ Route::middleware(['auth', 'admin'])
         Route::resource('categories', CategoryController::class)->except(['show']);
 
         // Flash Sale
-        Route::resource('flash-sales', \App\Http\Controllers\Admin\FlashSaleController::class);
+        // Flash Sale
+Route::patch('flash-sales/{flashSale}/toggle-status', [FlashSaleController::class, 'toggleStatus'])
+->name('flash-sales.toggle-status');
+Route::resource('flash-sales', FlashSaleController::class);
+
 
         // Người dùng / Khách hàng (xem danh sách, chi tiết, khóa/mở khóa)
         Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
@@ -194,7 +198,7 @@ Route::middleware(['auth', 'admin'])
         Route::patch('reviews/{review}/hide', [ReviewController::class, 'hide'])->name('reviews.hide');
         Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
         //   GEMMINI CHAT
-        
+
         // Cài đặt
         Route::get('/settings/notifications', [SettingController::class, 'notifications'])->name('settings.notifications');
         Route::post('/settings/notifications', [SettingController::class, 'updateNotifications']);
