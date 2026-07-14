@@ -175,6 +175,8 @@ Route::middleware(['auth', 'admin'])
 
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
+        Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class)->except(['show']);
+        Route::resource('banners', \App\Http\Controllers\Admin\BannerController::class)->except(['show']);
         
         // Quản lý Bài viết
         Route::resource('post-categories', \App\Http\Controllers\Admin\PostCategoryController::class)->except(['show']);
