@@ -42,6 +42,10 @@ Route::post('/products/{product:id}/review', [ProductReviewController::class, 's
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
+// ---------- Posts (Tin tức) ----------
+Route::get('/tin-tuc', [\App\Http\Controllers\PostController::class, 'index'])->name('posts.index');
+Route::get('/tin-tuc/{slug}', [\App\Http\Controllers\PostController::class, 'show'])->name('posts.show');
+
 // ---------- Product Comparison ----------
 Route::get('/compare', [CompareController::class, 'index'])->name('compare.index');
 Route::post('/compare', [CompareController::class, 'add'])->name('compare.add');
@@ -171,10 +175,13 @@ Route::middleware(['auth', 'admin'])
 
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
+        
+        // Quản lý Bài viết
+        Route::resource('post-categories', \App\Http\Controllers\Admin\PostCategoryController::class)->except(['show']);
+        Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
 
         // Flash Sale
-        // Flash Sale
-Route::patch('flash-sales/{flashSale}/toggle-status', [FlashSaleController::class, 'toggleStatus'])
+        Route::patch('flash-sales/{flashSale}/toggle-status', [FlashSaleController::class, 'toggleStatus'])
 ->name('flash-sales.toggle-status');
 Route::resource('flash-sales', FlashSaleController::class);
 

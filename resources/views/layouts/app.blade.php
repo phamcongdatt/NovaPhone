@@ -192,7 +192,7 @@
                 @foreach (($brandLinks ?? []) as $brand)
                     <a href="{{ $brand['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $brand['label'] }}</a>
                 @endforeach
-                <a href="#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+                <a href="{{ route('posts.index') }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
                 <a href="{{ route('coupons.index') }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-amber-300">Kho Voucher</a>
             </div>
         </nav>
@@ -204,7 +204,7 @@
             @endforeach
             <a href="#flash-sale" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
             <a href="{{ route('coupons.index') }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Kho Voucher</a>
-            <a href="#tech-journal" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+            <a href="{{ route('posts.index') }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
         </div>
     </header>
 

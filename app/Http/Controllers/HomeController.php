@@ -115,10 +115,16 @@ class HomeController extends Controller
 
         $bestSellerProducts = $this->productRankingService->bestSellers(4);
 
+        $latestPosts = \App\Models\Post::where('is_published', true)
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+
         return view('home', [
             'activeFlashSale' => $activeFlashSale,
             'bestSellerProducts' => $bestSellerProducts,
             'catalogProducts' => $catalogProducts,
+            'latestPosts' => $latestPosts,
             'cartCount' => $this->cartService->getCount(),
             'featureFilters' => $featureFilters,
             'filterBrands' => $filterBrands,
