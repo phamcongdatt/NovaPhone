@@ -198,10 +198,6 @@
                         </div>
                     @endforeach
                 </div>
-                <a href="#" class="hidden items-center gap-1 text-xs font-semibold text-brand-400 transition-colors duration-200 hover:text-brand-300 sm:inline-flex">
-                    Xem tất cả
-                    <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-                </a>
             </div>
         </div>
 
