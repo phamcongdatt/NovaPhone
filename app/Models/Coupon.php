@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Coupon extends Model
 {
     protected $fillable = [
-        'code', 'description', 'type', 'value', 'max_discount',
+        'code', 'description', 'type', 'value', 'gift_product_id', 'max_discount',
         'min_order_amount', 'usage_limit', 'used_count', 'per_user_limit',
-        'starts_at', 'expires_at', 'is_active',
+        'starts_at', 'expires_at', 'is_active', 'is_apply_sale', 'is_apply_flash_sale', 'is_stackable',
     ];
 
     protected function casts(): array
@@ -28,6 +30,26 @@ class Coupon extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'coupon_category');
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'coupon_product');
+    }
+
+    public function eligibleUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'coupon_user_eligibility');
+    }
+
+    public function giftProduct(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'gift_product_id');
     }
 
     /**

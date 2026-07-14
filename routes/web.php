@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Api\GeminiChatbotController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CompareController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\CouponController;
 use App\Models\FlashSale;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -39,6 +41,10 @@ Route::post('/products/{product:id}/review', [ProductReviewController::class, 's
     ->name('products.review.store');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+// ---------- Posts (Tin tức) ----------
+Route::get('/tin-tuc', [\App\Http\Controllers\PostController::class, 'index'])->name('posts.index');
+Route::get('/tin-tuc/{slug}', [\App\Http\Controllers\PostController::class, 'show'])->name('posts.show');
 
 // ---------- Product Comparison ----------
 Route::get('/compare', [CompareController::class, 'index'])->name('compare.index');
@@ -100,6 +106,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
+// ---------- Coupons ----------
+Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index');
+Route::post('/coupons/{coupon}/save', [CouponController::class, 'save'])->name('coupons.save');
+
 // ---------- Cart Routes ----------
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
@@ -110,6 +120,8 @@ Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('
 // ---------- Checkout Routes ----------
 Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
+    Route::post('/checkout/remove-coupon', [CheckoutController::class, 'removeCoupon'])->name('checkout.remove-coupon');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
     Route::get('/checkout/payment-gateway/{order}', [CheckoutController::class, 'paymentGateway'])->name('checkout.payment-gateway');
     Route::post('/checkout/payment-process/{order}', [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
@@ -163,12 +175,18 @@ Route::middleware(['auth', 'admin'])
 
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
+        
+        // Quản lý Bài viết
+        Route::resource('post-categories', \App\Http\Controllers\Admin\PostCategoryController::class)->except(['show']);
+        Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
 
         // Flash Sale
-        // Flash Sale
-Route::patch('flash-sales/{flashSale}/toggle-status', [FlashSaleController::class, 'toggleStatus'])
+        Route::patch('flash-sales/{flashSale}/toggle-status', [FlashSaleController::class, 'toggleStatus'])
 ->name('flash-sales.toggle-status');
 Route::resource('flash-sales', FlashSaleController::class);
+
+        // Mã giảm giá (Coupons)
+        Route::resource('coupons', AdminCouponController::class);
 
 
         // Người dùng / Khách hàng (xem danh sách, chi tiết, khóa/mở khóa)

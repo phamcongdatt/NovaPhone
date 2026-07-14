@@ -123,6 +123,33 @@
                 </svg>
                 <span class="flex-1">Quản lý flash sale</span><span class="text-slate-600">›</span>
             </a>
+            <a href="{{ route('admin.coupons.index') }}"
+                class="{{ $navItem }} {{ request()->routeIs('admin.coupons.*') ? $navActive : $navIdle }}">
+                <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V4.245c0-.754-.726-1.294-1.453-1.096a60.07 60.07 0 0 1-15.797 2.101c-.727.198-1.453.342-1.453 1.096v11.31c0 .754.726 1.294 1.453 1.096Z" />
+                </svg>
+                <span class="flex-1">Quản lý mã giảm giá</span><span class="text-slate-600">›</span>
+            </a>
+
+            <details class="group relative" {{ request()->routeIs('admin.posts.*', 'admin.post-categories.*') ? 'open' : '' }}>
+                <summary class="flex cursor-pointer list-none items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white {{ request()->routeIs('admin.posts.*', 'admin.post-categories.*') ? 'bg-blue-500/10 text-blue-400' : '' }}">
+                    <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                    </svg>
+                    <span class="flex-1">Quản lý bài viết</span>
+                    <svg class="size-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                </summary>
+                <div class="mt-1 space-y-1 pl-10 pr-2 pb-2">
+                    <a href="{{ route('admin.post-categories.index') }}" class="block rounded-lg px-3 py-2 text-xs font-medium {{ request()->routeIs('admin.post-categories.*') ? 'bg-white/5 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                        Danh mục bài viết
+                    </a>
+                    <a href="{{ route('admin.posts.index') }}" class="block rounded-lg px-3 py-2 text-xs font-medium {{ request()->routeIs('admin.posts.*') ? 'bg-white/5 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                        Danh sách bài viết
+                    </a>
+                </div>
+            </details>
 
             <a href="{{ route('admin.orders.statistics') }}"
                 class="{{ $navItem }} {{ request()->routeIs('admin.orders.statistics') ? $navActive : $navIdle }}">

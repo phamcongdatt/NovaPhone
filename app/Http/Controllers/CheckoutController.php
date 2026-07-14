@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentTransaction;
 use App\Services\CartService;
+use App\Services\CouponService;
 use App\Services\SoldCountService;
 use App\Services\TelegramNotificationService;
 use App\Services\VnpayService;
@@ -21,17 +22,20 @@ class CheckoutController extends Controller
     protected VnpayService $vnpayService;
     protected TelegramNotificationService $telegramNotificationService;
     protected SoldCountService $soldCountService;
+    protected CouponService $couponService;
 
     public function __construct(
         CartService $cartService,
         VnpayService $vnpayService,
         TelegramNotificationService $telegramNotificationService,
-        SoldCountService $soldCountService
+        SoldCountService $soldCountService,
+        CouponService $couponService
     ) {
         $this->cartService = $cartService;
         $this->vnpayService = $vnpayService;
         $this->telegramNotificationService = $telegramNotificationService;
         $this->soldCountService = $soldCountService;
+        $this->couponService = $couponService;
     }
 
     /**
@@ -47,11 +51,106 @@ class CheckoutController extends Controller
         $total = $this->cartService->getTotal();
         $user = Auth::user();
 
+        // Xử lý mã giảm giá (nếu có)
+        $discountAmount = 0;
+        $appliedCouponsData = [];
+        if (session()->has('applied_coupons')) {
+            $codes = session()->get('applied_coupons', []);
+            $result = $this->couponService->applyMultiple($codes, $user, $items, $total);
+            if ($result['success']) {
+                $discountAmount = $result['discount_amount'];
+                $appliedCouponsData = $result['coupons'];
+                // Nếu có mã không hợp lệ bị loại bỏ, update lại session?
+                // Tạm thời giữ nguyên các mã đã pass.
+            } else {
+                // Nếu 1 mã làm hỏng toàn bộ (do hết hạn...), xoá hết hoặc giữ logic cũ.
+                // Ở đây nếu có lỗi, ta tạm thời không xoá hết, nhưng có thể báo lỗi.
+            }
+        }
+
         // Lấy địa chỉ mặc định của user nếu có
         $defaultAddress = $user->addresses()->where('is_default', true)->first()
             ?? $user->addresses()->first();
 
-        return view('checkout.index', compact('items', 'total', 'defaultAddress'));
+        // Lấy danh sách mã giảm giá hợp lệ cho user hiện tại
+        $now = now();
+        $availableCoupons = \App\Models\Coupon::with(['eligibleUsers'])
+            ->where('is_active', true)
+            ->where(function ($query) use ($now) {
+                $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+            })
+            ->where(function ($query) use ($now) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>=', $now);
+            })
+            ->where(function ($query) {
+                $query->whereNull('usage_limit')->orWhereColumn('used_count', '<', 'usage_limit');
+            })
+            ->get()
+            ->filter(function ($coupon) use ($user) {
+                if ($coupon->per_user_limit !== null) {
+                    $userUsedCount = $user->orders()->where('coupon_id', $coupon->id)->count();
+                    if ($userUsedCount >= $coupon->per_user_limit) return false;
+                }
+                if ($coupon->eligibleUsers->isNotEmpty()) {
+                    if (!$coupon->eligibleUsers->contains('id', $user->id)) return false;
+                }
+                return true;
+            });
+
+        return view('checkout.index', compact('items', 'total', 'defaultAddress', 'discountAmount', 'appliedCouponsData', 'availableCoupons'));
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $request->validate(['code' => 'required|string']);
+        $items = $this->cartService->getItems();
+        $total = $this->cartService->getTotal();
+        $user = Auth::user();
+
+        $codes = session()->get('applied_coupons', []);
+        $newCode = strtoupper($request->code);
+
+        if (in_array($newCode, array_map('strtoupper', $codes))) {
+            return $this->jsonOrBack($request, false, 'Mã này đã được áp dụng.');
+        }
+
+        $testCodes = array_merge($codes, [$newCode]);
+        $result = $this->couponService->applyMultiple($testCodes, $user, $items, $total);
+
+        if (!$result['success']) {
+            return $this->jsonOrBack($request, false, $result['message']);
+        }
+
+        session()->put('applied_coupons', $testCodes);
+        
+        return $this->jsonOrBack($request, true, $result['message'], $result);
+    }
+
+    public function removeCoupon(Request $request)
+    {
+        $codeToRemove = strtoupper($request->input('code'));
+        $codes = session()->get('applied_coupons', []);
+        
+        if ($codeToRemove) {
+            $codes = array_filter($codes, function ($c) use ($codeToRemove) {
+                return strtoupper($c) !== $codeToRemove;
+            });
+            session()->put('applied_coupons', array_values($codes));
+        } else {
+            session()->forget('applied_coupons'); // Xoá tất cả nếu không truyền code
+        }
+
+        return $this->jsonOrBack($request, true, 'Đã bỏ mã giảm giá.');
+    }
+
+    private function jsonOrBack(Request $request, bool $success, string $message, $data = null)
+    {
+        if ($request->expectsJson()) {
+            $response = ['success' => $success, 'message' => $message];
+            if ($data) $response['data'] = $data;
+            return response()->json($response);
+        }
+        return back()->with($success ? 'success' : 'error', $message);
     }
 
     /**
@@ -104,16 +203,34 @@ class CheckoutController extends Controller
                     }
                 }
 
-                // 2. Tạo bản ghi đơn hàng
+                $discountAmount = 0;
+                $rewardPoints = 0;
+                $appliedCouponsList = [];
+
+                // 2. Tính lại mã giảm giá nếu có
+                if (session()->has('applied_coupons')) {
+                    $codes = session()->get('applied_coupons');
+                    $result = $this->couponService->applyMultiple($codes, Auth::user(), $items, $total);
+                    if ($result['success']) {
+                        $discountAmount = $result['discount_amount'];
+                        $appliedCouponsList = $result['coupons'];
+                    }
+                }
+
+                $finalTotal = max(0, $total - $discountAmount);
+
+                // 3. Tạo bản ghi đơn hàng
                 $order = Order::create([
                     'user_id' => Auth::id(),
                     'status' => 'pending',
                     'payment_method' => $request->payment_method,
                     'payment_status' => 'pending',
                     'subtotal' => $total,
-                    'discount_amount' => 0,
+                    'discount_amount' => $discountAmount,
+                    'coupon_id' => !empty($appliedCouponsList) ? $appliedCouponsList[0]['coupon']->id : null,
+                    'coupon_code' => !empty($appliedCouponsList) ? $appliedCouponsList[0]['coupon']->code : null,
                     'shipping_fee' => 0,
-                    'total_amount' => $total,
+                    'total_amount' => $finalTotal,
                     'shipping_full_name' => $request->shipping_full_name,
                     'shipping_phone' => $request->shipping_phone,
                     'shipping_address' => $request->shipping_address,
@@ -122,6 +239,17 @@ class CheckoutController extends Controller
                     'shipping_province' => $request->shipping_province,
                     'note' => $request->note,
                 ]);
+
+                // Lưu danh sách mã giảm giá vào order_coupons
+                foreach ($appliedCouponsList as $ac) {
+                    \App\Models\OrderCoupon::create([
+                        'order_id' => $order->id,
+                        'coupon_id' => $ac['coupon']->id,
+                        'coupon_code' => $ac['coupon']->code,
+                        'discount_amount' => $ac['discount_amount'],
+                    ]);
+                    $ac['coupon']->increment('used_count');
+                }
 
                 // 3. Tạo chi tiết đơn hàng & trừ kho
                 foreach ($items as $item) {
@@ -167,8 +295,17 @@ class CheckoutController extends Controller
                     }
                 }
 
+
+
+                // Cộng điểm thưởng
+                if ($rewardPoints > 0 && \Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
+                    $user = Auth::user();
+                    $user->increment('points', $rewardPoints);
+                }
+
                 // 4. Xóa giỏ hàng
                 $this->cartService->clear();
+                session()->forget('applied_coupons');
 
                 return $order;
             });

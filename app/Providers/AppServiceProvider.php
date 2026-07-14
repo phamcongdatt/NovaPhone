@@ -26,6 +26,13 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('*', function ($view) {
             // Dữ liệu điều hướng dùng chung cho mọi trang sử dụng layout chính.
+
+            $categoryLinks = \App\Models\Category::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['name', 'slug'])
+                ->map(fn (\App\Models\Category $category) => [
+                    'label' => $category->name,
             $categoryLinks = Brand::query()
                 ->where('is_active', true)
                 ->orderBy('name')
@@ -33,11 +40,34 @@ class AppServiceProvider extends ServiceProvider
                 ->map(fn (Brand $brand) => [
                     'label' => $brand->name,
                     'href' => route('home', ['brand' => $brand->slug]).'#san-pham',
+
                 ]);
 
             $categoryLinks->push([
                 'label' => 'Flagship',
                 'href' => route('home', ['features' => ['featured']]).'#san-pham',
+
+            ]);
+
+            $categoryLinks->prepend([
+                'label' => 'Tất cả sản phẩm',
+                'href' => route('home').'#san-pham',
+            ]);
+
+            $brandLinks = \App\Models\Brand::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['name', 'slug'])
+                ->map(fn (\App\Models\Brand $brand) => [
+                    'label' => $brand->name,
+                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',
+                ]);
+
+            $view->with([
+                'categoryLinks' => $categoryLinks,
+                'brandLinks' => $brandLinks,
+
+
             ]);
 
             $view->with('categoryLinks', $categoryLinks);

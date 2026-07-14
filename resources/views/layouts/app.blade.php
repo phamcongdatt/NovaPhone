@@ -136,6 +136,7 @@
                             <div class="rounded-xl border border-white/10 bg-night-soft py-2 shadow-2xl shadow-black/50">
                                 <a href="{{ route('account.show') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Tài khoản của tôi</a>
                                 <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
+                                <a href="{{ route('coupons.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Kho Voucher</a>
                                 <a href="{{ route('password.change') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Đổi mật khẩu</a>
                                 <div class="my-1 border-t border-white/5"></div>
                                 <form action="{{ route('logout') }}" method="POST" class="block w-full">
@@ -188,20 +189,22 @@
                         </div>
                     </div>
                 </div>
-                @foreach (($categoryLinks ?? []) as $cat)
-                    <a href="{{ $cat['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
+                @foreach (($brandLinks ?? []) as $brand)
+                    <a href="{{ $brand['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $brand['label'] }}</a>
                 @endforeach
-                <a href="#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+                <a href="{{ route('posts.index') }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+                <a href="{{ route('coupons.index') }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-amber-300">Kho Voucher</a>
             </div>
         </nav>
 
         {{-- Menu mobile --}}
         <div data-mobile-menu class="hidden border-t border-white/5 bg-night px-4 pb-4 pt-2 lg:hidden">
-            @foreach (($categoryLinks ?? []) as $cat)
-                <a href="{{ $cat['href'] }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
+            @foreach (($brandLinks ?? []) as $brand)
+                <a href="{{ $brand['href'] }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $brand['label'] }}</a>
             @endforeach
             <a href="#flash-sale" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
-            <a href="#tech-journal" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+            <a href="{{ route('coupons.index') }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Kho Voucher</a>
+            <a href="{{ route('posts.index') }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
         </div>
     </header>
 
