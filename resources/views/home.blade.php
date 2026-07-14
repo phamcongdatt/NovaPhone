@@ -216,7 +216,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name" 
-                        :image="$product->thumbnail ?: asset('images/placeholder.svg')" 
+                        :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')" 
                         :price="$product->price * (1 - $item->discount_percent / 100)" 
                         :old-price="$product->price"
                         :discount="$item->discount_percent" 
@@ -336,7 +336,7 @@
             <x-product-card
                 :id="$product->id"
                 :name="$product->name"
-                :image="$product->thumbnail ?: asset('images/placeholder.svg')"
+                :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')"
                 :price="$product->effective_price"
                 :old-price="$product->sale_price ? $product->price : null"
                 :discount="$discount"
@@ -388,7 +388,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name"
-                        :image="$product->thumbnail ?: asset('images/placeholder.svg')"
+                        :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')"
                         :price="$product->effective_price"
                         :old-price="$product->sale_price ? $product->price : null"
                         :discount="$discount"
