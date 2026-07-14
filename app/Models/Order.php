@@ -75,4 +75,9 @@ class Order extends Model
     {
         return $this->hasMany(PaymentTransaction::class);
     }
+
+    public function orderCoupons(): HasMany
+    {
+        return $this->hasMany(OrderCoupon::class);
+    }
 }

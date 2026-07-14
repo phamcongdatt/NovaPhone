@@ -66,7 +66,7 @@
                                 @if ($coupon->max_discount)
                                     <br><span class="text-xs text-gray-500">Tối đa {{ number_format($coupon->max_discount) }}đ</span>
                                 @endif
-                            @else
+                            @elseif ($coupon->type === 'fixed')
                                 Giảm {{ number_format($coupon->value) }}đ
                             @endif
                         </td>
@@ -75,12 +75,21 @@
                                 Đơn tối thiểu: <span class="font-semibold">{{ number_format($coupon->min_order_amount) }}đ</span><br>
                             @endif
                             @if ($coupon->starts_at || $coupon->expires_at)
-                                <span class="text-xs text-gray-500">
-                                    {{ $coupon->starts_at ? $coupon->starts_at->format('d/m/Y') : '...' }}
-                                    - 
-                                    {{ $coupon->expires_at ? $coupon->expires_at->format('d/m/Y') : '...' }}
+                                <span class="text-xs text-gray-500 block mb-1">
+                                    {{ $coupon->starts_at ? $coupon->starts_at->format('d/m/Y') : '...' }} - {{ $coupon->expires_at ? $coupon->expires_at->format('d/m/Y') : '...' }}
                                 </span>
                             @endif
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                @if ($coupon->is_apply_sale)
+                                    <span class="inline-block rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] text-gray-300" title="Áp dụng cùng hàng Sale">Hàng Sale</span>
+                                @endif
+                                @if ($coupon->is_apply_flash_sale)
+                                    <span class="inline-block rounded-md bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-300" title="Áp dụng cùng Flash Sale">Flash Sale</span>
+                                @endif
+                                @if ($coupon->is_stackable)
+                                    <span class="inline-block rounded-md bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-300" title="Cho phép cộng dồn với mã khác">Cộng dồn</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-4 py-3 text-center text-gray-300">
                             {{ $coupon->used_count }} / {{ $coupon->usage_limit ?: '∞' }}

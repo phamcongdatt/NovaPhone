@@ -123,6 +123,15 @@
                 </svg>
                 <span class="flex-1">Quản lý flash sale</span><span class="text-slate-600">›</span>
             </a>
+            <a href="{{ route('admin.coupons.index') }}"
+                class="{{ $navItem }} {{ request()->routeIs('admin.coupons.*') ? $navActive : $navIdle }}">
+                <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V4.245c0-.754-.726-1.294-1.453-1.096a60.07 60.07 0 0 1-15.797 2.101c-.727.198-1.453.342-1.453 1.096v11.31c0 .754.726 1.294 1.453 1.096Z" />
+                </svg>
+                <span class="flex-1">Quản lý mã giảm giá</span><span class="text-slate-600">›</span>
+            </a>
 
             <a href="{{ route('admin.orders.statistics') }}"
                 class="{{ $navItem }} {{ request()->routeIs('admin.orders.statistics') ? $navActive : $navIdle }}">

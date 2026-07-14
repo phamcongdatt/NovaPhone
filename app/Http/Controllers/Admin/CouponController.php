@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -29,7 +32,10 @@ class CouponController extends Controller
      */
     public function create()
     {
-        return view('admin.coupons.create');
+        $categories = Category::all();
+        $products = Product::select('id', 'name')->get();
+        $users = User::select('id', 'name', 'email')->get();
+        return view('admin.coupons.create', compact('categories', 'products', 'users'));
     }
 
     /**
@@ -49,13 +55,40 @@ class CouponController extends Controller
             'starts_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after_or_equal:starts_at',
             'is_active' => 'boolean',
+            'is_apply_sale' => 'boolean',
+            'is_apply_flash_sale' => 'boolean',
+            'is_stackable' => 'boolean',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:categories,id',
+            'products' => 'nullable|array',
+            'products.*' => 'exists:products,id',
+            'users' => 'nullable|array',
+            'users.*' => 'exists:users,id',
         ]);
 
         $validated['code'] = Str::upper($validated['code']);
         $validated['is_active'] = $request->has('is_active');
+        $validated['is_apply_sale'] = $request->has('is_apply_sale');
+        $validated['is_apply_flash_sale'] = $request->has('is_apply_flash_sale');
+        $validated['is_stackable'] = $request->has('is_stackable');
         $validated['min_order_amount'] = $validated['min_order_amount'] ?? 0;
+        
+        if ($validated['type'] == 'percent' && $validated['value'] > 100) {
+            return back()->withErrors(['value' => 'Phần trăm giảm giá không được vượt quá 100%'])->withInput();
+        }
+        $validated['gift_product_id'] = null; // Removed gift feature
 
-        Coupon::create($validated);
+        $coupon = Coupon::create($validated);
+
+        if (!empty($validated['categories'])) {
+            $coupon->categories()->sync($validated['categories']);
+        }
+        if (!empty($validated['products'])) {
+            $coupon->products()->sync($validated['products']);
+        }
+        if (!empty($validated['users'])) {
+            $coupon->eligibleUsers()->sync($validated['users']);
+        }
 
         return redirect()->route('admin.coupons.index')->with('success', 'Tạo mã giảm giá thành công.');
     }
@@ -65,7 +98,10 @@ class CouponController extends Controller
      */
     public function edit(Coupon $coupon)
     {
-        return view('admin.coupons.edit', compact('coupon'));
+        $categories = Category::all();
+        $products = Product::select('id', 'name')->get();
+        $users = User::select('id', 'name', 'email')->get();
+        return view('admin.coupons.edit', compact('coupon', 'categories', 'products', 'users'));
     }
 
     /**
@@ -84,13 +120,35 @@ class CouponController extends Controller
             'per_user_limit' => 'nullable|integer|min:1',
             'starts_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after_or_equal:starts_at',
+            'is_active' => 'boolean',
+            'is_apply_sale' => 'boolean',
+            'is_apply_flash_sale' => 'boolean',
+            'is_stackable' => 'boolean',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:categories,id',
+            'products' => 'nullable|array',
+            'products.*' => 'exists:products,id',
+            'users' => 'nullable|array',
+            'users.*' => 'exists:users,id',
         ]);
 
         $validated['code'] = Str::upper($validated['code']);
         $validated['is_active'] = $request->has('is_active');
+        $validated['is_apply_sale'] = $request->has('is_apply_sale');
+        $validated['is_apply_flash_sale'] = $request->has('is_apply_flash_sale');
+        $validated['is_stackable'] = $request->has('is_stackable');
         $validated['min_order_amount'] = $validated['min_order_amount'] ?? 0;
+        
+        if ($validated['type'] == 'percent' && $validated['value'] > 100) {
+            return back()->withErrors(['value' => 'Phần trăm giảm giá không được vượt quá 100%'])->withInput();
+        }
+        $validated['gift_product_id'] = null;
 
         $coupon->update($validated);
+
+        $coupon->categories()->sync($validated['categories'] ?? []);
+        $coupon->products()->sync($validated['products'] ?? []);
+        $coupon->eligibleUsers()->sync($validated['users'] ?? []);
 
         return redirect()->route('admin.coupons.index')->with('success', 'Cập nhật mã giảm giá thành công.');
     }
