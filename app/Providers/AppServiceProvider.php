@@ -26,13 +26,13 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('*', function ($view) {
             // Dữ liệu điều hướng dùng chung cho mọi trang sử dụng layout chính.
-            $categoryLinks = Brand::query()
+            $categoryLinks = \App\Models\Category::query()
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['name', 'slug'])
-                ->map(fn (Brand $brand) => [
-                    'label' => $brand->name,
-                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',
+                ->map(fn (\App\Models\Category $category) => [
+                    'label' => $category->name,
+                    'href' => route('home', ['category' => $category->slug]).'#san-pham',
                 ]);
 
             $categoryLinks->push([
@@ -40,7 +40,24 @@ class AppServiceProvider extends ServiceProvider
                 'href' => route('home', ['features' => ['featured']]).'#san-pham',
             ]);
 
-            $view->with('categoryLinks', $categoryLinks);
+            $categoryLinks->prepend([
+                'label' => 'Tất cả sản phẩm',
+                'href' => route('home').'#san-pham',
+            ]);
+
+            $brandLinks = \App\Models\Brand::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['name', 'slug'])
+                ->map(fn (\App\Models\Brand $brand) => [
+                    'label' => $brand->name,
+                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',
+                ]);
+
+            $view->with([
+                'categoryLinks' => $categoryLinks,
+                'brandLinks' => $brandLinks,
+            ]);
 
             if (! request()->is('api/*') && request()->hasSession()) {
                 $cartService = app(CartService::class);

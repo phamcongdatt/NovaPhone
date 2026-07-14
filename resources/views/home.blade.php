@@ -247,7 +247,7 @@
         <form method="GET" action="{{ route('home') }}#san-pham"
               class="rounded-2xl border border-white/5 bg-night-soft p-4 shadow-xl shadow-black/20">
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-12">
-                <div class="flex flex-col gap-1.5 xl:col-span-3">
+                <div class="flex flex-col gap-1.5 xl:col-span-2">
                     <label for="search-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Từ khóa</label>
                     <input id="search-filter" name="q" type="search" value="{{ $selectedSearchQuery }}"
                            placeholder="Tên, SKU..."
@@ -266,13 +266,26 @@
                 </div>
 
                 <div class="flex flex-col gap-1.5 xl:col-span-2">
+                    <label for="category-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Danh mục</label>
+                    <select id="category-filter" name="category"
+                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
+                        <option value="">Tất cả danh mục</option>
+                        @foreach ($filterCategories as $category)
+                            <option value="{{ $category->slug }}" @selected($selectedCategorySlug === $category->slug)>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1.5 xl:col-span-2">
                     <label for="brand-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Thương hiệu</label>
                     <select id="brand-filter" name="brand"
                             class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
                         <option value="">Tất cả thương hiệu</option>
                         @foreach ($filterBrands as $brand)
                             <option value="{{ $brand->slug }}" @selected($selectedBrandSlug === $brand->slug)>
-                                {{ $brand->name }} ({{ $brand->products_count }})
+                                {{ $brand->name }}
                             </option>
                         @endforeach
                     </select>
@@ -288,15 +301,15 @@
                     </select>
                 </div>
 
-                <div class="flex items-end gap-2 xl:col-span-3">
+                <div class="flex items-end gap-2 xl:col-span-2">
                     <button type="submit"
-                            class="h-12 flex-1 rounded-xl bg-brand-600 px-5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
+                            class="h-12 flex-1 rounded-xl bg-brand-600 px-3 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
                         Lọc
                     </button>
-                    @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedFeatures)
+                    @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedCategorySlug || $selectedFeatures)
                         <a href="{{ route('home') }}#san-pham"
-                           class="flex h-12 items-center justify-center rounded-xl border border-white/10 px-5 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
-                            Xóa lọc
+                           class="flex h-12 items-center justify-center rounded-xl border border-white/10 px-3 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
+                            Xóa
                         </a>
                     @endif
                 </div>

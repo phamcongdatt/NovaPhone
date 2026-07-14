@@ -73,6 +73,17 @@ class HomeController extends Controller
             $selectedBrandSlug = null;
         }
 
+        $filterCategories = \App\Models\Category::query()
+            ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $selectedCategorySlug = $request->string('category')->toString();
+        if (! $filterCategories->contains('slug', $selectedCategorySlug)) {
+            $selectedCategorySlug = null;
+        }
+
         $catalogProducts = Product::query()
             ->with('brand')
             ->withAvg(['reviews as rating_average' => fn ($query) => $query->where('is_visible', true)], 'rating')
@@ -83,6 +94,10 @@ class HomeController extends Controller
             ->when($selectedBrandSlug, fn ($query) => $query->whereHas(
                 'brand',
                 fn ($brandQuery) => $brandQuery->where('slug', $selectedBrandSlug)
+            ))
+            ->when($selectedCategorySlug, fn ($query) => $query->whereHas(
+                'category',
+                fn ($catQuery) => $catQuery->where('slug', $selectedCategorySlug)
             ))
             ->tap(fn ($query) => $this->applySort($query, $selectedSort))
             ->paginate(12)
@@ -107,8 +122,10 @@ class HomeController extends Controller
             'cartCount' => $this->cartService->getCount(),
             'featureFilters' => $featureFilters,
             'filterBrands' => $filterBrands,
+            'filterCategories' => $filterCategories,
             'priceRanges' => $priceRanges,
             'selectedBrandSlug' => $selectedBrandSlug,
+            'selectedCategorySlug' => $selectedCategorySlug,
             'selectedFeatures' => $selectedFeatures,
             'selectedPriceRange' => $selectedPriceRange,
             'selectedSearchQuery' => $selectedSearchQuery,
