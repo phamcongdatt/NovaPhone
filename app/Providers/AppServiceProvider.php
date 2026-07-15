@@ -39,10 +39,9 @@ class AppServiceProvider extends ServiceProvider
                 ->get(['name', 'slug'])
                 ->map(fn (Brand $brand) => [
                     'label' => $brand->name,
-                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',
+                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',])
 
                 ]);
-
             $categoryLinks->push([
                 'label' => 'Flagship',
                 'href' => route('home', ['features' => ['featured']]).'#san-pham',
