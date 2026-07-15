@@ -120,8 +120,14 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
+        $banners = \App\Models\Banner::where('is_active', true)
+            ->orderBy('sort_order')
+            ->latest()
+            ->get();
+
         return view('home', [
             'activeFlashSale' => $activeFlashSale,
+            'banners' => $banners,
             'bestSellerProducts' => $bestSellerProducts,
             'catalogProducts' => $catalogProducts,
             'latestPosts' => $latestPosts,
