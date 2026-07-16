@@ -202,7 +202,7 @@
                     <div class="mb-4 grid grid-cols-3 gap-3 sm:grid-cols-5">
                         @foreach ($product->images as $img)
                             <div data-image-item class="group relative overflow-hidden rounded-xl border border-white/10">
-                                <img src="{{ asset('storage/' . $img->image_url) }}" class="aspect-square w-full object-cover">
+                                <img src="{{ str_starts_with($img->image_url, 'images/') ? asset($img->image_url) : asset('storage/' . $img->image_url) }}" class="aspect-square w-full object-cover">
                                 @if ($img->is_primary)
                                     <span class="absolute left-1.5 top-1.5 rounded-full bg-brand-600 px-2 py-0.5 text-[9px] font-bold text-white">Chính</span>
                                 @endif
@@ -266,7 +266,7 @@
                 <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-400">Ảnh đại diện</h3>
 
                 @if ($isEdit && $product->thumbnail)
-                    <img src="{{ asset('storage/' . $product->thumbnail) }}"
+                    <img src="{{ str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail) }}"
                          class="mb-3 aspect-square w-full rounded-xl border border-white/10 object-cover">
                 @endif
 

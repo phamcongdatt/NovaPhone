@@ -55,7 +55,7 @@
 
         @if($post->thumbnail)
             <figure class="mb-10 overflow-hidden rounded-2xl bg-black/20">
-                <img src="{{ asset('storage/' . $post->thumbnail) }}" alt="{{ $post->title }}" class="w-full object-cover">
+                <img src="{{ str_starts_with($post->thumbnail, 'images/') ? asset($post->thumbnail) : asset('storage/' . $post->thumbnail) }}" alt="{{ $post->title }}" class="w-full object-cover">
             </figure>
         @endif
 

@@ -31,7 +31,7 @@
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-4">
                                 <div class="flex size-12 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white p-1">
-                                    <img src="{{ $brand->logo ? asset('storage/' . $brand->logo) : asset('images/placeholder.svg') }}" alt="{{ $brand->name }}" class="h-full w-full rounded-md object-contain">
+                                    <img src="{{ $brand->logo ? (str_starts_with($brand->logo, 'images/') ? asset($brand->logo) : asset('storage/' . $brand->logo)) : asset('images/placeholder.svg') }}" alt="{{ $brand->name }}" class="h-full w-full rounded-md object-contain">
                                 </div>
                                 <div>
                                     <h4 class="font-semibold text-white">{{ $brand->name }}</h4>

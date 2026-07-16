@@ -26,7 +26,7 @@
                 <label for="logo" class="mb-2 block text-sm font-medium text-slate-300">Logo</label>
                 @if($brand->logo)
                     <div class="mb-3 flex size-20 items-center justify-center rounded-xl border border-white/10 bg-white p-2">
-                        <img src="{{ asset('storage/' . $brand->logo) }}" alt="{{ $brand->name }}" class="h-full w-full object-contain">
+                        <img src="{{ str_starts_with($brand->logo, 'images/') ? asset($brand->logo) : asset('storage/' . $brand->logo) }}" alt="{{ $brand->name }}" class="h-full w-full object-contain">
                     </div>
                 @endif
                 <input type="file" id="logo" name="logo" accept="image/*"

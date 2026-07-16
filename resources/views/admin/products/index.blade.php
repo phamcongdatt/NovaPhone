@@ -74,7 +74,7 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                             <img
-                                src="{{ $product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg') }}"
+                                src="{{ $product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg') }}"
                                 alt="{{ $product->name }}"
                                 class="size-12 shrink-0 rounded-lg border border-white/10 object-cover"
                             >
