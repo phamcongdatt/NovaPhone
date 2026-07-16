@@ -121,7 +121,7 @@
             {{-- Ảnh sản phẩm hero --}}
             <div class="relative hidden justify-center lg:flex">
                 <div class="absolute inset-0 m-auto h-72 w-[34rem] rounded-full bg-brand-600/25 blur-3xl"></div>
-                <img src="{{ asset('storage/' . $banner->image) }}"
+                <img src="{{ asset($banner->image) }}"
                      alt="Banner"
                      data-hero-image
                      class="float-slow relative aspect-[16/9] w-[36rem] rounded-[2rem] border border-white/10 object-cover shadow-2xl shadow-black/60">
