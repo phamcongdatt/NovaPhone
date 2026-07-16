@@ -329,9 +329,8 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+novaChart(function (ApexCharts) {
     // Sparkline options chung
     const sparklineOptions = {
         chart: { type: 'area', height: 40, sparkline: { enabled: true } },

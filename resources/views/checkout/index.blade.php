@@ -216,7 +216,7 @@
                                 @php
                                     $product = $item->product;
                                     $variant = $item->variant;
-                                    $thumbnail = $product->thumbnail ?: 'https://placehold.co/100x100/12151d/93c5fd?text='.urlencode($product->name);
+                                    $thumbnail = $product->thumbnail ?: asset('images/placeholder.svg');
                                 @endphp
                                 <div class="flex items-center gap-3">
                                     <div class="size-11 shrink-0 overflow-hidden rounded-lg bg-night-card p-1 border border-white/10">
@@ -238,6 +238,53 @@
                             @endforeach
                         </div>
 
+                        {{-- Mã giảm giá --}}
+                        <div class="space-y-3 border-b border-white/10 pb-4 mb-4">
+                            <h3 class="text-sm font-bold text-white mb-2">Mã giảm giá</h3>
+                            
+                            <div class="flex items-center gap-2" id="coupon-input-container">
+                                <input type="text" id="coupon-code-input" placeholder="Nhập mã giảm giá..." 
+                                    class="w-full uppercase rounded-xl border border-white/10 bg-white/5 py-2.5 px-4 text-sm text-white outline-none transition focus:border-brand-500">
+                                
+                                <button type="button" onclick="applyCoupon()" class="shrink-0 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold text-white hover:bg-white/20 transition">Áp dụng</button>
+                            </div>
+
+                            <div id="applied-coupons-container" class="space-y-2" style="{{ !empty($appliedCouponsData) ? '' : 'display: none;' }}">
+                                @if(!empty($appliedCouponsData))
+                                    @foreach($appliedCouponsData as $ac)
+                                    <div class="flex items-center justify-between gap-2 p-3 rounded-xl bg-brand-500/10 border border-brand-500/20">
+                                        <div>
+                                            <p class="text-xs font-bold text-brand-400">{{ $ac['coupon']->code }}</p>
+                                            <p class="text-[10px] text-gray-400">Giảm {{ number_format($ac['discount_amount'], 0, ',', '.') }}đ</p>
+                                        </div>
+                                        <button type="button" onclick="removeCoupon('{{ $ac['coupon']->code }}')" class="shrink-0 text-xs font-bold text-red-400 hover:text-red-300 transition">Bỏ mã</button>
+                                    </div>
+                                    @endforeach
+                                @endif
+                            </div>
+
+                            <p id="coupon-error-message" class="text-xs text-red-400 hidden"></p>
+
+                            {{-- Danh sách mã có thể dùng --}}
+                            @if (isset($availableCoupons) && $availableCoupons->isNotEmpty())
+                                <div class="pt-3 border-t border-white/5" id="available-coupons-list">
+                                    <p class="text-[11px] font-semibold text-gray-400 mb-2 uppercase tracking-wider">Mã giảm giá khả dụng</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach($availableCoupons as $avCoupon)
+                                            <button type="button" 
+                                                onclick="quickApplyCoupon('{{ $avCoupon->code }}')"
+                                                class="group relative overflow-hidden rounded-xl border border-brand-500/30 bg-brand-500/10 px-3 py-1.5 text-left transition hover:border-brand-500 hover:bg-brand-500/20 text-xs">
+                                                <div class="font-bold text-brand-400 group-hover:text-brand-300">{{ $avCoupon->code }}</div>
+                                                @if($avCoupon->description)
+                                                    <div class="text-[10px] text-gray-400 truncate max-w-[140px]">{{ $avCoupon->description }}</div>
+                                                @endif
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
                         {{-- Hoá đơn --}}
                         <div class="space-y-3 border-b border-white/10 pb-4 mb-4">
                             <div class="flex justify-between text-xs">
@@ -248,15 +295,18 @@
                                 <span class="text-gray-400">Phí vận chuyển</span>
                                 <span class="font-semibold text-emerald-400">Miễn phí</span>
                             </div>
-                            <div class="flex justify-between text-xs">
+                            <div class="flex justify-between text-xs" id="discount-row" style="{{ $discountAmount > 0 ? '' : 'display: none;' }}">
                                 <span class="text-gray-400">Khấu trừ giảm giá</span>
-                                <span class="font-semibold text-gray-500">0đ</span>
+                                <span class="font-semibold text-brand-400">-<span id="discount-amount">{{ number_format($discountAmount, 0, ',', '.') }}đ</span></span>
                             </div>
                         </div>
 
                         <div class="flex justify-between items-baseline mb-6">
                             <span class="text-sm font-bold text-white">Tổng thanh toán</span>
-                            <span class="text-xl font-black text-brand-400">{{ $money($total) }}</span>
+                            @php
+                                $finalTotal = max(0, $total - $discountAmount);
+                            @endphp
+                            <span class="text-xl font-black text-brand-400" id="final-total">{{ $money($finalTotal) }}</span>
                         </div>
 
                         <button 
@@ -274,3 +324,110 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    const formatMoney = (amount) => {
+        return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
+    };
+
+    const totalAmount = {{ $total }};
+
+    function quickApplyCoupon(code) {
+        document.getElementById('coupon-code-input').value = code;
+        applyCoupon();
+    }
+
+    function applyCoupon() {
+        const code = document.getElementById('coupon-code-input').value.trim();
+        const errorMsg = document.getElementById('coupon-error-message');
+        if (!code) {
+            errorMsg.innerText = 'Vui lòng nhập mã giảm giá.';
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+
+        fetch('{{ route('checkout.apply-coupon') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                errorMsg.classList.add('hidden');
+                document.getElementById('coupon-code-input').value = '';
+                
+                renderAppliedCoupons(data.data.coupons);
+
+                // Update totals
+                if (data.data.discount_amount > 0) {
+                    document.getElementById('discount-row').style.display = 'flex';
+                    document.getElementById('discount-amount').innerText = formatMoney(data.data.discount_amount);
+                } else {
+                    document.getElementById('discount-row').style.display = 'none';
+                }
+
+                let finalTotal = totalAmount - data.data.discount_amount;
+                if (finalTotal < 0) finalTotal = 0;
+                document.getElementById('final-total').innerText = formatMoney(finalTotal);
+            } else {
+                errorMsg.innerText = data.message;
+                errorMsg.classList.remove('hidden');
+            }
+        })
+        .catch(err => {
+            errorMsg.innerText = 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
+            errorMsg.classList.remove('hidden');
+        });
+    }
+
+    function removeCoupon(code) {
+        fetch('{{ route('checkout.remove-coupon') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // To properly refresh everything, the easiest is to reload the page to get the updated session state,
+                // OR we can just reload the page for both apply and remove to be safe, but since we already have DOM update:
+                window.location.reload();
+            }
+        });
+    }
+
+    function renderAppliedCoupons(coupons) {
+        const container = document.getElementById('applied-coupons-container');
+        if (!coupons || coupons.length === 0) {
+            container.style.display = 'none';
+            container.innerHTML = '';
+            return;
+        }
+
+        container.style.display = 'block';
+        let html = '';
+        coupons.forEach(ac => {
+            html += `
+            <div class="flex items-center justify-between gap-2 p-3 rounded-xl bg-brand-500/10 border border-brand-500/20">
+                <div>
+                    <p class="text-xs font-bold text-brand-400">${ac.coupon.code}</p>
+                    <p class="text-[10px] text-gray-400">Giảm ${formatMoney(ac.discount_amount)}</p>
+                </div>
+                <button type="button" onclick="removeCoupon('${ac.coupon.code}')" class="shrink-0 text-xs font-bold text-red-400 hover:text-red-300 transition">Bỏ mã</button>
+            </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+</script>
+@endpush

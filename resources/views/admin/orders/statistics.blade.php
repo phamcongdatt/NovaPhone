@@ -316,9 +316,8 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+novaChart(function (ApexCharts) {
     const moneyFmt = (v) => v.toLocaleString('vi-VN') + ' đ';
 
     // ── Doanh thu theo ngày (Area Chart) ─────────────────
