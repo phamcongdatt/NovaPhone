@@ -225,14 +225,14 @@
                 </div>
 
                 {{-- Form AJAX --}}
-                <form id="cart-form" class="mt-5">
+                <form id="cart-form" method="POST" action="{{ route('cart.buy-now') }}" class="mt-5">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $detail['id'] }}">
                     <input type="hidden" name="variant_id" id="hidden-variant-id" value="">
                     <input type="hidden" name="quantity" value="1">
                     
                     <div class="grid gap-3">
-                        <button type="button" id="buy-now-btn" class="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3.5 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 cursor-pointer">
+                        <button type="submit" id="buy-now-btn" class="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3.5 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 cursor-pointer">
                             Mua ngay
                         </button>
                         <button type="button" id="add-to-cart-btn" class="rounded-xl border border-brand-500/40 bg-brand-600/15 px-5 py-3.5 text-base font-black text-brand-200 transition hover:bg-brand-600 hover:text-white cursor-pointer">
@@ -488,12 +488,6 @@
         }
 
         addToCartBtn.addEventListener('click', () => addToCart());
-
-        buyNowBtn.addEventListener('click', () => {
-            addToCart(() => {
-                window.location.href = "{{ route('checkout') }}";
-            });
-        });
     });
 </script>
 @endsection
