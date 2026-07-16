@@ -25,47 +25,50 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer('*', function ($view) {
-            // Dữ liệu điều hướng dùng chung cho mọi trang sử dụng layout chính.
-
+            // Danh mục
             $categoryLinks = \App\Models\Category::query()
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['name', 'slug'])
-                ->map(fn (\App\Models\Category $category) => [
+                ->map(fn(\App\Models\Category $category) => [
                     'label' => $category->name,
+
+                    'href' => route('home', ['category' => $category->slug]) . '#san-pham',
+
                     'href' => route('home', ['category' => $category->slug]).'#san-pham',
+
                 ]);
+
+            // Thêm mục Flagship
             $categoryLinks->push([
                 'label' => 'Flagship',
-                'href' => route('home', ['features' => ['featured']]).'#san-pham',
-
+                'href' => route('home', ['features' => ['featured']]) . '#san-pham',
             ]);
 
+            // Thêm mục Tất cả sản phẩm
             $categoryLinks->prepend([
                 'label' => 'Tất cả sản phẩm',
-                'href' => route('home').'#san-pham',
+                'href' => route('home') . '#san-pham',
             ]);
 
-            $brandLinks = \App\Models\Brand::query()
+            // Thương hiệu
+            $brandLinks = Brand::query()
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['name', 'slug'])
-                ->map(fn (\App\Models\Brand $brand) => [
+                ->map(fn(Brand $brand) => [
                     'label' => $brand->name,
-                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',
+                    'href' => route('home', ['brand' => $brand->slug]) . '#san-pham',
                 ]);
 
             $view->with([
                 'categoryLinks' => $categoryLinks,
                 'brandLinks' => $brandLinks,
-
-
             ]);
 
-            $view->with('categoryLinks', $categoryLinks);
-
-            if (! request()->is('api/*') && request()->hasSession()) {
+            if (!request()->is('api/*') && request()->hasSession()) {
                 $cartService = app(CartService::class);
+
                 $view->with([
                     'cartCount' => $cartService->getCount(),
                     'cartTotal' => $cartService->getTotal(),
@@ -92,7 +95,7 @@ class AppServiceProvider extends ServiceProvider
         VerifyEmail::toMailUsing(function (object $notifiable, string $url): MailMessage {
             return (new MailMessage)
                 ->subject('Xác thực địa chỉ email — NovaPhone')
-                ->greeting('Xin chào '.$notifiable->name.',')
+                ->greeting('Xin chào ' . $notifiable->name . ',')
                 ->line('Cảm ơn bạn đã đăng ký tài khoản tại NovaPhone. Vui lòng nhấn nút bên dưới để xác thực địa chỉ email của bạn.')
                 ->action('Xác thực email', $url)
                 ->line('Liên kết này sẽ hết hạn sau 60 phút.')

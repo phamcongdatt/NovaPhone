@@ -18,11 +18,8 @@ class Banner extends Model
         'sort_order',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'highlights' => 'array',
-            'is_active' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'highlights' => 'array',
+        'is_active'  => 'boolean',
+    ];
 }
