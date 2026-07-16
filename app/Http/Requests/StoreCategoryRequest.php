@@ -27,8 +27,8 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name.required' => 'Tên danh mục là bắt buộc.',
             'name.unique' => 'Tên danh mục đã tồn tại.',
-            'is_active.required' => 'Trạng thái là bắt buộc.',
-            'is_active.boolean' => 'Trạng thái không hợp lệ.',
+            'is_active.required' => 'Trạng thái hoạt động là bắt buộc.',
+            'is_active.boolean' => 'Trạng thái hoạt động không hợp lệ.',
         ];
     }
 }

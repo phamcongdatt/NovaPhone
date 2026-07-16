@@ -3,18 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\FlashSale;
 use App\Models\Product;
 use App\Services\CartService;
+use App\Services\ProductRankingService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
     protected CartService $cartService;
+    protected ProductRankingService $productRankingService;
 
-    public function __construct(CartService $cartService)
+    public function __construct(CartService $cartService, ProductRankingService $productRankingService)
     {
         $this->cartService = $cartService;
+        $this->productRankingService = $productRankingService;
     }
 
     public function index(Request $request): View
@@ -69,6 +73,17 @@ class HomeController extends Controller
             $selectedBrandSlug = null;
         }
 
+        $filterCategories = \App\Models\Category::query()
+            ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $selectedCategorySlug = $request->string('category')->toString();
+        if (! $filterCategories->contains('slug', $selectedCategorySlug)) {
+            $selectedCategorySlug = null;
+        }
+
         $catalogProducts = Product::query()
             ->with('brand')
             ->withAvg(['reviews as rating_average' => fn ($query) => $query->where('is_visible', true)], 'rating')
@@ -80,18 +95,49 @@ class HomeController extends Controller
                 'brand',
                 fn ($brandQuery) => $brandQuery->where('slug', $selectedBrandSlug)
             ))
+            ->when($selectedCategorySlug, fn ($query) => $query->whereHas(
+                'category',
+                fn ($catQuery) => $catQuery->where('slug', $selectedCategorySlug)
+            ))
             ->tap(fn ($query) => $this->applySort($query, $selectedSort))
             ->paginate(12)
             ->withQueryString()
             ->fragment('san-pham');
 
+        $activeFlashSale = FlashSale::with(['items.product' => function ($q) {
+            $q->where('is_active', true);
+        }])
+        ->where('is_active', true)
+        ->where('start_time', '<=', now())
+        ->where('end_time', '>=', now())
+        ->latest()
+        ->first();
+
+        $bestSellerProducts = $this->productRankingService->bestSellers(4);
+
+        $latestPosts = \App\Models\Post::where('is_published', true)
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+
+        $banners = \App\Models\Banner::where('is_active', true)
+            ->orderBy('sort_order')
+            ->latest()
+            ->get();
+
         return view('home', [
+            'activeFlashSale' => $activeFlashSale,
+            'banners' => $banners,
+            'bestSellerProducts' => $bestSellerProducts,
             'catalogProducts' => $catalogProducts,
+            'latestPosts' => $latestPosts,
             'cartCount' => $this->cartService->getCount(),
             'featureFilters' => $featureFilters,
             'filterBrands' => $filterBrands,
+            'filterCategories' => $filterCategories,
             'priceRanges' => $priceRanges,
             'selectedBrandSlug' => $selectedBrandSlug,
+            'selectedCategorySlug' => $selectedCategorySlug,
             'selectedFeatures' => $selectedFeatures,
             'selectedPriceRange' => $selectedPriceRange,
             'selectedSearchQuery' => $selectedSearchQuery,

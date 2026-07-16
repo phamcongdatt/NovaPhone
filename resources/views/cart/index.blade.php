@@ -1,3 +1,5 @@
+
+
 @extends('layouts.app')
 
 @section('title', 'Giỏ hàng của bạn | NovaPhone')
@@ -54,9 +56,9 @@
             <div class="lg:col-span-2 space-y-4">
                 @foreach ($items as $item)
                     @php
-                        $product   = $item->product;
-                        $variant   = $item->variant;
-                        $thumbnail = $product->thumbnail ?: 'https://placehold.co/300x300/12151d/93c5fd?text='.urlencode($product->name);
+                        $product = $item->product;
+                        $variant = $item->variant;
+                        $thumbnail = $product->thumbnail ?: asset('images/placeholder.svg');
                     @endphp
                     <div data-cart-row="{{ $item->id }}" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-2xl border border-white/5 bg-night-soft p-4 shadow-lg transition duration-300 hover:border-white/10 hover:bg-white/[0.02]">
 
@@ -93,8 +95,9 @@
                                 id="quantity-input-{{ $item->id }}"
                                 value="{{ $item->quantity }}"
                                 min="1"
-                                readonly
-                                class="w-10 text-center bg-transparent border-0 text-sm font-bold text-white focus:ring-0 select-none pointer-events-none"
+                                onchange="updateQuantity('{{ $item->id }}', this.value, true)"
+                                onkeydown="if(event.key === 'Enter') this.blur();"
+                                class="w-10 text-center bg-transparent border-0 text-sm font-bold text-white focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             >
                             <button
                                 type="button"
@@ -190,6 +193,7 @@
                 ? 'border-emerald-500/20 bg-emerald-950/80 text-emerald-300'
                 : 'border-red-500/20 bg-red-950/80 text-red-300'
         }`;
+
         const icon = type === 'success'
             ? `<svg class="size-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`
             : `<svg class="size-5 text-red-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`;
@@ -203,10 +207,15 @@
         document.querySelectorAll('[data-cart-count]').forEach(el => el.textContent = count);
     }
 
-    function updateQuantity(itemId, change) {
+    function updateQuantity(itemId, changeOrQty, isDirect = false) {
         const input = document.getElementById(`quantity-input-${itemId}`);
-        const newQty = parseInt(input.value) + change;
-        if (newQty < 1) return;
+        const currentQty = parseInt(input.value) || 1;
+        let newQty = isDirect ? parseInt(changeOrQty) : (currentQty + changeOrQty);
+
+        if (isNaN(newQty) || newQty < 1) {
+            newQty = 1;
+            input.value = 1;
+        }
 
         fetch(`/cart/update/${itemId}`, {
             method: 'PATCH',
@@ -220,13 +229,26 @@
                 document.getElementById(`item-subtotal-${itemId}`).textContent = data.item_subtotal;
                 document.getElementById('cart-subtotal').textContent = data.cart_total;
                 document.getElementById('cart-total').textContent = data.cart_total;
-                updateCartHeader(data.cart_count);
+
+                // Cập nhật số trên header
+                const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
+                headerCounts.forEach(el => el.textContent = data.cart_count);
+
                 showToast('Đã cập nhật số lượng thành công!');
             } else {
                 showToast(data.message || 'Có lỗi xảy ra', 'error');
+                if (data.item_quantity) {
+                    input.value = data.item_quantity;
+                } else {
+                    input.value = currentQty;
+                }
             }
         })
-        .catch(() => showToast('Không thể kết nối đến máy chủ.', 'error'));
+        .catch(err => {
+            console.error(err);
+            showToast('Không thể kết nối đến máy chủ.', 'error');
+            input.value = currentQty;
+        });
     }
 
     function removeItem(itemId) {
@@ -242,15 +264,23 @@
             const data = await response.json();
             if (response.ok) {
                 row.classList.add('transition-all', 'duration-300', 'scale-95', 'opacity-0');
+
                 setTimeout(() => {
                     row.remove();
+
+                    // Cập nhật tiền
                     document.getElementById('cart-subtotal').textContent = data.cart_total;
                     document.getElementById('cart-total').textContent = data.cart_total;
-                    updateCartHeader(data.cart_count);
+
+                    // Cập nhật số trên header
+                    const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
+                    headerCounts.forEach(el => el.textContent = data.cart_count);
+
                     if (data.cart_total_raw <= 0) {
                         document.getElementById('cart-content-view').classList.add('hidden');
                         document.getElementById('empty-cart-view').classList.remove('hidden');
                     }
+
                     showToast('Đã xóa sản phẩm khỏi giỏ hàng.');
                 }, 300);
             } else {

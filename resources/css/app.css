@@ -1,7 +1,7 @@
+@import '@fontsource-variable/inter';
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
 
 /* Dark mode điều khiển bằng class .dark trên thẻ <html> */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -13,7 +13,7 @@ html.dark {
 }
 
 @theme {
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
     /* Bảng màu thương hiệu NovaPhone - xanh dương hiện đại */

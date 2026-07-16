@@ -8,11 +8,15 @@ use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\ProductRankingService;
 use Illuminate\Support\Carbon;
 
 class DashboardController extends Controller
 {
-    private const REVENUE_STATUSES = ['confirmed', 'processing', 'shipping', 'delivered'];
+    public function __construct(
+        private readonly ProductRankingService $productRankingService
+    ) {
+    }
 
     public function index()
     {
@@ -46,7 +50,8 @@ class DashboardController extends Controller
             ->sum('total_amount');
 
         $recentOrders = Order::with(['user', 'items.product'])->latest()->take(5)->get();
-        $bestSellers = Product::orderByDesc('sold_count')->take(5)->get();
+        // Admin xem tất cả sản phẩm (kể cả inactive) theo sold_count đã đồng bộ
+        $bestSellers = $this->productRankingService->bestSellers(5, onlyActive: false);
         $lowStock = Inventory::with('product')
             ->whereColumn('quantity', '<=', 'low_stock_threshold')
             ->whereHas('product')
@@ -94,7 +99,7 @@ class DashboardController extends Controller
 
     private function revenueQuery()
     {
-        return Order::whereIn('status', self::REVENUE_STATUSES);
+        return Order::whereIn('status', Order::SALES_STATUSES);
     }
 
     private function growth(float $current, float $previous): float

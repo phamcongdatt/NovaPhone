@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Brand;
+use App\Services\CartService;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\View;
@@ -24,28 +26,71 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('*', function ($view) {
             // Dữ liệu điều hướng dùng chung cho mọi trang sử dụng layout chính.
-            $view->with('categoryLinks', [
-                ['label' => 'iPhone', 'href' => route('home', ['brand' => 'apple']) . '#san-pham'],
-                ['label' => 'Samsung', 'href' => route('home', ['brand' => 'samsung']) . '#san-pham'],
-                ['label' => 'Xiaomi', 'href' => route('home', ['brand' => 'xiaomi']) . '#san-pham'],
-                ['label' => 'OPPO', 'href' => route('home', ['brand' => 'oppo']) . '#san-pham'],
-                ['label' => 'Vivo', 'href' => route('home', ['brand' => 'vivo']) . '#san-pham'],
-                ['label' => 'Realme', 'href' => route('home', ['brand' => 'realme']) . '#san-pham'],
-                ['label' => 'Flagship', 'href' => route('home', ['features' => ['featured']]) . '#san-pham'],
+
+            $categoryLinks = \App\Models\Category::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['name', 'slug'])
+                ->map(fn (\App\Models\Category $category) => [
+                    'label' => $category->name,
+            $categoryLinks = Brand::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['name', 'slug'])
+                ->map(fn (Brand $brand) => [
+                    'label' => $brand->name,
+                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',])
+
+                ]);
+            $categoryLinks->push([
+                'label' => 'Flagship',
+                'href' => route('home', ['features' => ['featured']]).'#san-pham',
+
             ]);
 
+            $categoryLinks->prepend([
+                'label' => 'Tất cả sản phẩm',
+                'href' => route('home').'#san-pham',
+            ]);
+
+            $brandLinks = \App\Models\Brand::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['name', 'slug'])
+                ->map(fn (\App\Models\Brand $brand) => [
+                    'label' => $brand->name,
+                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',
+                ]);
+
+            $view->with([
+                'categoryLinks' => $categoryLinks,
+                'brandLinks' => $brandLinks,
+
+
+            ]);
+
+            $view->with('categoryLinks', $categoryLinks);
+
             if (! request()->is('api/*') && request()->hasSession()) {
-                $cartService = app(\App\Services\CartService::class);
+                $cartService = app(CartService::class);
                 $view->with([
                     'cartCount' => $cartService->getCount(),
                     'cartTotal' => $cartService->getTotal(),
                     'cartItems' => $cartService->getItems(),
+                    'wishlistCount' => auth()->check() ? auth()->user()->wishlists()->count() : 0,
+                    'wishlistProductIds' => auth()->check() ? auth()->user()->wishlists()->pluck('product_id')->toArray() : [],
+                    'compareCount' => app(\App\Services\CompareService::class)->getCount(),
+                    'compareProductIds' => app(\App\Services\CompareService::class)->getProductIds(),
                 ]);
             } else {
                 $view->with([
                     'cartCount' => 0,
                     'cartTotal' => 0,
                     'cartItems' => collect(),
+                    'wishlistCount' => 0,
+                    'wishlistProductIds' => [],
+                    'compareCount' => 0,
+                    'compareProductIds' => [],
                 ]);
             }
         });
@@ -54,17 +99,12 @@ class AppServiceProvider extends ServiceProvider
         VerifyEmail::toMailUsing(function (object $notifiable, string $url): MailMessage {
             return (new MailMessage)
                 ->subject('Xác thực địa chỉ email — NovaPhone')
-                ->greeting('Xin chào ' . $notifiable->name . ',')
+                ->greeting('Xin chào '.$notifiable->name.',')
                 ->line('Cảm ơn bạn đã đăng ký tài khoản tại NovaPhone. Vui lòng nhấn nút bên dưới để xác thực địa chỉ email của bạn.')
                 ->action('Xác thực email', $url)
                 ->line('Liên kết này sẽ hết hạn sau 60 phút.')
                 ->line('Nếu bạn không tạo tài khoản này, vui lòng bỏ qua email.')
                 ->salutation('Trân trọng, Đội ngũ NovaPhone');
         });
-    }                  
-
-
-
-
-    
+    }
 }

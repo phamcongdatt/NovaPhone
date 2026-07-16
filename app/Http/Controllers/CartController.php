@@ -100,6 +100,14 @@ class CartController extends Controller
      * Xóa sản phẩm khỏi giỏ hàng.
      */
     public function destroy(Request $request, $idOrKey)
+
+
+
+
+
+
+
+
     {
         try {
             $this->cartService->remove($idOrKey);
@@ -126,12 +134,31 @@ class CartController extends Controller
             return redirect()->route('cart.index')->with('error', $e->getMessage());
         }
     }
-    public function clear()
+
+    /**
+     * Mua ngay một sản phẩm từ trang chi tiết.
+     * Thêm sản phẩm vào giỏ và chuyển hướng đến trang thanh toán.
+     */
+    public function buyNow(Request $request)
     {
-        $this->cartService->clear();
-        return response()->json([
-            'success' => true,
-            'message' => 'Đã xóa toàn bộ giỏ hàng.',
+        $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+            'variant_id' => 'nullable|integer|exists:product_variants,id',
+            'quantity' => 'required|integer|min:1|max:100',
         ]);
+
+        try {
+            // Thêm sản phẩm vào giỏ hàng
+            $item = $this->cartService->add(
+                $request->integer('product_id'),
+                $request->input('variant_id') ? $request->integer('variant_id') : null,
+                $request->integer('quantity')
+            );
+
+            // Chuyển hướng đến trang thanh toán
+            return redirect()->route('checkout')->with('success', 'Đã thêm sản phẩm vào giỏ hàng! Tiếp tục thanh toán.');
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
     }
 }

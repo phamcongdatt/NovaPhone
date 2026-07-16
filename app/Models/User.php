@@ -9,6 +9,7 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -90,5 +91,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    public function savedCoupons(): BelongsToMany
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_user')->withTimestamps();
+    }
+
+    public function eligibleCoupons(): BelongsToMany
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_user_eligibility')->withTimestamps();
     }
 }

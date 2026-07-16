@@ -6,6 +6,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'NovaPhone — Hệ thống bán lẻ điện thoại chính hãng')</title>
 
+    {{-- Stub chạy trước module app.js: gom callback biểu đồ vào hàng đợi để charts.js rút ra sau. --}}
+    <script>
+        window.__novaChartQueue = [];
+        window.novaChart = (cb) => window.__novaChartQueue.push({ lib: 'apex', cb });
+        window.novaChartJs = (cb) => window.__novaChartQueue.push({ lib: 'chartjs', cb });
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-night font-sans text-gray-100 antialiased">
@@ -45,7 +52,7 @@
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="flex shrink-0 items-center" aria-label="NovaPhone - Trang chủ">
                 <img
-                    src="{{ asset('images/brand/nova-phone-logo.png') }}"
+                    src="{{ asset('images/brand/nova-phone-logo.webp') }}"
                     alt="NovaPhone"
                     class="h-11 w-auto max-w-[180px] object-contain sm:h-12"
                 >
@@ -76,17 +83,31 @@
             {{-- Cụm hành động bên phải --}}
             <div class="flex shrink-0 items-center gap-1 sm:gap-2">
                 {{-- Yêu thích --}}
-                <a href="#" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+                <a href="{{ route('wishlist.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                    <span class="relative">
+                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+                        <span id="wishlist-count-badge"
+                              class="absolute -right-2 -top-1.5 {{ ($wishlistCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $wishlistCount ?? 0 }}</span>
+                    </span>
                     <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
                 </a>
 
+                {{-- So sánh --}}
+                <a href="{{ route('compare.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
+                    <span class="relative">
+                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/></svg>
+                        <span id="compare-count-badge"
+                              class="absolute -right-2 -top-1.5 {{ ($compareCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $compareCount ?? 0 }}</span>
+                    </span>
+                    <span class="hidden text-xs font-semibold xl:block">So sánh</span>
+                </a>
                 {{-- Giỏ hàng --}}
-                @php $cartCount = app(\App\Services\CartService::class)->getCount(); @endphp
                 <a href="{{ route('cart.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                     <span class="relative">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.36-1.62 1.26 12a1.13 1.13 0 0 1-1.12 1.24H4.25a1.13 1.13 0 0 1-1.12-1.24l1.26-12A1.13 1.13 0 0 1 5.51 7.88h12.98c.58 0 1.06.43 1.12 1Z"/></svg>
-                        <span data-cart-count class="absolute -right-2 -top-1.5 flex size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $cartCount }}</span>
+                        <span id="cart-count-badge"
+                              class="absolute -right-2 -top-1.5 {{ ($cartCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $cartCount ?? 0 }}</span>
+
                     </span>
                     <span class="hidden text-xs font-semibold xl:block">Giỏ hàng</span>
                 </a>
@@ -115,7 +136,9 @@
                         {{-- Dropdown menu --}}
                         <div class="invisible absolute right-0 top-full mt-1 w-48 opacity-0 transition-all duration-200 ease-in-out group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-50">
                             <div class="rounded-xl border border-white/10 bg-night-soft py-2 shadow-2xl shadow-black/50">
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
+                                <a href="{{ route('account.show') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Tài khoản của tôi</a>
+                                <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
+                                <a href="{{ route('coupons.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Kho Voucher</a>
                                 <a href="{{ route('password.change') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Đổi mật khẩu</a>
                                 @if(Auth::user()->isAdmin())
                                     <a href="{{ route('admin.products.index') }}" class="block px-4 py-2 text-sm text-brand-400 hover:bg-white/5 hover:text-brand-300 transition-colors">Quản trị Admin</a>
@@ -172,21 +195,22 @@
                         </div>
                     </div>
                 </div>
-                @foreach (($categoryLinks ?? []) as $cat)
-                    <a href="{{ $cat['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
+                @foreach (($brandLinks ?? []) as $brand)
+                    <a href="{{ $brand['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $brand['label'] }}</a>
                 @endforeach
-                <a href="#flash-sale" class="rounded-lg px-3.5 py-1.5 text-xs font-bold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
-                <a href="#tech-journal" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+                <a href="{{ route('posts.index') }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+                <a href="{{ route('coupons.index') }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-amber-300">Kho Voucher</a>
             </div>
         </nav>
 
         {{-- Menu mobile --}}
         <div data-mobile-menu class="hidden border-t border-white/5 bg-night px-4 pb-4 pt-2 lg:hidden">
-            @foreach (($categoryLinks ?? []) as $cat)
-                <a href="{{ $cat['href'] }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $cat['label'] }}</a>
+            @foreach (($brandLinks ?? []) as $brand)
+                <a href="{{ $brand['href'] }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $brand['label'] }}</a>
             @endforeach
             <a href="#flash-sale" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
-            <a href="#tech-journal" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
+            <a href="{{ route('coupons.index') }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Kho Voucher</a>
+            <a href="{{ route('posts.index') }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
         </div>
     </header>
 
@@ -201,7 +225,13 @@
 
             <div class="lg:col-span-2 lg:pr-10">
                 <a href="{{ route('home') }}" class="mb-4 inline-flex" aria-label="NovaPhone - Trang chủ">
-                    <img src="{{ asset('images/brand/nova-phone-logo.png') }}" alt="NovaPhone" class="h-14 w-auto max-w-[210px] object-contain">
+
+                    <img
+                        src="{{ asset('images/brand/nova-phone-logo.webp') }}"
+                        alt="NovaPhone"
+                        class="h-14 w-auto max-w-[210px] object-contain"
+                    >
+
                 </a>
                 <p class="text-sm leading-relaxed text-gray-400">NovaPhone — Hệ thống bán lẻ điện thoại, máy tính bảng và phụ kiện chính hãng. Cam kết sản phẩm chất lượng, giá tốt nhất thị trường và dịch vụ hậu mãi tận tâm.</p>
                 <div class="mt-5 flex gap-2.5">
@@ -308,13 +338,183 @@
                                     searchResults.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Không tìm thấy sản phẩm nào phù hợp.</div>';
                                     searchResults.classList.remove('hidden');
                                 }
-                            }).catch(err => console.error('Search error:', err));
-                    }, 300);
+
+                            })
+                            .catch(err => {
+                                console.error('Search error:', err);
+                            });
+                    }, 300); // delay 300ms
+                });
+
+                // Ẩn khi click ra ngoài
+                document.addEventListener('click', function(e) {
+                    if (!searchContainer.contains(e.target)) {
+                        searchResults.classList.add('hidden');
+                    }
+                });
+
+                // Hiện lại khi focus vào input nếu đã có giá trị
+                searchInput.addEventListener('focus', function() {
+                    if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
+                        searchResults.classList.remove('hidden');
+                    }
+
                 });
                 document.addEventListener('click', function(e) { if (!searchContainer.contains(e.target)) searchResults.classList.add('hidden'); });
                 searchInput.addEventListener('focus', function() { if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') searchResults.classList.remove('hidden'); });
             }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            const updateCompareBadge = (count) => {
+                const badge = document.getElementById('compare-count-badge');
+                if (!badge) return;
+
+                badge.textContent = count;
+                badge.classList.toggle('hidden', count === 0);
+                badge.classList.toggle('flex', count > 0);
+            };
+
+            const showCompareToast = (message, type = 'success') => {
+                const toast = document.createElement('div');
+                toast.setAttribute('role', 'status');
+                toast.setAttribute('aria-live', 'polite');
+                toast.className = `fixed bottom-5 right-5 z-[100] rounded-xl border px-4 py-3 text-sm font-semibold shadow-2xl transition ${type === 'success' ? 'border-emerald-400/30 bg-emerald-950 text-emerald-200' : 'border-red-400/30 bg-red-950 text-red-200'}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                window.setTimeout(() => toast.remove(), 3200);
+            };
+
+            document.addEventListener('click', async (event) => {
+                const button = event.target.closest('[data-compare-toggle]');
+                if (!button) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const productId = button.dataset.compareToggle;
+                const isCompared = button.dataset.compared === 'true';
+                const url = isCompared
+                    ? `{{ url('/compare') }}/${productId}`
+                    : '{{ route('compare.add') }}';
+
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(url, {
+                        method: isCompared ? 'DELETE' : 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: isCompared ? null : JSON.stringify({ product_id: Number(productId) }),
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Không thể cập nhật danh sách so sánh.');
+                    }
+
+                    const compared = data.action === 'added';
+                    document.querySelectorAll(`[data-compare-toggle="${productId}"]`).forEach((control) => {
+                        control.dataset.compared = compared ? 'true' : 'false';
+                        control.setAttribute('aria-label', compared ? 'Xóa khỏi so sánh' : 'Thêm vào so sánh');
+                        control.querySelector('svg')?.classList.toggle('text-brand-300', compared);
+
+                        const label = control.querySelector('[data-compare-label]');
+                        if (label) label.textContent = compared ? 'Xóa khỏi so sánh' : 'So sánh sản phẩm';
+                    });
+                    updateCompareBadge(data.count);
+                    showCompareToast(data.message);
+                } catch (error) {
+                    showCompareToast(error.message || 'Không thể cập nhật danh sách so sánh.', 'error');
+                } finally {
+                    button.disabled = false;
+                }
+            });
+
+            // Wishlist Toggle
+            document.querySelectorAll('[data-wishlist-toggle]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const productId = this.getAttribute('data-wishlist-toggle');
+                    const svg = this.querySelector('svg');
+                    const originalHTML = this.innerHTML;
+
+                    svg.style.opacity = '0.5';
+
+                    fetch('{{ route("wishlist.toggle") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ product_id: productId })
+                    })
+                    .then(response => {
+                        if (response.status === 401) {
+                            window.location.href = '{{ route("login") }}';
+                            throw new Error('Unauthorized');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        svg.style.opacity = '1';
+                        if (data.status === 'added') {
+                            svg.classList.remove('fill-transparent', 'text-white', 'hover:text-red-400');
+                            svg.classList.add('fill-red-500', 'text-red-500');
+                            this.setAttribute('aria-label', 'Xóa khỏi yêu thích');
+                        } else if (data.status === 'removed') {
+                            svg.classList.remove('fill-red-500', 'text-red-500');
+                            svg.classList.add('fill-transparent', 'text-white', 'hover:text-red-400');
+                            this.setAttribute('aria-label', 'Thêm vào yêu thích');
+                        }
+
+                        // Cập nhật badge
+                        const badge = document.getElementById('wishlist-count-badge');
+                        if (badge) {
+                            badge.textContent = data.count;
+                            if (data.count > 0) {
+                                badge.classList.remove('hidden');
+                                badge.classList.add('flex');
+                            } else {
+                                badge.classList.add('hidden');
+                                badge.classList.remove('flex');
+                            }
+                        }
+                        
+                        // Nếu đang ở trang wishlist, ẩn thẻ sản phẩm và cập nhật tổng số lượng
+                        if (data.status === 'removed' && window.location.pathname.includes('wishlist')) {
+                            const card = this.closest('.wishlist-item');
+                            if (card) {
+                                card.remove();
+                            }
+                            const totalCountEl = document.getElementById('wishlist-total-count');
+                            if (totalCountEl) {
+                                totalCountEl.textContent = data.count;
+                            }
+                            
+                            // Nếu hết sản phẩm, có thể reload để hiện màn hình trống
+                            if (data.count === 0) {
+                                window.location.reload();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        if (error.message !== 'Unauthorized') {
+                            console.error('Error toggling wishlist:', error);
+                            svg.style.opacity = '1';
+                        }
+                    });
+                });
+            });
         });
     </script>
+
+    <x-chatbot-widget />
 </body>
 </html>

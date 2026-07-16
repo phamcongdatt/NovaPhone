@@ -5,6 +5,13 @@
 
 @section('content')
 
+<a href="{{ route('admin.categories.index') }}" class="mb-4 inline-flex items-center text-sm font-semibold text-brand-400 transition-colors hover:text-brand-300">
+    <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+    Quay lại danh sách
+</a>
+
 <div class="mb-6 rounded-2xl border border-white/5 bg-night-soft p-6">
     <form method="POST" action="{{ route('admin.categories.store') }}" class="space-y-4">
         @csrf
@@ -47,7 +54,8 @@
 
         {{-- Buttons --}}
         <div class="mt-6 flex gap-2 pt-4 border-t border-white/5">
-            <button type="submit" class="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-500">
+            <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition hover:bg-brand-500">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                 Tạo danh mục
             </button>
             <a href="{{ route('admin.categories.index') }}" class="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-semibold text-gray-300 transition hover:bg-white/5">

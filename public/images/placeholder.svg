@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Chưa có ảnh sản phẩm">
+  <rect width="400" height="400" fill="#12151d"/>
+  <g fill="none" stroke="#93c5fd" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
+    <rect x="140" y="118" width="120" height="188" rx="16"/>
+    <line x1="178" y1="146" x2="222" y2="146"/>
+    <circle cx="200" cy="272" r="10"/>
+  </g>
+  <text x="200" y="352" font-family="system-ui, sans-serif" font-size="24" font-weight="600" fill="#93c5fd" opacity="0.75" text-anchor="middle">NovaPhone</text>
+</svg>

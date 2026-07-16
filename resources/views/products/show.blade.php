@@ -238,6 +238,14 @@
                         <button type="button" id="add-to-cart-btn" class="rounded-xl border border-brand-500/40 bg-brand-600/15 px-5 py-3.5 text-base font-black text-brand-200 transition hover:bg-brand-600 hover:text-white cursor-pointer">
                             Thêm vào giỏ hàng
                         </button>
+                        @php($isCompared = in_array($detail['id'], $compareProductIds ?? [], true))
+                        <button type="button"
+                                data-compare-toggle="{{ $detail['id'] }}"
+                                data-compared="{{ $isCompared ? 'true' : 'false' }}"
+                                aria-label="{{ $isCompared ? 'Xóa khỏi so sánh' : 'Thêm vào so sánh' }}"
+                                class="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-bold text-gray-200 transition hover:border-brand-500/50 hover:bg-brand-600/10 hover:text-brand-200">
+                            <span data-compare-label>{{ $isCompared ? 'Xóa khỏi so sánh' : 'So sánh sản phẩm' }}</span>
+                        </button>
                     </div>
                 </form>
             </section>
@@ -457,8 +465,12 @@
                 const data = await response.json();
                 if (response.ok) {
                     // Cập nhật giỏ hàng trên header
-                    const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
-                    headerCounts.forEach(el => el.textContent = data.cart_count);
+                    const badge = document.getElementById('cart-count-badge');
+                    if (badge) {
+                        badge.textContent = data.cart_count;
+                        badge.classList.toggle('hidden', !(data.cart_count > 0));
+                        badge.classList.toggle('flex', data.cart_count > 0);
+                    }
                     
                     if (callback) {
                         callback();
