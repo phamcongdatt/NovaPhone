@@ -231,7 +231,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name" 
-                        :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')" 
+                        :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')" 
                         :price="$product->price * (1 - $item->discount_percent / 100)" 
                         :old-price="$product->price"
                         :discount="$item->discount_percent" 
@@ -351,7 +351,7 @@
             <x-product-card
                 :id="$product->id"
                 :name="$product->name"
-                :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')"
+                :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')"
                 :price="$product->effective_price"
                 :old-price="$product->sale_price ? $product->price : null"
                 :discount="$discount"
@@ -403,7 +403,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name"
-                        :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')"
+                        :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')"
                         :price="$product->effective_price"
                         :old-price="$product->sale_price ? $product->price : null"
                         :discount="$discount"
@@ -504,7 +504,7 @@
             <a href="{{ route('posts.show', $article->slug) }}"
                class="group overflow-hidden rounded-2xl border border-white/5 bg-night-card transition-all duration-200 ease-in-out hover:-translate-y-1.5 hover:border-brand-500/40 hover:shadow-xl hover:shadow-black/50">
                 <div class="skeleton overflow-hidden">
-                    <img src="{{ $article->thumbnail ? asset('storage/' . $article->thumbnail) : asset('images/placeholder.svg') }}" alt="{{ $article->title }}" loading="lazy" data-skeleton
+                    <img src="{{ $article->thumbnail ? (str_starts_with($article->thumbnail, 'images/') ? asset($article->thumbnail) : asset('storage/' . $article->thumbnail)) : asset('images/placeholder.svg') }}" alt="{{ $article->title }}" loading="lazy" data-skeleton
                          class="aspect-[8/5] w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105">
                 </div>
                 <div class="p-4">

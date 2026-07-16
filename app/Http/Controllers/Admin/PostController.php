@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class PostController extends Controller
 {
@@ -52,8 +52,9 @@ class PostController extends Controller
         $post->author_id = auth()->id();
 
         if ($request->hasFile('thumbnail')) {
-            $path = $request->file('thumbnail')->store('posts', 'public');
-            $post->thumbnail = $path;
+            $imageName = time() . '_' . uniqid() . '.' . $request->file('thumbnail')->extension();
+            $request->file('thumbnail')->move(public_path('images/posts'), $imageName);
+            $post->thumbnail = 'images/posts/' . $imageName;
         }
 
         $post->save();
@@ -95,11 +96,12 @@ class PostController extends Controller
         }
 
         if ($request->hasFile('thumbnail')) {
-            if ($post->thumbnail) {
-                Storage::disk('public')->delete($post->thumbnail);
+            if ($post->thumbnail && file_exists(public_path($post->thumbnail))) {
+                unlink(public_path($post->thumbnail));
             }
-            $path = $request->file('thumbnail')->store('posts', 'public');
-            $post->thumbnail = $path;
+            $imageName = time() . '_' . uniqid() . '.' . $request->file('thumbnail')->extension();
+            $request->file('thumbnail')->move(public_path('images/posts'), $imageName);
+            $post->thumbnail = 'images/posts/' . $imageName;
         }
 
         $post->save();
@@ -109,8 +111,8 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        if ($post->thumbnail) {
-            Storage::disk('public')->delete($post->thumbnail);
+        if ($post->thumbnail && file_exists(public_path($post->thumbnail))) {
+            unlink(public_path($post->thumbnail));
         }
         $post->delete();
 

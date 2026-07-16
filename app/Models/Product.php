@@ -13,20 +13,68 @@ class Product extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name', 'slug', 'description', 'content',
-        'category_id', 'brand_id', 'price', 'sale_price',
-        'thumbnail', 'sku', 'is_active', 'is_featured',
-        'sold_count', 'view_count',
+        'name',
+        'slug',
+        'description',
+        'content',
+        'category_id',
+        'brand_id',
+        'price',
+        'sale_price',
+        'thumbnail',
+        'sku',
+        'is_active',
+        'is_featured',
+        'sold_count',
+        'view_count',
     ];
 
     protected function casts(): array
     {
         return [
-            'price'       => 'decimal:2',
-            'sale_price'  => 'decimal:2',
-            'is_active'   => 'boolean',
+            'price' => 'decimal:2',
+            'sale_price' => 'decimal:2',
+            'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];
+    }
+
+    public function performance(): HasOne
+    {
+        return $this->hasOne(ProductPerformance::class)->withDefault();
+    }
+
+    /**
+     * Lấy danh sách thông số hiệu năng có sẵn (delegate sang bảng riêng).
+     */
+    public function getPerformanceSpecificationsAttribute(): array
+    {
+        $attrs = [
+            'chipset' => 'Chip / SoC',
+            'cpu_cores' => 'CPU',
+            'gpu' => 'GPU',
+            'antutu_score' => 'Antutu Benchmark',
+            'geekbench_single' => 'Geekbench Single-Core',
+            'geekbench_multi' => 'Geekbench Multi-Core',
+            'display_size_inch' => 'Kích thước màn hình',
+            'display_type' => 'Loại màn hình',
+            'refresh_rate' => 'Tần số quét',
+            'main_camera_mp' => 'Camera chính',
+            'ultra_wide_camera_mp' => 'Camera siêu rộng',
+            'front_camera_mp' => 'Camera trước',
+            'video_recording' => 'Quay video',
+            'battery_mah' => 'Dung lượng pin',
+            'charging_speed_w' => 'Sạc nhanh',
+            'ram' => 'RAM',
+            'os' => 'Hệ điều hành',
+            'network_support' => 'Kết nối',
+        ];
+
+        return collect($attrs)
+            ->filter(fn ($label, $key) => $this->performance->{$key} !== null)
+            ->map(fn ($label, $key) => ['key' => $key, 'label' => $label, 'value' => (string) $this->performance->{$key}])
+            ->values()
+            ->toArray();
     }
 
     public function getFlashSalePurchasedCount(): int
@@ -69,12 +117,12 @@ class Product extends Model
         if ($activeSale) {
             // Kiểm tra giới hạn mua của người dùng hiện tại (nếu đã đăng nhập)
             $remaining = $this->getFlashSaleRemainingQuota();
-            
+
             // Nếu người dùng đã mua hết hoặc vượt số lượng cho phép, trả về giá gốc (sale_price thường hoặc price)
             if ($remaining <= 0 && \Illuminate\Support\Facades\Auth::check()) {
                 return (float) ($this->sale_price ?? $this->price);
             }
-            
+
             return (float) ($this->price * (1 - $activeSale->discount_percent / 100));
         }
         return (float) ($this->sale_price ?? $this->price);

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class BrandController extends Controller
 {
@@ -43,8 +43,9 @@ class BrandController extends Controller
         $brand->is_active = $request->has('is_active');
 
         if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('brands', 'public');
-            $brand->logo = $path;
+            $imageName = time() . '_' . uniqid() . '.' . $request->file('logo')->extension();
+            $request->file('logo')->move(public_path('images/brands'), $imageName);
+            $brand->logo = 'images/brands/' . $imageName;
         }
 
         $brand->save();
@@ -73,11 +74,12 @@ class BrandController extends Controller
         $brand->is_active = $request->has('is_active');
 
         if ($request->hasFile('logo')) {
-            if ($brand->logo) {
-                Storage::disk('public')->delete($brand->logo);
+            if ($brand->logo && file_exists(public_path($brand->logo))) {
+                unlink(public_path($brand->logo));
             }
-            $path = $request->file('logo')->store('brands', 'public');
-            $brand->logo = $path;
+            $imageName = time() . '_' . uniqid() . '.' . $request->file('logo')->extension();
+            $request->file('logo')->move(public_path('images/brands'), $imageName);
+            $brand->logo = 'images/brands/' . $imageName;
         }
 
         $brand->save();
@@ -91,8 +93,8 @@ class BrandController extends Controller
             return back()->withErrors(['message' => 'Không thể xoá thương hiệu đã có sản phẩm!']);
         }
 
-        if ($brand->logo) {
-            Storage::disk('public')->delete($brand->logo);
+        if ($brand->logo && file_exists(public_path($brand->logo))) {
+            unlink(public_path($brand->logo));
         }
 
         $brand->delete();

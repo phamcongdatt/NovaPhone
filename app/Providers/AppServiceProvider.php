@@ -32,7 +32,11 @@ class AppServiceProvider extends ServiceProvider
                 ->get(['name', 'slug'])
                 ->map(fn(\App\Models\Category $category) => [
                     'label' => $category->name,
+
                     'href' => route('home', ['category' => $category->slug]) . '#san-pham',
+
+                    'href' => route('home', ['category' => $category->slug]).'#san-pham',
+
                 ]);
 
             // Thêm mục Flagship

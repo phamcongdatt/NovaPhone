@@ -99,5 +99,9 @@ class DatabaseSeeder extends Seeder
             'quantity'            => 50,
             'low_stock_threshold' => 5,
         ]);
+
+        $this->call([
+            PerformanceSpecSeeder::class,
+        ]);
     }
 }

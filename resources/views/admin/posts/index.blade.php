@@ -34,7 +34,7 @@
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-4">
                                 <div class="size-12 shrink-0 rounded-lg border border-white/10 bg-black/20 p-1">
-                                    <img src="{{ $post->thumbnail ? asset('storage/' . $post->thumbnail) : asset('images/placeholder.svg') }}" alt="{{ $post->title }}" class="h-full w-full rounded-md object-cover">
+                                    <img src="{{ $post->thumbnail ? (str_starts_with($post->thumbnail, 'images/') ? asset($post->thumbnail) : asset('storage/' . $post->thumbnail)) : asset('images/placeholder.svg') }}" alt="{{ $post->title }}" class="h-full w-full rounded-md object-cover">
                                 </div>
                                 <div class="max-w-[250px] lg:max-w-[400px]">
                                     <h4 class="truncate font-semibold text-white">{{ $post->title }}</h4>

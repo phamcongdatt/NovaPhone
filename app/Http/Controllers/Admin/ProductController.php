@@ -13,7 +13,7 @@ use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -74,6 +74,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $data = $request->validated();
+        $performanceData = $this->extractPerformanceData($data);
 
         DB::beginTransaction();
 
@@ -83,7 +84,9 @@ class ProductController extends Controller
 
             // Upload ảnh đại diện
             if ($request->hasFile('thumbnail')) {
-                $data['thumbnail'] = $request->file('thumbnail')->store('products/thumbnails', 'public');
+                $imageName = time() . '_' . uniqid() . '.' . $request->file('thumbnail')->extension();
+                $request->file('thumbnail')->move(public_path('images/products/thumbnails'), $imageName);
+                $data['thumbnail'] = 'images/products/thumbnails/' . $imageName;
             }
 
             $data['is_active']   = $request->boolean('is_active');
@@ -107,6 +110,10 @@ class ProductController extends Controller
             // Upload ảnh thư viện
             $this->storeGalleryImages($product, $request->file('images', []));
 
+            if (! empty($performanceData)) {
+                $product->performance()->create($performanceData);
+            }
+
             DB::commit();
 
             return redirect()
@@ -125,7 +132,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $product->load(['variants.inventory', 'images', 'inventory', 'inventories']);
+        $product->load(['variants.inventory', 'images', 'inventory', 'inventories', 'performance']);
 
         return view('admin.products.edit', [
             'product'    => $product,
@@ -139,6 +146,7 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $data = $request->validated();
+        $performanceData = $this->extractPerformanceData($data);
 
         DB::beginTransaction();
 
@@ -150,10 +158,12 @@ class ProductController extends Controller
 
             // Thay ảnh đại diện mới
             if ($request->hasFile('thumbnail')) {
-                if ($product->thumbnail) {
-                    Storage::disk('public')->delete($product->thumbnail);
+                if ($product->thumbnail && file_exists(public_path($product->thumbnail))) {
+                    unlink(public_path($product->thumbnail));
                 }
-                $data['thumbnail'] = $request->file('thumbnail')->store('products/thumbnails', 'public');
+                $imageName = time() . '_' . uniqid() . '.' . $request->file('thumbnail')->extension();
+                $request->file('thumbnail')->move(public_path('images/products/thumbnails'), $imageName);
+                $data['thumbnail'] = 'images/products/thumbnails/' . $imageName;
             }
 
             $data['is_active']   = $request->boolean('is_active');
@@ -185,13 +195,22 @@ class ProductController extends Controller
             if ($deletedImages = $request->input('deleted_images')) {
                 $images = ProductImage::whereIn('id', $deletedImages)->where('product_id', $product->id)->get();
                 foreach ($images as $img) {
-                    Storage::disk('public')->delete($img->image_url);
+                    if ($img->image_url && file_exists(public_path($img->image_url))) {
+                        unlink(public_path($img->image_url));
+                    }
                     $img->delete();
                 }
             }
 
             // Thêm ảnh mới
             $this->storeGalleryImages($product, $request->file('images', []));
+
+            // Nếu có dữ liệu → updateOrCreate; nếu không có nhưng đã từng tồn tại → xóa quan hệ
+            if (! empty($performanceData)) {
+                $product->performance()->updateOrCreate([], $performanceData);
+            } elseif ($product->relationLoaded('performance') && $product->performance->exists) {
+                $product->performance()->delete();
+            }
 
             DB::commit();
 
@@ -230,6 +249,33 @@ class ProductController extends Controller
     // ════════════════════════════════════════════════════════════
     //  HELPERS
     // ════════════════════════════════════════════════════════════
+
+    /**
+     * Tách dữ liệu hiệu năng khỏi payload sản phẩm để lưu vào bảng riêng.
+     */
+    private function extractPerformanceData(array &$data): array
+    {
+        $fields = [
+            'chipset', 'cpu_cores', 'gpu',
+            'antutu_score', 'geekbench_single', 'geekbench_multi',
+            'display_size_inch', 'display_type', 'refresh_rate',
+            'main_camera_mp', 'ultra_wide_camera_mp', 'front_camera_mp', 'video_recording',
+            'battery_mah', 'charging_speed_w',
+            'ram', 'os', 'network_support',
+        ];
+
+        $performanceData = [];
+        foreach ($fields as $field) {
+            $value = $data[$field] ?? null;
+            unset($data[$field]);
+
+            if (filled($value)) {
+                $performanceData[$field] = $value;
+            }
+        }
+
+        return $performanceData;
+    }
 
     /**
      * Tạo slug duy nhất, tự thêm số nếu trùng.
@@ -310,7 +356,9 @@ class ProductController extends Controller
         $maxOrder   = (int) $product->images()->max('sort_order');
 
         foreach ($images as $i => $image) {
-            $path = $image->store('products/gallery', 'public');
+            $imageName = time() . '_' . uniqid() . '.' . $image->extension();
+            $image->move(public_path('images/products/gallery'), $imageName);
+            $path = 'images/products/gallery/' . $imageName;
 
             ProductImage::create([
                 'product_id' => $product->id,
