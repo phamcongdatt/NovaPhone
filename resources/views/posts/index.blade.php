@@ -13,7 +13,7 @@
             @foreach($posts as $post)
                 <a href="{{ route('posts.show', $post->slug) }}" class="group flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-[#0b1523] shadow-lg transition-all hover:-translate-y-1 hover:border-brand-500/30 hover:shadow-xl hover:shadow-brand-500/10">
                     <div class="relative aspect-video overflow-hidden bg-black/20">
-                        <img src="{{ $post->thumbnail ? asset('storage/' . $post->thumbnail) : asset('images/placeholder.svg') }}" alt="{{ $post->title }}" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
+                        <img src="{{ $post->thumbnail ? (str_starts_with($post->thumbnail, 'images/') ? asset($post->thumbnail) : asset('storage/' . $post->thumbnail)) : asset('images/placeholder.svg') }}" alt="{{ $post->title }}" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
                     </div>
                     <div class="flex flex-1 flex-col p-5">
                         <div class="mb-3 flex items-center gap-3 text-xs text-slate-500">

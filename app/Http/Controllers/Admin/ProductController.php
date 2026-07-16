@@ -13,7 +13,7 @@ use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -83,7 +83,9 @@ class ProductController extends Controller
 
             // Upload ảnh đại diện
             if ($request->hasFile('thumbnail')) {
-                $data['thumbnail'] = $request->file('thumbnail')->store('products/thumbnails', 'public');
+                $imageName = time() . '_' . uniqid() . '.' . $request->file('thumbnail')->extension();
+                $request->file('thumbnail')->move(public_path('images/products/thumbnails'), $imageName);
+                $data['thumbnail'] = 'images/products/thumbnails/' . $imageName;
             }
 
             $data['is_active']   = $request->boolean('is_active');
@@ -150,10 +152,12 @@ class ProductController extends Controller
 
             // Thay ảnh đại diện mới
             if ($request->hasFile('thumbnail')) {
-                if ($product->thumbnail) {
-                    Storage::disk('public')->delete($product->thumbnail);
+                if ($product->thumbnail && file_exists(public_path($product->thumbnail))) {
+                    unlink(public_path($product->thumbnail));
                 }
-                $data['thumbnail'] = $request->file('thumbnail')->store('products/thumbnails', 'public');
+                $imageName = time() . '_' . uniqid() . '.' . $request->file('thumbnail')->extension();
+                $request->file('thumbnail')->move(public_path('images/products/thumbnails'), $imageName);
+                $data['thumbnail'] = 'images/products/thumbnails/' . $imageName;
             }
 
             $data['is_active']   = $request->boolean('is_active');
@@ -185,7 +189,9 @@ class ProductController extends Controller
             if ($deletedImages = $request->input('deleted_images')) {
                 $images = ProductImage::whereIn('id', $deletedImages)->where('product_id', $product->id)->get();
                 foreach ($images as $img) {
-                    Storage::disk('public')->delete($img->image_url);
+                    if ($img->image_url && file_exists(public_path($img->image_url))) {
+                        unlink(public_path($img->image_url));
+                    }
                     $img->delete();
                 }
             }
@@ -310,7 +316,9 @@ class ProductController extends Controller
         $maxOrder   = (int) $product->images()->max('sort_order');
 
         foreach ($images as $i => $image) {
-            $path = $image->store('products/gallery', 'public');
+            $imageName = time() . '_' . uniqid() . '.' . $image->extension();
+            $image->move(public_path('images/products/gallery'), $imageName);
+            $path = 'images/products/gallery/' . $imageName;
 
             ProductImage::create([
                 'product_id' => $product->id,

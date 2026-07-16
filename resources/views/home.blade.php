@@ -121,7 +121,7 @@
             {{-- Ảnh sản phẩm hero --}}
             <div class="relative hidden justify-center lg:flex">
                 <div class="absolute inset-0 m-auto h-72 w-[34rem] rounded-full bg-brand-600/25 blur-3xl"></div>
-                <img src="{{ asset('storage/' . $banner->image) }}"
+                <img src="{{ asset($banner->image) }}"
                      alt="Banner"
                      data-hero-image
                      class="float-slow relative aspect-[16/9] w-[36rem] rounded-[2rem] border border-white/10 object-cover shadow-2xl shadow-black/60">
@@ -231,7 +231,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name" 
-                        :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')" 
+                        :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')" 
                         :price="$product->price * (1 - $item->discount_percent / 100)" 
                         :old-price="$product->price"
                         :discount="$item->discount_percent" 
@@ -351,7 +351,7 @@
             <x-product-card
                 :id="$product->id"
                 :name="$product->name"
-                :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')"
+                :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')"
                 :price="$product->effective_price"
                 :old-price="$product->sale_price ? $product->price : null"
                 :discount="$discount"
@@ -403,7 +403,7 @@
                     <x-product-card
                         :id="$product->id"
                         :name="$product->name"
-                        :image="$product->thumbnail ? asset('storage/' . $product->thumbnail) : asset('images/placeholder.svg')"
+                        :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')"
                         :price="$product->effective_price"
                         :old-price="$product->sale_price ? $product->price : null"
                         :discount="$discount"
@@ -504,7 +504,7 @@
             <a href="{{ route('posts.show', $article->slug) }}"
                class="group overflow-hidden rounded-2xl border border-white/5 bg-night-card transition-all duration-200 ease-in-out hover:-translate-y-1.5 hover:border-brand-500/40 hover:shadow-xl hover:shadow-black/50">
                 <div class="skeleton overflow-hidden">
-                    <img src="{{ $article->thumbnail ? asset('storage/' . $article->thumbnail) : asset('images/placeholder.svg') }}" alt="{{ $article->title }}" loading="lazy" data-skeleton
+                    <img src="{{ $article->thumbnail ? (str_starts_with($article->thumbnail, 'images/') ? asset($article->thumbnail) : asset('storage/' . $article->thumbnail)) : asset('images/placeholder.svg') }}" alt="{{ $article->title }}" loading="lazy" data-skeleton
                          class="aspect-[8/5] w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105">
                 </div>
                 <div class="p-4">

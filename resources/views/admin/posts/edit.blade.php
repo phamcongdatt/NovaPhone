@@ -80,7 +80,7 @@
                                 <p class="text-xs text-slate-500">PNG, JPG, WEBP (Max: 2MB)</p>
                             </div>
                             <input id="thumbnail" name="thumbnail" type="file" class="hidden" accept="image/*" onchange="previewImage(this)">
-                            <img id="image-preview" src="{{ $post->thumbnail ? asset('storage/' . $post->thumbnail) : '' }}" class="absolute inset-0 h-full w-full rounded-xl object-cover {{ $post->thumbnail ? '' : 'hidden' }}">
+                            <img id="image-preview" src="{{ $post->thumbnail ? (str_starts_with($post->thumbnail, 'images/') ? asset($post->thumbnail) : asset('storage/' . $post->thumbnail)) : '' }}" class="absolute inset-0 h-full w-full rounded-xl object-cover {{ $post->thumbnail ? '' : 'hidden' }}">
                         </label>
                     </div>
                     @error('thumbnail') <p class="mt-2 text-xs text-red-500">{{ $message }}</p> @enderror

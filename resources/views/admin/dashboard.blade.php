@@ -241,7 +241,7 @@
                     </div>
                     @php
                         $thumbnail = $product->thumbnail
-                            ? (str_starts_with($product->thumbnail, '/images/') ? asset(ltrim($product->thumbnail, '/')) : asset('storage/' . ltrim($product->thumbnail, '/')))
+                            ? (str_starts_with(ltrim($product->thumbnail, '/'), 'images/') ? asset(ltrim($product->thumbnail, '/')) : asset('storage/' . ltrim($product->thumbnail, '/')))
                             : null;
                     @endphp
                     <div class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.06] bg-white/5">
@@ -273,7 +273,7 @@
                 <div class="flex items-center gap-3">
                     @php
                         $stockThumbnail = $inventory->product?->thumbnail
-                            ? (str_starts_with($inventory->product->thumbnail, '/images/') ? asset(ltrim($inventory->product->thumbnail, '/')) : asset('storage/' . ltrim($inventory->product->thumbnail, '/')))
+                            ? (str_starts_with(ltrim($inventory->product->thumbnail, '/'), 'images/') ? asset(ltrim($inventory->product->thumbnail, '/')) : asset('storage/' . ltrim($inventory->product->thumbnail, '/')))
                             : null;
                     @endphp
                     <div class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.06] bg-white/5">
