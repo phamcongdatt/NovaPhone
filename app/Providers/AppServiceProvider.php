@@ -33,14 +33,7 @@ class AppServiceProvider extends ServiceProvider
                 ->get(['name', 'slug'])
                 ->map(fn (\App\Models\Category $category) => [
                     'label' => $category->name,
-            $categoryLinks = Brand::query()
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['name', 'slug'])
-                ->map(fn (Brand $brand) => [
-                    'label' => $brand->name,
-                    'href' => route('home', ['brand' => $brand->slug]).'#san-pham',])
-
+                    'href' => route('home', ['category' => $category->slug]).'#san-pham',
                 ]);
             $categoryLinks->push([
                 'label' => 'Flagship',
