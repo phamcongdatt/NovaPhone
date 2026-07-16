@@ -18,7 +18,7 @@
             cb
         });
     </script>
-
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/css/admin.css', 'resources/js/app.js'])
 </head>
 

@@ -74,6 +74,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $data = $request->validated();
+        $performanceData = $this->extractPerformanceData($data);
 
         DB::beginTransaction();
 
@@ -109,6 +110,10 @@ class ProductController extends Controller
             // Upload ảnh thư viện
             $this->storeGalleryImages($product, $request->file('images', []));
 
+            if (! empty($performanceData)) {
+                $product->performance()->create($performanceData);
+            }
+
             DB::commit();
 
             return redirect()
@@ -127,7 +132,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $product->load(['variants.inventory', 'images', 'inventory', 'inventories']);
+        $product->load(['variants.inventory', 'images', 'inventory', 'inventories', 'performance']);
 
         return view('admin.products.edit', [
             'product'    => $product,
@@ -141,6 +146,7 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $data = $request->validated();
+        $performanceData = $this->extractPerformanceData($data);
 
         DB::beginTransaction();
 
@@ -199,6 +205,13 @@ class ProductController extends Controller
             // Thêm ảnh mới
             $this->storeGalleryImages($product, $request->file('images', []));
 
+            // Nếu có dữ liệu → updateOrCreate; nếu không có nhưng đã từng tồn tại → xóa quan hệ
+            if (! empty($performanceData)) {
+                $product->performance()->updateOrCreate([], $performanceData);
+            } elseif ($product->relationLoaded('performance') && $product->performance->exists) {
+                $product->performance()->delete();
+            }
+
             DB::commit();
 
             return redirect()
@@ -236,6 +249,33 @@ class ProductController extends Controller
     // ════════════════════════════════════════════════════════════
     //  HELPERS
     // ════════════════════════════════════════════════════════════
+
+    /**
+     * Tách dữ liệu hiệu năng khỏi payload sản phẩm để lưu vào bảng riêng.
+     */
+    private function extractPerformanceData(array &$data): array
+    {
+        $fields = [
+            'chipset', 'cpu_cores', 'gpu',
+            'antutu_score', 'geekbench_single', 'geekbench_multi',
+            'display_size_inch', 'display_type', 'refresh_rate',
+            'main_camera_mp', 'ultra_wide_camera_mp', 'front_camera_mp', 'video_recording',
+            'battery_mah', 'charging_speed_w',
+            'ram', 'os', 'network_support',
+        ];
+
+        $performanceData = [];
+        foreach ($fields as $field) {
+            $value = $data[$field] ?? null;
+            unset($data[$field]);
+
+            if (filled($value)) {
+                $performanceData[$field] = $value;
+            }
+        }
+
+        return $performanceData;
+    }
 
     /**
      * Tạo slug duy nhất, tự thêm số nếu trùng.

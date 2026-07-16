@@ -6,6 +6,7 @@
 @php
     $isEdit  = isset($product) && $product->exists;
     $variants = $isEdit ? $product->variants : collect();
+    $performance = $isEdit ? $product->performance : null;
 @endphp
 
 <div x-data="{
@@ -223,6 +224,122 @@
                 <input type="file" name="images[]" multiple accept="image/*"
                        class="block w-full cursor-pointer rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-4 py-6 text-sm text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white">
                 @error('images.*') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- ═══════════ Thông số hiệu năng ═══════════ --}}
+            <div class="rounded-2xl border border-white/5 bg-night-soft p-5">
+                <div class="mb-5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">Thông số hiệu năng</h3>
+                    <p class="mt-1 text-xs text-gray-500">Các trường để trống sẽ hiển thị là chưa có dữ liệu trên trang so sánh.</p>
+                </div>
+
+                <div class="space-y-5">
+                    <div>
+                        <p class="mb-3 text-xs font-bold uppercase tracking-wide text-brand-400">Chip &amp; Benchmark</p>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Chip / SoC</label>
+                                <input type="text" name="chipset" value="{{ old('chipset', $product->performance?->chipset ?? '') }}" class="input-field" placeholder="VD: Snapdragon 8 Gen 3">
+                                @error('chipset') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">GPU</label>
+                                <input type="text" name="gpu" value="{{ old('gpu', $performance?->gpu ?? '') }}" class="input-field" placeholder="VD: Adreno 750">
+                                @error('gpu') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="mb-1 block text-sm font-medium text-gray-300">CPU</label>
+                                <input type="text" name="cpu_cores" value="{{ old('cpu_cores', $performance?->cpu_cores ?? '') }}" class="input-field" placeholder="VD: 8 nhân, tối đa 3.3 GHz">
+                                @error('cpu_cores') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            @foreach ([
+                                'antutu_score' => 'Antutu Benchmark',
+                                'geekbench_single' => 'Geekbench Single-Core',
+                                'geekbench_multi' => 'Geekbench Multi-Core',
+                            ] as $field => $label)
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-300">{{ $label }}</label>
+                                    <input type="number" name="{{ $field }}" value="{{ old($field, $performance?->$field ?? '') }}" class="input-field" min="0" step="0.01" placeholder="VD: 2000000">
+                                    @error($field) <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="border-t border-white/10 pt-5">
+                        <p class="mb-3 text-xs font-bold uppercase tracking-wide text-cyan-400">Màn hình</p>
+                        <div class="grid gap-3 sm:grid-cols-3">
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Kích thước (inch)</label>
+                                <input type="number" name="display_size_inch" value="{{ old('display_size_inch', $performance?->display_size_inch ?? '') }}" class="input-field" min="1" max="15" step="0.1" placeholder="VD: 6.7">
+                                @error('display_size_inch') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Loại màn hình</label>
+                                <input type="text" name="display_type" value="{{ old('display_type', $performance?->display_type ?? '') }}" class="input-field" placeholder="VD: Dynamic AMOLED 2X">
+                                @error('display_type') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Tần số quét</label>
+                                <input type="text" name="refresh_rate" value="{{ old('refresh_rate', $performance?->refresh_rate ?? '') }}" class="input-field" placeholder="VD: 120Hz LTPO">
+                                @error('refresh_rate') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-white/10 pt-5">
+                        <p class="mb-3 text-xs font-bold uppercase tracking-wide text-purple-400">Camera</p>
+                        <div class="grid gap-3 sm:grid-cols-3">
+                            @foreach ([
+                                'main_camera_mp' => 'Camera chính',
+                                'ultra_wide_camera_mp' => 'Camera siêu rộng',
+                                'front_camera_mp' => 'Camera trước',
+                            ] as $field => $label)
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-300">{{ $label }}</label>
+                                    <input type="text" name="{{ $field }}" value="{{ old($field, $performance?->$field ?? '') }}" class="input-field" placeholder="VD: 48MP">
+                                    @error($field) <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                                </div>
+                            @endforeach
+                            <div class="sm:col-span-3">
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Quay video</label>
+                                <input type="text" name="video_recording" value="{{ old('video_recording', $performance?->video_recording ?? '') }}" class="input-field" placeholder="VD: 4K@60fps, HDR10+">
+                                @error('video_recording') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-white/10 pt-5">
+                        <p class="mb-3 text-xs font-bold uppercase tracking-wide text-emerald-400">Pin, RAM &amp; Kết nối</p>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Dung lượng pin (mAh)</label>
+                                <input type="number" name="battery_mah" value="{{ old('battery_mah', $performance?->battery_mah ?? '') }}" class="input-field" min="1" placeholder="VD: 5000">
+                                @error('battery_mah') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Sạc nhanh (W)</label>
+                                <input type="number" name="charging_speed_w" value="{{ old('charging_speed_w', $performance?->charging_speed_w ?? '') }}" class="input-field" min="1" placeholder="VD: 120">
+                                @error('charging_speed_w') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">RAM</label>
+                                <input type="text" name="ram" value="{{ old('ram', $performance?->ram ?? '') }}" class="input-field" placeholder="VD: 12GB LPDDR5X">
+                                @error('ram') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Hệ điều hành</label>
+                                <input type="text" name="os" value="{{ old('os', $performance?->os ?? '') }}" class="input-field" placeholder="VD: Android 14 / One UI 6.1">
+                                @error('os') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="mb-1 block text-sm font-medium text-gray-300">Kết nối mạng</label>
+                                <input type="text" name="network_support" value="{{ old('network_support', $performance?->network_support ?? '') }}" class="input-field" placeholder="VD: 5G, Wi-Fi 7, NFC, Bluetooth 5.3">
+                                @error('network_support') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
