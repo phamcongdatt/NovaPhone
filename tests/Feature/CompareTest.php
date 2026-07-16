@@ -108,8 +108,7 @@ class CompareTest extends TestCase
         $response->assertOk()
             ->assertSeeInOrder(['Sản phẩm cuối cùng', 'Sản phẩm đầu tiên'])
             ->assertDontSee('Sản phẩm ngừng bán')
-            ->assertSee('Thương hiệu')
-            ->assertSee('Bộ nhớ');
+            ->assertSee('Chip / SoC');
 
         $this->assertEquals([$last->id, $first->id], session('compare_products'));
     }

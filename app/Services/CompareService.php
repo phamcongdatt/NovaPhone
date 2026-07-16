@@ -149,6 +149,7 @@ class CompareService
             'variants.inventory',
             'inventory',
             'reviews' => fn ($q) => $q->where('is_visible', true),
+            'performance',
         ])
             ->whereIn('id', $ids)
             ->where('is_active', true)
@@ -205,7 +206,46 @@ class CompareService
             'color_options' => $colorOptions,
             'available_quantity' => $totalAvailable,
             'is_active' => (bool) $product->is_active,
+            'performance_specs' => $this->performanceSpecifications($product),
         ];
+    }
+
+    /**
+     * Chuẩn hóa thông số hiệu năng cho bảng so sánh.
+     * Giá trị null được giữ nguyên để giao diện hiển thị "Chưa có dữ liệu".
+     *
+     * @return array<int, array{key: string, label: string, value: mixed, unit?: string, higher_is_better?: bool}>
+     */
+    private function performanceSpecifications(Product $product): array
+    {
+        $specifications = [
+            ['key' => 'chipset', 'label' => 'Chip / SoC'],
+            ['key' => 'cpu_cores', 'label' => 'CPU'],
+            ['key' => 'gpu', 'label' => 'GPU'],
+            ['key' => 'antutu_score', 'label' => 'Antutu Benchmark', 'higher_is_better' => true],
+            ['key' => 'geekbench_single', 'label' => 'Geekbench Single-Core', 'higher_is_better' => true],
+            ['key' => 'geekbench_multi', 'label' => 'Geekbench Multi-Core', 'higher_is_better' => true],
+            ['key' => 'ram', 'label' => 'RAM'],
+            ['key' => 'display_size_inch', 'label' => 'Kích thước màn hình', 'unit' => ' inch'],
+            ['key' => 'display_type', 'label' => 'Loại màn hình'],
+            ['key' => 'refresh_rate', 'label' => 'Tần số quét'],
+            ['key' => 'main_camera_mp', 'label' => 'Camera chính'],
+            ['key' => 'ultra_wide_camera_mp', 'label' => 'Camera siêu rộng'],
+            ['key' => 'front_camera_mp', 'label' => 'Camera trước'],
+            ['key' => 'video_recording', 'label' => 'Quay video'],
+            ['key' => 'battery_mah', 'label' => 'Dung lượng pin', 'unit' => ' mAh', 'higher_is_better' => true],
+            ['key' => 'charging_speed_w', 'label' => 'Sạc nhanh', 'unit' => 'W', 'higher_is_better' => true],
+            ['key' => 'os', 'label' => 'Hệ điều hành'],
+            ['key' => 'network_support', 'label' => 'Kết nối'],
+        ];
+
+        $performance = $product->performance;
+
+        return array_map(function (array $specification) use ($performance): array {
+            $key = $specification['key'];
+
+            return [...$specification, 'value' => $performance?->{$key}];
+        }, $specifications);
     }
 
     /**

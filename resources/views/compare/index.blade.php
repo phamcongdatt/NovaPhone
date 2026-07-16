@@ -4,13 +4,29 @@
 
 @php
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').'đ';
-    $specRows = [
-        'Thương hiệu' => 'brand',
-        'Danh mục' => 'category',
-        'Mã sản phẩm' => 'sku',
-        'Bộ nhớ' => 'storage_options',
-        'Màu sắc' => 'color_options',
-    ];
+
+    $firstPayload = $payload[array_key_first($payload)] ?? [];
+    $performanceRows = collect($firstPayload['performance_specs'] ?? [])
+        ->map(function (array $specification) use ($payload) {
+            $values = collect($payload)->mapWithKeys(function (array $item, int $productId) use ($specification) {
+                $spec = collect($item['performance_specs'] ?? [])
+                    ->firstWhere('key', $specification['key']);
+
+                return [$productId => $spec['value'] ?? null];
+            });
+
+            $filledValues = $values->filter(fn ($value) => filled($value));
+            $canHighlight = ($specification['higher_is_better'] ?? false)
+                && $filledValues->count() >= 2
+                && $filledValues->every(fn ($value) => is_numeric($value));
+
+            return [
+                ...$specification,
+                'values' => $values,
+                'best_value' => $canHighlight ? $filledValues->map(fn ($value) => (float) $value)->max() : null,
+            ];
+        })
+        ->values();
 @endphp
 
 @section('content')
@@ -98,17 +114,37 @@
                                     </td>
                                 @endforeach
                             </tr>
-                            @foreach ($specRows as $label => $key)
-                                <tr class="border-b border-white/10 last:border-b-0">
-                                    <th class="sticky left-0 z-10 bg-night-soft px-5 py-4 text-left text-sm font-semibold text-gray-400">{{ $label }}</th>
+                            @foreach ($performanceRows as $row)
+                                <tr class="border-b border-white/10">
+                                    <th class="sticky left-0 z-10 bg-night-soft px-5 py-4 text-left text-sm font-semibold text-gray-400">
+                                        {{ $row['label'] }}
+                                        @if (($row['higher_is_better'] ?? false) && isset($row['best_value']))
+                                            <svg class="inline-block ml-1 size-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 18.75 7.5-7.5 7.5 7.5"/></svg>
+                                        @endif
+                                    </th>
                                     @foreach ($products as $product)
-                                        @php($value = $payload[$product->id][$key])
-                                        <td class="px-4 py-4 text-center text-sm text-gray-200" data-compare-column="{{ $product->id }}">
-                                            {{ is_array($value) ? (count($value) ? implode(', ', $value) : 'Đang cập nhật') : ($value ?: 'Đang cập nhật') }}
+                                        @php($item = $payload[$product->id])
+                                        @php($value = $row['values'][$product->id] ?? null)
+                                        @php($isBest = isset($row['best_value']) && is_numeric($value) && (float) $value === $row['best_value'])
+                                        <td class="px-4 py-4 text-center text-sm" data-compare-column="{{ $product->id }}">
+                                            @if (! filled($value))
+                                                <span class="text-gray-600 italic">Chưa có dữ liệu</span>
+                                            @else
+                                                <span class="{{ $isBest ? 'font-black text-emerald-400' : 'text-gray-200' }}">
+                                                    @if (is_numeric($value) && ($row['higher_is_better'] ?? false))
+                                                        {{ number_format((float) $value, 0, ',', '.') }}{{ $row['unit'] ?? '' }}
+                                                    @else
+                                                        {{ $value }}
+                                                    @endif
+                                                </span>
+                                                @if ($isBest)
+                                                    <span class="ml-1 inline-block rounded bg-emerald-400/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400">Tốt nhất</span>
+                                                @endif
+                                            @endif
                                         </td>
                                     @endforeach
                                 </tr>
-                            @endforeach
+@endforeach
                             <tr>
                                 <th class="sticky left-0 z-10 bg-night-soft px-5 py-4 text-left text-sm font-semibold text-gray-400">Thao tác</th>
                                 @foreach ($products as $product)
