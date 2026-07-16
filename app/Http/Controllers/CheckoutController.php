@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckoutRequest;
+use App\Models\Address;
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentTransaction;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Services\CartService;
 use App\Services\CouponService;
 use App\Services\SoldCountService;
@@ -40,16 +44,46 @@ class CheckoutController extends Controller
 
     /**
      * Hiển thị giao diện thanh toán.
+     * Hỗ trợ hai luồng:
+     * 1. Thanh toán từ giỏ hàng (lấy data từ CartService)
+     * 2. Mua ngay (lấy data từ session 'buy_now_item')
      */
     public function index()
     {
-        $items = $this->cartService->getItems();
-        if ($items->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Giỏ hàng của bạn đang trống.');
-        }
-
-        $total = $this->cartService->getTotal();
         $user = Auth::user();
+        $isBuyNow = session()->has('buy_now_item');
+
+        // Xác định nguồn dữ liệu: Session (Mua ngay) hay CartService (Giỏ hàng)
+        if ($isBuyNow) {
+            // Luồng "Mua ngay": Lấy từ session
+            $buyNowData = session()->get('buy_now_item');
+            $product = Product::findOrFail($buyNowData['product_id']);
+            $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
+
+            // Tạo collection giả lập CartItem cho view
+            $items = collect();
+            $mockItem = new CartItem([
+                'product_id' => $product->id,
+                'variant_id' => $variant ? $variant->id : null,
+                'quantity' => $buyNowData['quantity'],
+                'price' => $buyNowData['price'],
+            ]);
+            $mockItem->setRelation('product', $product);
+            if ($variant) {
+                $mockItem->setRelation('variant', $variant);
+            }
+            $mockItem->id = 'buy_now_0'; // ID tạm thời để phân biệt
+            $items->push($mockItem);
+
+            $total = $buyNowData['price'] * $buyNowData['quantity'];
+        } else {
+            // Luồng "Giỏ hàng": Lấy từ CartService
+            $items = $this->cartService->getItems();
+            if ($items->isEmpty()) {
+                return redirect()->route('cart.index')->with('error', 'Giỏ hàng của bạn đang trống.');
+            }
+            $total = $this->cartService->getTotal();
+        }
 
         // Xử lý mã giảm giá (nếu có)
         $discountAmount = 0;
@@ -60,11 +94,6 @@ class CheckoutController extends Controller
             if ($result['success']) {
                 $discountAmount = $result['discount_amount'];
                 $appliedCouponsData = $result['coupons'];
-                // Nếu có mã không hợp lệ bị loại bỏ, update lại session?
-                // Tạm thời giữ nguyên các mã đã pass.
-            } else {
-                // Nếu 1 mã làm hỏng toàn bộ (do hết hạn...), xoá hết hoặc giữ logic cũ.
-                // Ở đây nếu có lỗi, ta tạm thời không xoá hết, nhưng có thể báo lỗi.
             }
         }
 
@@ -97,16 +126,44 @@ class CheckoutController extends Controller
                 return true;
             });
 
-        return view('checkout.index', compact('items', 'total', 'defaultAddress', 'discountAmount', 'appliedCouponsData', 'availableCoupons'));
+        return view('checkout.index', compact('items', 'total', 'defaultAddress', 'discountAmount', 'appliedCouponsData', 'availableCoupons', 'isBuyNow'));
     }
 
     public function applyCoupon(Request $request)
     {
         $request->validate(['code' => 'required|string']);
-        $items = $this->cartService->getItems();
-        $total = $this->cartService->getTotal();
-        $user = Auth::user();
+        
+        // Xác định loại thanh toán: Mua ngay hay Giỏ hàng
+        $isBuyNow = session()->has('buy_now_item');
 
+        if ($isBuyNow) {
+            // Luồng "Mua ngay": Lấy từ session
+            $buyNowData = session()->get('buy_now_item');
+            $product = Product::findOrFail($buyNowData['product_id']);
+            $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
+
+            // Tạo collection giả lập CartItem
+            $items = collect();
+            $mockItem = new CartItem([
+                'product_id' => $product->id,
+                'variant_id' => $variant ? $variant->id : null,
+                'quantity' => $buyNowData['quantity'],
+                'price' => $buyNowData['price'],
+            ]);
+            $mockItem->setRelation('product', $product);
+            if ($variant) {
+                $mockItem->setRelation('variant', $variant);
+            }
+            $items->push($mockItem);
+
+            $total = $buyNowData['price'] * $buyNowData['quantity'];
+        } else {
+            // Luồng "Giỏ hàng": Lấy từ CartService
+            $items = $this->cartService->getItems();
+            $total = $this->cartService->getTotal();
+        }
+
+        $user = Auth::user();
         $codes = session()->get('applied_coupons', []);
         $newCode = strtoupper($request->code);
 
@@ -155,6 +212,9 @@ class CheckoutController extends Controller
 
     /**
      * Xử lý đặt hàng.
+     * Hỗ trợ hai luồng:
+     * 1. Thanh toán từ giỏ hàng (xóa giỏ sau thanh toán)
+     * 2. Mua ngay (không xóa giỏ, chỉ xóa session 'buy_now_item')
      */
     public function store(CheckoutRequest $request)
     {
@@ -169,15 +229,41 @@ class CheckoutController extends Controller
             'note' => 'nullable|string',
         ]);
 
-        $items = $this->cartService->getItems();
-        if ($items->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Giỏ hàng đang trống.');
+        // Xác định loại thanh toán: Mua ngay hay Giỏ hàng
+        $isBuyNow = session()->has('buy_now_item');
+
+        if ($isBuyNow) {
+            // Luồng "Mua ngay": Lấy từ session
+            $buyNowData = session()->get('buy_now_item');
+            $product = Product::findOrFail($buyNowData['product_id']);
+            $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
+
+            // Tạo collection giả lập CartItem
+            $items = collect();
+            $mockItem = new CartItem([
+                'product_id' => $product->id,
+                'variant_id' => $variant ? $variant->id : null,
+                'quantity' => $buyNowData['quantity'],
+                'price' => $buyNowData['price'],
+            ]);
+            $mockItem->setRelation('product', $product);
+            if ($variant) {
+                $mockItem->setRelation('variant', $variant);
+            }
+            $items->push($mockItem);
+
+            $total = $buyNowData['price'] * $buyNowData['quantity'];
+        } else {
+            // Luồng "Giỏ hàng": Lấy từ CartService
+            $items = $this->cartService->getItems();
+            if ($items->isEmpty()) {
+                return redirect()->route('cart.index')->with('error', 'Giỏ hàng đang trống.');
+            }
+            $total = $this->cartService->getTotal();
         }
 
-        $total = $this->cartService->getTotal();
-
         try {
-            $order = DB::transaction(function () use ($request, $items, $total) {
+            $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow) {
                 // 1. Kiểm tra tồn kho và Flash Sale của tất cả sản phẩm
                 foreach ($items as $item) {
                     $available = $this->cartService->getAvailableStock($item->product, $item->variant);
@@ -251,7 +337,7 @@ class CheckoutController extends Controller
                     $ac['coupon']->increment('used_count');
                 }
 
-                // 3. Tạo chi tiết đơn hàng & trừ kho
+                // 4. Tạo chi tiết đơn hàng & trừ kho
                 foreach ($items as $item) {
                     $product = $item->product;
                     $variant = $item->variant;
@@ -295,16 +381,23 @@ class CheckoutController extends Controller
                     }
                 }
 
-
-
                 // Cộng điểm thưởng
                 if ($rewardPoints > 0 && \Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
                     $user = Auth::user();
                     $user->increment('points', $rewardPoints);
                 }
 
-                // 4. Xóa giỏ hàng
-                $this->cartService->clear();
+                // 5. Lưu địa chỉ vào database (nếu chưa tồn tại)
+                $this->saveShippingAddress($request);
+
+                // 6. Xóa dữ liệu tạm thời
+                if ($isBuyNow) {
+                    // Luồng "Mua ngay": Chỉ xóa session, KHÔNG xóa giỏ hàng
+                    session()->forget('buy_now_item');
+                } else {
+                    // Luồng "Giỏ hàng": Xóa giỏ hàng và session mã giảm giá
+                    $this->cartService->clear();
+                }
                 session()->forget('applied_coupons');
 
                 return $order;
@@ -417,5 +510,43 @@ class CheckoutController extends Controller
 
         return redirect()->route('checkout.success', $order)
             ->with('error', 'Thanh toán không thành công (mã lỗi: ' . $responseCode . ').');
+    }
+
+    /**
+     * Lưu địa chỉ giao hàng vào database (nếu chưa tồn tại)
+     */
+    private function saveShippingAddress(CheckoutRequest $request)
+    {
+        $user = Auth::user();
+
+        // Kiểm tra xem địa chỉ này đã tồn tại chưa
+        $existingAddress = $user->addresses()
+            ->where('full_name', $request->shipping_full_name)
+            ->where('phone', $request->shipping_phone)
+            ->where('address', $request->shipping_address)
+            ->where('ward', $request->shipping_ward)
+            ->where('district', $request->shipping_district)
+            ->where('province', $request->shipping_province)
+            ->first();
+
+        // Nếu địa chỉ đã tồn tại, không cần lưu lại
+        if ($existingAddress) {
+            return;
+        }
+
+        // Nếu người dùng chưa có địa chỉ nào, set is_default = true
+        $isDefault = $user->addresses()->count() === 0;
+
+        // Tạo địa chỉ mới
+        Address::create([
+            'user_id' => $user->id,
+            'full_name' => $request->shipping_full_name,
+            'phone' => $request->shipping_phone,
+            'address' => $request->shipping_address,
+            'ward' => $request->shipping_ward,
+            'district' => $request->shipping_district,
+            'province' => $request->shipping_province,
+            'is_default' => $isDefault,
+        ]);
     }
 }

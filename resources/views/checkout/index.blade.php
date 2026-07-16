@@ -58,6 +58,7 @@
                                 @error('shipping_full_name')
                                     <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
+                                <span id="shipping_full_name_error" class="text-xs text-red-500 hidden">Chỉ được phép nhập ký tự chữ</span>
                             </div>
 
                             {{-- Số điện thoại --}}
@@ -75,6 +76,7 @@
                                 @error('shipping_phone')
                                     <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
+                                <span id="shipping_phone_error" class="text-xs text-red-500 hidden">Chỉ được phép nhập ký tự số</span>
                             </div>
 
                             {{-- Tỉnh / Thành phố --}}
@@ -92,6 +94,7 @@
                                 @error('shipping_province')
                                     <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
+                                <span id="shipping_province_error" class="text-xs text-red-500 hidden">Chỉ được phép nhập ký tự chữ</span>
                             </div>
 
                             {{-- Quận / Huyện --}}
@@ -109,6 +112,7 @@
                                 @error('shipping_district')
                                     <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
+                                <span id="shipping_district_error" class="text-xs text-red-500 hidden">Chỉ được phép nhập ký tự chữ</span>
                             </div>
 
                             {{-- Phường / Xã --}}
@@ -126,6 +130,7 @@
                                 @error('shipping_ward')
                                     <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
+                                <span id="shipping_ward_error" class="text-xs text-red-500 hidden">Chỉ được phép nhập ký tự chữ</span>
                             </div>
 
                             {{-- Địa chỉ chi tiết --}}
@@ -143,6 +148,7 @@
                                 @error('shipping_address')
                                     <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
+                                <span id="shipping_address_error" class="text-xs text-red-500 hidden">Không được để trống</span>
                             </div>
                         </div>
 
@@ -311,7 +317,8 @@
 
                         <button 
                             type="submit" 
-                            class="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-4 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 hover:shadow-amber-500/30"
+                            id="submit-button"
+                            class="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-4 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 hover:shadow-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-amber-500/20"
                         >
                             Đặt hàng ngay
                         </button>
@@ -332,6 +339,141 @@
     };
 
     const totalAmount = {{ $total }};
+
+    // Kiểm tra trạng thái validation toàn bộ form
+    function checkFormValidation() {
+        const fullNameError = document.getElementById('shipping_full_name_error');
+        const phoneError = document.getElementById('shipping_phone_error');
+        const provinceError = document.getElementById('shipping_province_error');
+        const districtError = document.getElementById('shipping_district_error');
+        const wardError = document.getElementById('shipping_ward_error');
+        const addressError = document.getElementById('shipping_address_error');
+        const submitButton = document.getElementById('submit-button');
+        
+        // Nếu có lỗi hiển thị, disable button
+        const hasErrors = !fullNameError.classList.contains('hidden') || 
+                         !phoneError.classList.contains('hidden') ||
+                         !provinceError.classList.contains('hidden') ||
+                         !districtError.classList.contains('hidden') ||
+                         !wardError.classList.contains('hidden') ||
+                         !addressError.classList.contains('hidden');
+        
+        if (hasErrors) {
+            submitButton.disabled = true;
+        } else {
+            submitButton.disabled = false;
+        }
+    }
+
+    // Validate shipping_full_name - chỉ được ký tự chữ
+    document.getElementById('shipping_full_name').addEventListener('input', function() {
+        const value = this.value.trim();
+        const errorSpan = document.getElementById('shipping_full_name_error');
+        
+        // Regex để kiểm tra chỉ có ký tự chữ (hỗ trợ tiếng Việt) và khoảng trắng
+        const nameRegex = /^[a-zA-ZÀ-ỹ\s]*$/;
+        
+        if (value && !nameRegex.test(value)) {
+            errorSpan.classList.remove('hidden');
+        } else {
+            errorSpan.classList.add('hidden');
+        }
+        
+        checkFormValidation();
+    });
+
+    // Validate shipping_phone - chỉ được ký tự số, tối đa 11 chữ số
+    document.getElementById('shipping_phone').addEventListener('input', function() {
+        const value = this.value.trim();
+        const errorSpan = document.getElementById('shipping_phone_error');
+        
+        // Chỉ cho phép nhập số
+        this.value = this.value.replace(/[^\d]/g, '');
+        
+        // Giới hạn tối đa 11 chữ số
+        if (this.value.length > 11) {
+            this.value = this.value.slice(0, 11);
+        }
+        
+        // Kiểm tra nếu có nhập dữ liệu nhưng không phải số hoặc vượt quá 11 chữ số
+        if (value && (!/^\d+$/.test(value) || value.length > 11)) {
+            errorSpan.classList.remove('hidden');
+        } else {
+            errorSpan.classList.add('hidden');
+        }
+        
+        checkFormValidation();
+    });
+
+    // Validate shipping_province - chỉ được ký tự chữ
+    document.getElementById('shipping_province').addEventListener('input', function() {
+        const value = this.value.trim();
+        const errorSpan = document.getElementById('shipping_province_error');
+        
+        // Regex để kiểm tra chỉ có ký tự chữ (hỗ trợ tiếng Việt) và khoảng trắng
+        const nameRegex = /^[a-zA-ZÀ-ỹ\s]*$/;
+        
+        if (value && !nameRegex.test(value)) {
+            errorSpan.classList.remove('hidden');
+        } else {
+            errorSpan.classList.add('hidden');
+        }
+        
+        checkFormValidation();
+    });
+
+    // Validate shipping_district - chỉ được ký tự chữ
+    document.getElementById('shipping_district').addEventListener('input', function() {
+        const value = this.value.trim();
+        const errorSpan = document.getElementById('shipping_district_error');
+        
+        // Regex để kiểm tra chỉ có ký tự chữ (hỗ trợ tiếng Việt) và khoảng trắng
+        const nameRegex = /^[a-zA-ZÀ-ỹ\s]*$/;
+        
+        if (value && !nameRegex.test(value)) {
+            errorSpan.classList.remove('hidden');
+        } else {
+            errorSpan.classList.add('hidden');
+        }
+        
+        checkFormValidation();
+    });
+
+    // Validate shipping_ward - chỉ được ký tự chữ
+    document.getElementById('shipping_ward').addEventListener('input', function() {
+        const value = this.value.trim();
+        const errorSpan = document.getElementById('shipping_ward_error');
+        
+        // Regex để kiểm tra chỉ có ký tự chữ (hỗ trợ tiếng Việt) và khoảng trắng
+        const nameRegex = /^[a-zA-ZÀ-ỹ\s]*$/;
+        
+        if (value && !nameRegex.test(value)) {
+            errorSpan.classList.remove('hidden');
+        } else {
+            errorSpan.classList.add('hidden');
+        }
+        
+        checkFormValidation();
+    });
+
+    // Validate shipping_address - không được để trống
+    document.getElementById('shipping_address').addEventListener('input', function() {
+        const value = this.value.trim();
+        const errorSpan = document.getElementById('shipping_address_error');
+        
+        if (!value) {
+            errorSpan.classList.remove('hidden');
+        } else {
+            errorSpan.classList.add('hidden');
+        }
+        
+        checkFormValidation();
+    });
+
+    // Kiểm tra validation khi page load
+    window.addEventListener('load', function() {
+        checkFormValidation();
+    });
 
     function quickApplyCoupon(code) {
         document.getElementById('coupon-code-input').value = code;
