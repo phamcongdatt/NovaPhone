@@ -114,7 +114,7 @@
                                     data-gallery-index="{{ $loop->index }}"
                                     data-gallery-src="{{ $image['url'] }}"
                                     class="product-detail-thumb shrink-0 overflow-hidden rounded-lg border {{ $loop->first ? 'border-brand-500' : 'border-white/10' }} bg-night-card p-1">
-                                <img src="{{ $image['url'] }}" alt="{{ $detail['name'] }} ảnh {{ $loop->iteration }}">
+                                <img src="{{ $image['url'] }}" alt="{{ $detail['name'] }} ảnh {{ $loop->iteration }}" loading="lazy">
                             </button>
                         @endforeach
                     </div>

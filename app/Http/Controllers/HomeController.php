@@ -85,7 +85,7 @@ class HomeController extends Controller
         }
 
         $catalogProducts = Product::query()
-            ->with('brand')
+            ->with(['brand', 'activeFlashSaleItem.flashSale'])
             ->withAvg(['reviews as rating_average' => fn ($query) => $query->where('is_visible', true)], 'rating')
             ->where('is_active', true)
             ->when($selectedSearchQuery, fn ($query) => $this->applySearchQuery($query, $selectedSearchQuery))
@@ -105,7 +105,7 @@ class HomeController extends Controller
             ->fragment('san-pham');
 
         $activeFlashSale = FlashSale::with(['items.product' => function ($q) {
-            $q->where('is_active', true);
+            $q->where('is_active', true)->with(['brand', 'activeFlashSaleItem.flashSale']);
         }])
         ->where('is_active', true)
         ->where('start_time', '<=', now())

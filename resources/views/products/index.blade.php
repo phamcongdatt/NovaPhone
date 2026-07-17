@@ -130,9 +130,9 @@
 
                                 <a href="{{ route('products.show', $product->slug) }}" class="relative aspect-square overflow-hidden rounded-xl bg-white/5 p-4 flex items-center justify-center">
                                     @if($thumb)
-                                        <img src="{{ str_starts_with($thumb, 'http') ? $thumb : (str_starts_with($thumb, 'images/') ? asset($thumb) : asset('storage/' . $thumb)) }}" alt="{{ $product->name }}" class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110">
+                                        <img src="{{ str_starts_with($thumb, 'http') ? $thumb : (str_starts_with($thumb, 'images/') ? asset($thumb) : asset('storage/' . $thumb)) }}" alt="{{ $product->name }}" loading="lazy" class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110">
                                     @else
-                                        <img src="{{ asset('images/placeholder.svg') }}" alt="{{ $product->name }}" class="h-full w-full object-contain">
+                                        <img src="{{ asset('images/placeholder.svg') }}" alt="{{ $product->name }}" loading="lazy" class="h-full w-full object-contain">
                                     @endif
                                 </a>
 
