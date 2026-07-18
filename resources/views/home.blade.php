@@ -238,6 +238,7 @@
                         :discount="$item->discount_percent" 
                         :sold="$item->sold" 
                         :sold-percent="$soldPercent"
+                        :is-flash-sale="true"
                         :href="route('products.show', $product)"
                     />
                 @endif
@@ -358,6 +359,7 @@
                 :discount="$discount"
                 :rating="$product->rating_average ? round($product->rating_average, 1) : null"
                 :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                :is-flash-sale="$product->activeFlashSaleItem !== null"
                 :href="route('products.show', $product)"
             />
         @empty
@@ -410,6 +412,7 @@
                         :discount="$discount"
                         :rating="$product->rating_average ? round($product->rating_average, 1) : null"
                         :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                        :is-flash-sale="$product->activeFlashSaleItem !== null"
                         :href="route('products.show', $product)"
                     />
                 @empty

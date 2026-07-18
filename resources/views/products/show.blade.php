@@ -72,7 +72,15 @@
         </nav>
 
         <div class="mt-5">
-            <h1 class="text-2xl font-extrabold tracking-tight text-white">{{ $detail['name'] }}</h1>
+            <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                {{ $detail['name'] }}
+                @if ($product->activeFlashSaleItem !== null)
+                    <span class="inline-flex rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-2 py-1 text-xs font-bold text-white shadow-sm items-center gap-1 w-max">
+                        <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2.05v9.45h5.5l-9.5 10.5v-9.5H3.5l9.5-10.45z"/></svg>
+                        Flash Sale
+                    </span>
+                @endif
+            </h1>
             <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
                 <span class="text-gray-500">Đã bán {{ number_format($detail['sold_count']) }}</span>
                 <span class="text-gray-700">•</span>

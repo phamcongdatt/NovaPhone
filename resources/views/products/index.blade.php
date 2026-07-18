@@ -110,11 +110,19 @@
                                 $isCompared = in_array($product->id, $compareProductIds ?? [], true);
                             @endphp
                             <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-night-card p-4 transition-all hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/10">
-                                @if ($product->sale_price && $product->sale_price < $product->price)
-                                    <span class="absolute left-3 top-3 z-10 rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
-                                        -{{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%
-                                    </span>
-                                @endif
+                                <div class="absolute left-3 top-3 z-10 flex flex-col gap-1.5">
+                                    @if ($product->activeFlashSaleItem !== null)
+                                        <span class="rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-2 py-1 text-center text-[10px] font-bold text-white shadow-sm flex items-center gap-1 w-max">
+                                            <svg class="size-3" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2.05v9.45h5.5l-9.5 10.5v-9.5H3.5l9.5-10.45z"/></svg>
+                                            Flash Sale
+                                        </span>
+                                    @endif
+                                    @if ($product->sale_price && $product->sale_price < $product->price)
+                                        <span class="rounded-lg bg-red-600 px-2 py-1 text-center text-[11px] font-bold text-white shadow-sm w-max">
+                                            -{{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%
+                                        </span>
+                                    @endif
+                                </div>
 
                                 <div class="absolute right-3 top-3 z-20">
                                     <button type="button"
