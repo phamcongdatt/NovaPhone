@@ -169,12 +169,14 @@
                         <div class="grid gap-4 sm:grid-cols-3">
                             
                             {{-- COD --}}
-                            <label class="relative flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 cursor-pointer select-none transition hover:border-brand-500/50 hover:bg-white/[0.08] has-[:checked]:border-brand-500 has-[:checked]:bg-brand-600/10 text-center">
+                            <label id="payment-method-cod" class="relative flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 cursor-pointer select-none transition hover:border-brand-500/50 hover:bg-white/[0.08] has-[:checked]:border-brand-500 has-[:checked]:bg-brand-600/10 text-center {{ $disableCod ? 'hidden' : '' }}">
                                 <input 
                                     type="radio" 
+                                    id="input-payment-cod"
                                     name="payment_method" 
                                     value="cod" 
-                                    checked 
+                                    {{ $defaultPaymentMethod === 'cod' ? 'checked' : '' }}
+                                    {{ $disableCod ? 'disabled' : '' }}
                                     class="sr-only"
                                 >
                                 <span class="flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 font-bold text-xs">COD</span>
@@ -188,9 +190,10 @@
                             <label class="relative flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 cursor-pointer select-none transition hover:border-brand-500/50 hover:bg-white/[0.08] has-[:checked]:border-brand-500 has-[:checked]:bg-brand-600/10 text-center">
                                 <input 
                                     type="radio" 
+                                    id="input-payment-vnpay"
                                     name="payment_method" 
                                     value="vnpay" 
-                                    {{ old('payment_method') === 'vnpay' ? 'checked' : '' }}
+                                    {{ $defaultPaymentMethod === 'vnpay' ? 'checked' : '' }}
                                     class="sr-only"
                                 >
                                 <span class="flex size-10 items-center justify-center rounded-xl bg-sky-500/15 text-sky-400 font-bold text-xs">VNPAY</span>
@@ -218,21 +221,51 @@
                                     $variant = $item->variant;
                                     $thumbnail = $product->thumbnail ?: 'https://placehold.co/100x100/12151d/93c5fd?text='.urlencode($product->name);
                                 @endphp
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-3" data-cart-row="{{ $item->id }}">
                                     <div class="size-11 shrink-0 overflow-hidden rounded-lg bg-night-card p-1 border border-white/10">
                                         <img src="{{ $thumbnail }}" alt="{{ $product->name }}" class="size-full object-contain">
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <h3 class="text-xs font-bold text-white truncate">{{ $product->name }}</h3>
-                                        <p class="text-[10px] text-gray-400 mt-0.5">
-                                            {{ $item->quantity }} x {{ $money($item->price) }}
-                                            @if ($variant)
-                                                | <span class="text-brand-300 font-semibold">{{ $variant->name }}</span>
-                                            @endif
-                                        </p>
+                                        @if ($variant)
+                                            <p class="text-[10px] text-brand-300 font-semibold mt-0.5">{{ $variant->name }}</p>
+                                        @endif
+                                        
+                                        {{-- Selector số lượng --}}
+                                        <div class="flex items-center gap-1 bg-white/5 rounded-lg border border-white/10 p-0.5 mt-1.5 w-max">
+                                            <button
+                                                type="button"
+                                                onclick="updateCheckoutQuantity('{{ $item->id }}', -1)"
+                                                class="flex size-5 items-center justify-center rounded text-gray-400 hover:bg-white/10 hover:text-white transition"
+                                                aria-label="Giảm"
+                                            >
+                                                <svg class="size-2.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
+                                                </svg>
+                                            </button>
+                                            <input
+                                                type="number"
+                                                id="quantity-input-{{ $item->id }}"
+                                                value="{{ $item->quantity }}"
+                                                min="1"
+                                                onchange="updateCheckoutQuantity('{{ $item->id }}', this.value, true)"
+                                                onkeydown="if(event.key === 'Enter') this.blur();"
+                                                class="w-7 text-center bg-transparent border-0 text-xs font-bold text-white focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            >
+                                            <button
+                                                type="button"
+                                                onclick="updateCheckoutQuantity('{{ $item->id }}', 1)"
+                                                class="flex size-5 items-center justify-center rounded text-gray-400 hover:bg-white/10 hover:text-white transition"
+                                                aria-label="Tăng"
+                                            >
+                                                <svg class="size-2.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="text-right shrink-0">
-                                        <p class="text-xs font-bold text-white">{{ $money($item->price * $item->quantity) }}</p>
+                                        <p id="item-subtotal-{{ $item->id }}" class="text-xs font-bold text-white">{{ $money($item->price * $item->quantity) }}</p>
                                     </div>
                                 </div>
                             @endforeach
@@ -242,21 +275,21 @@
                         <div class="space-y-3 border-b border-white/10 pb-4 mb-4">
                             <div class="flex justify-between text-xs">
                                 <span class="text-gray-400">Tổng tiền sản phẩm</span>
-                                <span class="font-semibold text-white">{{ $money($total) }}</span>
+                                <span id="checkout-subtotal" class="font-semibold text-white">{{ $money($total) }}</span>
                             </div>
                             <div class="flex justify-between text-xs">
                                 <span class="text-gray-400">Phí vận chuyển</span>
-                                <span class="font-semibold text-emerald-400">Miễn phí</span>
+                                <span id="checkout-shipping" class="font-semibold text-emerald-400">Miễn phí</span>
                             </div>
                             <div class="flex justify-between text-xs">
                                 <span class="text-gray-400">Khấu trừ giảm giá</span>
-                                <span class="font-semibold text-gray-500">0đ</span>
+                                <span id="checkout-discount" class="font-semibold text-gray-500">0đ</span>
                             </div>
                         </div>
 
                         <div class="flex justify-between items-baseline mb-6">
                             <span class="text-sm font-bold text-white">Tổng thanh toán</span>
-                            <span class="text-xl font-black text-brand-400">{{ $money($total) }}</span>
+                            <span id="checkout-total" class="text-xl font-black text-brand-400">{{ $money($total) }}</span>
                         </div>
 
                         <button 
@@ -273,4 +306,120 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `flex items-center gap-3 rounded-2xl border px-5 py-3.5 shadow-2xl backdrop-blur-xl transition duration-300 transform translate-y-5 opacity-0 ${
+            type === 'success'
+                ? 'border-emerald-500/20 bg-emerald-950/80 text-emerald-300'
+                : 'border-red-500/20 bg-red-950/80 text-red-300'
+        }`;
+
+        const icon = type === 'success'
+            ? `<svg class="size-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`
+            : `<svg class="size-5 text-red-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`;
+
+        toast.innerHTML = `${icon}<span class="text-sm font-semibold">${message}</span>`;
+        
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'fixed bottom-5 right-5 z-50 flex flex-col gap-3';
+            document.body.appendChild(container);
+        }
+        container.appendChild(toast);
+
+        // Animation in
+        setTimeout(() => {
+            toast.classList.remove('translate-y-5', 'opacity-0');
+        }, 10);
+
+        // Animation out & remove
+        setTimeout(() => {
+            toast.classList.add('translate-y-5', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function updateCheckoutQuantity(itemId, changeOrQty, isDirect = false) {
+        const input = document.getElementById(`quantity-input-${itemId}`);
+        const currentQty = parseInt(input.value) || 1;
+        let newQty = isDirect ? parseInt(changeOrQty) : (currentQty + changeOrQty);
+
+        if (isNaN(newQty) || newQty < 1) {
+            newQty = 1;
+            input.value = 1;
+        }
+
+        // Gọi AJAX cập nhật giỏ hàng (PATCH /cart/update/{itemId})
+        fetch(`/cart/update/${itemId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ quantity: newQty })
+        })
+        .then(async response => {
+            const data = await response.json();
+            if (response.ok) {
+                input.value = data.item_quantity;
+                document.getElementById(`item-subtotal-${itemId}`).textContent = data.item_subtotal;
+                document.getElementById('checkout-subtotal').textContent = data.cart_total;
+                document.getElementById('checkout-total').textContent = data.cart_total;
+
+                // Cập nhật số trên header nếu có
+                const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
+                headerCounts.forEach(el => el.textContent = data.cart_count);
+
+                showToast('Đã cập nhật số lượng thành công!');
+
+                // Kiểm tra phương thức thanh toán dựa trên tổng tiền
+                checkPaymentMethods(data.cart_total_raw);
+            } else {
+                showToast(data.message || 'Có lỗi xảy ra', 'error');
+                if (data.item_quantity) {
+                    input.value = data.item_quantity;
+                } else {
+                    input.value = currentQty;
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('Không thể kết nối đến máy chủ.', 'error');
+            input.value = currentQty;
+        });
+    }
+
+    function checkPaymentMethods(totalRaw) {
+        const codLabel = document.getElementById('payment-method-cod');
+        const codInput = document.getElementById('input-payment-cod');
+        const vnpayInput = document.getElementById('input-payment-vnpay');
+
+        if (totalRaw > 20000000) {
+            if (codLabel) {
+                codLabel.classList.add('hidden');
+            }
+            if (codInput) {
+                codInput.disabled = true;
+                if (codInput.checked) {
+                    vnpayInput.checked = true;
+                }
+            }
+        } else {
+            if (codLabel) {
+                codLabel.classList.remove('hidden');
+            }
+            if (codInput) {
+                codInput.disabled = false;
+            }
+        }
+    }
+</script>
+@endpush
 @endsection
