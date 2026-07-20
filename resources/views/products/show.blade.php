@@ -373,6 +373,17 @@
                                 <span class="ml-1 text-xs font-semibold text-gray-500">{{ $review['rating'] }}/5</span>
                             </div>
                             <p class="mt-1 text-sm text-gray-400">{{ $review['comment'] ?: 'Khách hàng chưa để lại nội dung nhận xét.' }}</p>
+                            @if ($review['images']->isNotEmpty())
+                                <div class="mt-3 flex flex-wrap gap-2" aria-label="Ảnh từ đánh giá của {{ $review['user']['name'] ?? 'khách hàng' }}">
+                                    @foreach ($review['images'] as $image)
+                                        <a href="{{ $image }}" target="_blank" rel="noopener noreferrer"
+                                           class="block overflow-hidden rounded-lg border border-white/10 transition hover:border-brand-500/50">
+                                            <img src="{{ $image }}" alt="Ảnh đánh giá sản phẩm"
+                                                 class="size-20 object-cover transition duration-300 hover:scale-105" loading="lazy">
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                         </article>
                     @empty
                         <p class="mt-3 text-sm text-gray-500">Chưa có đánh giá nào cho sản phẩm này.</p>

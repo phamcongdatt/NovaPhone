@@ -134,7 +134,9 @@ class ProductDetailController extends Controller
                     'id' => $review->id,
                     'rating' => $review->rating,
                     'comment' => $review->comment,
-                    'images' => $review->images ?? [],
+                    'images' => collect($review->images ?? [])
+                        ->map(fn ($image) => $this->reviewImageUrl($image))
+                        ->values(),
                     'user' => $review->user?->only(['id', 'name']),
                     'created_at' => $review->created_at?->toDateString(),
                 ])
@@ -158,6 +160,19 @@ class ProductDetailController extends Controller
             ['label' => 'Màu sắc', 'value' => $product->variants->pluck('color')->filter()->unique()->join(', ') ?: 'Đang cập nhật'],
             ['label' => 'Tình trạng', 'value' => $product->is_active ? 'Đang kinh doanh' : 'Ngừng kinh doanh'],
         ];
+    }
+
+    private function reviewImageUrl(string $image): string
+    {
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+            return $image;
+        }
+
+        if (str_starts_with($image, 'images/') || str_starts_with($image, 'storage/')) {
+            return asset($image);
+        }
+
+        return asset('storage/' . ltrim($image, '/'));
     }
 
     private function discountPercent(Product $product): ?int
