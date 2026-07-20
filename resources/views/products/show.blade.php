@@ -311,6 +311,15 @@
                                       placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
                             <p id="review-comment-count" class="mt-1 text-right text-xs text-gray-600">0/5000 ký tự</p>
 
+                            <div class="mt-4">
+                                <label for="review-images" class="inline-flex cursor-pointer items-center rounded-xl border border-white/10 px-4 py-2.5 text-sm font-bold text-gray-300 transition hover:border-brand-500/40 hover:bg-brand-600/10 hover:text-brand-200">
+                                    Thêm ảnh thực tế
+                                </label>
+                                <input id="review-images" name="images[]" type="file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only">
+                                <p class="mt-2 text-xs text-gray-600">Tối đa 5 ảnh, mỗi ảnh không quá 2 MB.</p>
+                                <div id="review-image-preview" class="mt-3 hidden grid-cols-3 gap-2 sm:grid-cols-5" aria-label="Ảnh đánh giá đã chọn"></div>
+                            </div>
+
                             <p id="review-form-message" class="mt-3 hidden text-sm" role="status"></p>
                             <button id="review-submit-btn" type="submit"
                                     class="mt-4 rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60">
@@ -603,8 +612,11 @@
             const ratingText = document.getElementById('review-rating-label');
             const commentInput = document.getElementById('review-comment');
             const commentCount = document.getElementById('review-comment-count');
+            const imageInput = document.getElementById('review-images');
+            const imagePreview = document.getElementById('review-image-preview');
             const message = document.getElementById('review-form-message');
             const submitButton = document.getElementById('review-submit-btn');
+            let previewUrls = [];
 
             function paintRating(selectedRating = 0) {
                 ratingLabels.forEach((label) => {
@@ -645,6 +657,36 @@
 
             commentInput.addEventListener('input', () => {
                 commentCount.textContent = `${commentInput.value.length}/5000 ký tự`;
+            });
+
+            imageInput.addEventListener('change', () => {
+                previewUrls.forEach((url) => URL.revokeObjectURL(url));
+                previewUrls = [];
+                imagePreview.replaceChildren();
+
+                const images = Array.from(imageInput.files);
+
+                if (images.length > 5) {
+                    imageInput.value = '';
+                    imagePreview.classList.add('hidden');
+                    imagePreview.classList.remove('grid');
+                    showReviewMessage('Bạn chỉ có thể chọn tối đa 5 ảnh.');
+                    return;
+                }
+
+                images.forEach((file) => {
+                    const previewUrl = URL.createObjectURL(file);
+                    const image = document.createElement('img');
+                    previewUrls.push(previewUrl);
+                    image.src = previewUrl;
+                    image.alt = `Ảnh xem trước ${file.name}`;
+                    image.className = 'aspect-square w-full rounded-lg border border-white/10 object-cover';
+                    imagePreview.appendChild(image);
+                });
+
+                imagePreview.classList.toggle('hidden', images.length === 0);
+                imagePreview.classList.toggle('grid', images.length > 0);
+                message.classList.add('hidden');
             });
 
             reviewForm.addEventListener('submit', async (event) => {
