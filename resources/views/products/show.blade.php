@@ -303,6 +303,12 @@
                                 <p class="font-semibold text-white">{{ $review['user']['name'] ?? 'Khách hàng' }}</p>
                                 <span class="text-xs text-gray-500">{{ $review['created_at'] }}</span>
                             </div>
+                            <div class="mt-1 flex items-center gap-1" aria-label="{{ $review['rating'] }} trên 5 sao">
+                                @foreach (range(1, 5) as $star)
+                                    <span class="text-sm {{ $star <= $review['rating'] ? 'text-amber-400' : 'text-gray-700' }}" aria-hidden="true">★</span>
+                                @endforeach
+                                <span class="ml-1 text-xs font-semibold text-gray-500">{{ $review['rating'] }}/5</span>
+                            </div>
                             <p class="mt-1 text-sm text-gray-400">{{ $review['comment'] ?: 'Khách hàng chưa để lại nội dung nhận xét.' }}</p>
                         </article>
                     @empty
