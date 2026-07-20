@@ -6,6 +6,8 @@ use App\Http\Requests\StoreProductReviewRequest;
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class ProductReviewController extends Controller
 {
@@ -41,15 +43,21 @@ class ProductReviewController extends Controller
             ->values()
             ->all();
 
-        $review = Review::create([
-            'user_id' => $user->id,
-            'product_id' => $product->id,
-            'order_id' => $order->id,
-            'rating' => $request->integer('rating'),
-            'comment' => $request->input('comment'),
-            'images' => $imagePaths ?: null,
-            'is_visible' => true,
-        ]);
+        try {
+            $review = Review::create([
+                'user_id' => $user->id,
+                'product_id' => $product->id,
+                'order_id' => $order->id,
+                'rating' => $request->integer('rating'),
+                'comment' => $request->input('comment'),
+                'images' => $imagePaths ?: null,
+                'is_visible' => true,
+            ]);
+        } catch (Throwable $exception) {
+            Storage::disk('public')->delete($imagePaths);
+
+            throw $exception;
+        }
 
         return response()->json([
             'message' => 'Đánh giá sản phẩm thành công.',

@@ -277,10 +277,6 @@ class CheckoutController extends Controller
         }
 
         try {
-            $order = DB::transaction(function () use ($request, $items, $total) {
-                // 1. Kiểm tra tồn kho và trạng thái của tất cả sản phẩm
-
-        try {
             $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow) {
                 // 1. Kiểm tra tồn kho và Flash Sale của tất cả sản phẩm
 

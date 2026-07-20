@@ -175,13 +175,22 @@
                                 <div class="shrink-0 text-right min-w-[110px]">
                                     <p class="text-sm font-bold text-white">{{ $money($item->subtotal) }}</p>
                                     @if ($order->status === 'delivered' && $order->payment_status === 'paid' && $item->product)
-                                        <a href="{{ route('products.show', $item->product->slug) }}?order={{ $order->id }}#reviews"
-                                           class="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs font-bold text-amber-300 transition hover:border-amber-400/40 hover:bg-amber-400/15 hover:text-amber-200">
-                                            <svg class="size-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                                                <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29a1 1 0 0 0 .95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03a1 1 0 0 0-.36 1.12l1.07 3.29c.3.92-.76 1.69-1.54 1.12l-2.8-2.03a1 1 0 0 0-1.18 0l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36-1.12L3 8.72c-.78-.57-.38-1.8.59-1.8h3.46a1 1 0 0 0 .95-.7l1.07-3.29Z"/>
-                                            </svg>
-                                            Đánh giá sản phẩm
-                                        </a>
+                                        @if ($order->reviews->contains('product_id', $item->product_id))
+                                            <span class="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300">
+                                                <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                                                </svg>
+                                                Đã đánh giá
+                                            </span>
+                                        @else
+                                            <a href="{{ route('products.show', $item->product->slug) }}?order={{ $order->id }}#reviews"
+                                               class="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs font-bold text-amber-300 transition hover:border-amber-400/40 hover:bg-amber-400/15 hover:text-amber-200">
+                                                <svg class="size-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                                    <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29a1 1 0 0 0 .95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03a1 1 0 0 0-.36 1.12l1.07 3.29c.3.92-.76 1.69-1.54 1.12l-2.8-2.03a1 1 0 0 0-1.18 0l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36 1.12L3 8.72c-.78-.57-.38-1.8.59-1.8h3.46a1 1 0 0 0 .95-.7l1.07-3.29Z"/>
+                                                </svg>
+                                                Đánh giá sản phẩm
+                                            </a>
+                                        @endif
                                     @endif
                                 </div>
 

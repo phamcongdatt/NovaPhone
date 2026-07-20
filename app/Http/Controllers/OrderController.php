@@ -67,7 +67,11 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order->load(['items.product', 'items.variant']);
+        $order->load([
+            'items.product',
+            'items.variant',
+            'reviews:id,order_id,product_id',
+        ]);
 
         return view('orders.show', compact('order'));
     }

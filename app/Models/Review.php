@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Review extends Model
 {
@@ -18,6 +19,20 @@ class Review extends Model
             'images'     => 'array',
             'is_visible' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Review $review) {
+            $localImages = collect($review->images ?? [])
+                ->map(fn ($image) => preg_replace('#^storage/#', '', ltrim($image, '/')))
+                ->filter(fn ($image) => str_starts_with($image, 'reviews/'))
+                ->all();
+
+            if ($localImages) {
+                Storage::disk('public')->delete($localImages);
+            }
+        });
     }
 
     public function user(): BelongsTo
