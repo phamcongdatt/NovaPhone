@@ -265,6 +265,29 @@
                     <span class="pb-1 text-sm text-gray-500">/ 5 từ {{ $detail['rating']['count'] }} đánh giá</span>
                 </div>
 
+                <div class="mt-4 space-y-2" aria-label="Phân bố điểm đánh giá">
+                    @foreach (range(5, 1) as $star)
+                        @php
+                            $ratingCount = $detail['rating']['breakdown'][$star] ?? 0;
+                            $ratingPercent = $detail['rating']['count'] > 0
+                                ? round(($ratingCount / $detail['rating']['count']) * 100)
+                                : 0;
+                        @endphp
+                        <div class="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 text-xs">
+                            <span class="font-semibold text-gray-400">{{ $star }} ★</span>
+                            <div class="h-2 overflow-hidden rounded-full bg-white/10">
+                                <div class="h-full rounded-full bg-amber-400 transition-all"
+                                     style="width: {{ $ratingPercent }}%"
+                                     role="progressbar"
+                                     aria-valuenow="{{ $ratingPercent }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"></div>
+                            </div>
+                            <span class="text-right text-gray-500">{{ $ratingCount }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
                 @auth
                     <form id="review-form" method="POST" action="{{ route('products.review.store', $detail['id']) }}" class="mt-5 border-t border-white/10 pt-5">
                         @csrf
