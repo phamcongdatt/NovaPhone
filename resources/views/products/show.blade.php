@@ -265,6 +265,37 @@
                     <span class="pb-1 text-sm text-gray-500">/ 5 từ {{ $detail['rating']['count'] }} đánh giá</span>
                 </div>
 
+                @auth
+                    <form id="review-form" method="POST" action="{{ route('products.review.store', $detail['id']) }}" class="mt-5 border-t border-white/10 pt-5">
+                        @csrf
+                        <fieldset>
+                            <legend class="text-sm font-bold text-white">Đánh giá của bạn</legend>
+                            <div data-rating-picker class="mt-2 flex gap-1" aria-label="Chọn số sao">
+                                @foreach (range(1, 5) as $rating)
+                                    <input class="sr-only" type="radio" name="rating" id="review-rating-{{ $rating }}" value="{{ $rating }}">
+                                    <label for="review-rating-{{ $rating }}" class="cursor-pointer text-3xl text-gray-600 transition hover:text-amber-400" title="{{ $rating }} sao">★</label>
+                                @endforeach
+                            </div>
+                        </fieldset>
+
+                        <label for="review-comment" class="mt-4 block text-sm font-bold text-white">Nhận xét</label>
+                        <textarea id="review-comment" name="comment" rows="3" maxlength="5000"
+                                  class="mt-2 w-full rounded-xl border border-white/10 bg-night px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-brand-500"
+                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
+
+                        <p id="review-form-message" class="mt-3 hidden text-sm" role="status"></p>
+                        <button id="review-submit-btn" type="submit"
+                                class="mt-4 rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60">
+                            Gửi đánh giá
+                        </button>
+                    </form>
+                @else
+                    <p class="mt-5 border-t border-white/10 pt-5 text-sm text-gray-400">
+                        <a href="{{ route('login') }}" class="font-bold text-brand-400 hover:text-brand-300">Đăng nhập</a>
+                        để đánh giá sản phẩm.
+                    </p>
+                @endauth
+
                 <div class="mt-4 space-y-3">
                     @forelse ($detail['reviews']->take(3) as $review)
                         <article class="border-t border-white/10 pt-3">
@@ -496,6 +527,72 @@
         }
 
         addToCartBtn.addEventListener('click', () => addToCart());
+
+        const reviewForm = document.getElementById('review-form');
+
+        if (reviewForm) {
+            const ratingInputs = Array.from(reviewForm.querySelectorAll('input[name="rating"]'));
+            const ratingLabels = Array.from(reviewForm.querySelectorAll('[data-rating-picker] label'));
+            const message = document.getElementById('review-form-message');
+            const submitButton = document.getElementById('review-submit-btn');
+
+            function paintRating(selectedRating = 0) {
+                ratingLabels.forEach((label) => {
+                    const rating = Number(label.htmlFor.replace('review-rating-', ''));
+                    label.classList.toggle('text-amber-400', rating <= selectedRating);
+                    label.classList.toggle('text-gray-600', rating > selectedRating);
+                });
+            }
+
+            function showReviewMessage(text, type = 'error') {
+                message.textContent = text;
+                message.classList.remove('hidden', 'text-red-400', 'text-emerald-400');
+                message.classList.add(type === 'success' ? 'text-emerald-400' : 'text-red-400');
+            }
+
+            ratingInputs.forEach((input) => {
+                input.addEventListener('change', () => paintRating(Number(input.value)));
+            });
+
+            reviewForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const formData = new FormData(reviewForm);
+
+                if (!formData.get('rating')) {
+                    showReviewMessage('Vui lòng chọn số sao trước khi gửi.');
+                    return;
+                }
+
+                submitButton.disabled = true;
+                submitButton.textContent = 'Đang gửi...';
+                message.classList.add('hidden');
+
+                try {
+                    const response = await fetch(reviewForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': formData.get('_token'),
+                        },
+                        body: formData,
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        const validationMessage = data.errors ? Object.values(data.errors).flat()[0] : null;
+                        throw new Error(validationMessage || data.message || 'Không thể gửi đánh giá.');
+                    }
+
+                    showReviewMessage(data.message || 'Đánh giá sản phẩm thành công.', 'success');
+                    submitButton.textContent = 'Đã gửi đánh giá';
+                    window.setTimeout(() => window.location.reload(), 800);
+                } catch (error) {
+                    showReviewMessage(error.message || 'Không thể kết nối đến máy chủ.');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Gửi đánh giá';
+                }
+            });
+        }
     });
 </script>
 @endsection
