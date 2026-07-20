@@ -289,29 +289,39 @@
                 </div>
 
                 @auth
-                    <form id="review-form" method="POST" action="{{ route('products.review.store', $detail['id']) }}" class="mt-5 border-t border-white/10 pt-5">
-                        @csrf
-                        <fieldset>
-                            <legend class="text-sm font-bold text-white">Đánh giá của bạn</legend>
-                            <div data-rating-picker class="mt-2 flex gap-1" aria-label="Chọn số sao">
-                                @foreach (range(1, 5) as $rating)
-                                    <input class="sr-only" type="radio" name="rating" id="review-rating-{{ $rating }}" value="{{ $rating }}">
-                                    <label for="review-rating-{{ $rating }}" class="cursor-pointer text-3xl text-gray-600 transition hover:text-amber-400" title="{{ $rating }} sao">★</label>
-                                @endforeach
-                            </div>
-                        </fieldset>
+                    @if ($reviewStatus === 'eligible')
+                        <form id="review-form" method="POST" action="{{ route('products.review.store', $detail['id']) }}" class="mt-5 border-t border-white/10 pt-5">
+                            @csrf
+                            <fieldset>
+                                <legend class="text-sm font-bold text-white">Đánh giá của bạn</legend>
+                                <div data-rating-picker class="mt-2 flex gap-1" aria-label="Chọn số sao">
+                                    @foreach (range(1, 5) as $rating)
+                                        <input class="sr-only" type="radio" name="rating" id="review-rating-{{ $rating }}" value="{{ $rating }}">
+                                        <label for="review-rating-{{ $rating }}" class="cursor-pointer text-3xl text-gray-600 transition hover:text-amber-400" title="{{ $rating }} sao">★</label>
+                                    @endforeach
+                                </div>
+                            </fieldset>
 
-                        <label for="review-comment" class="mt-4 block text-sm font-bold text-white">Nhận xét</label>
-                        <textarea id="review-comment" name="comment" rows="3" maxlength="5000"
-                                  class="mt-2 w-full rounded-xl border border-white/10 bg-night px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-brand-500"
-                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
+                            <label for="review-comment" class="mt-4 block text-sm font-bold text-white">Nhận xét</label>
+                            <textarea id="review-comment" name="comment" rows="3" maxlength="5000"
+                                      class="mt-2 w-full rounded-xl border border-white/10 bg-night px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-brand-500"
+                                      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
 
-                        <p id="review-form-message" class="mt-3 hidden text-sm" role="status"></p>
-                        <button id="review-submit-btn" type="submit"
-                                class="mt-4 rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60">
-                            Gửi đánh giá
-                        </button>
-                    </form>
+                            <p id="review-form-message" class="mt-3 hidden text-sm" role="status"></p>
+                            <button id="review-submit-btn" type="submit"
+                                    class="mt-4 rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60">
+                                Gửi đánh giá
+                            </button>
+                        </form>
+                    @elseif ($reviewStatus === 'reviewed')
+                        <p class="mt-5 border-t border-white/10 pt-5 text-sm text-emerald-400">
+                            Bạn đã đánh giá sản phẩm này.
+                        </p>
+                    @else
+                        <p class="mt-5 border-t border-white/10 pt-5 text-sm text-gray-400">
+                            Chỉ khách hàng đã nhận và thanh toán đơn hàng mới có thể đánh giá sản phẩm.
+                        </p>
+                    @endif
                 @else
                     <p class="mt-5 border-t border-white/10 pt-5 text-sm text-gray-400">
                         <a href="{{ route('login') }}" class="font-bold text-brand-400 hover:text-brand-300">Đăng nhập</a>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ProductDetailController extends Controller
@@ -16,7 +17,7 @@ class ProductDetailController extends Controller
         $this->cartService = $cartService;
     }
 
-    public function show(Product $product): View
+    public function show(Request $request, Product $product): View
     {
         abort_unless($product->is_active, 404);
 
@@ -26,6 +27,7 @@ class ProductDetailController extends Controller
             'product' => $product->refresh()->loadMissing($this->relations()),
             'cartCount' => $this->cartService->getCount(),
             'detail' => $this->detailPayload($product),
+            'reviewStatus' => $this->reviewStatus($request, $product),
         ]);
     }
 
@@ -48,6 +50,27 @@ class ProductDetailController extends Controller
             'inventory',
             'reviews' => fn ($query) => $query->where('is_visible', true)->latest()->with('user:id,name'),
         ];
+    }
+
+    private function reviewStatus(Request $request, Product $product): ?string
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        if ($user->reviews()->where('product_id', $product->id)->exists()) {
+            return 'reviewed';
+        }
+
+        $hasEligibleOrder = $user->orders()
+            ->where('status', 'delivered')
+            ->where('payment_status', 'paid')
+            ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
+            ->exists();
+
+        return $hasEligibleOrder ? 'eligible' : 'purchase_required';
     }
 
     private function detailPayload(Product $product): array
