@@ -72,6 +72,12 @@
                             <a href="{{ route('products.show', $product->slug) }}" class="font-bold text-white hover:text-brand-400 transition-colors block truncate text-base">
                                 {{ $product->name }}
                             </a>
+                            @if ($product->activeFlashSaleItem !== null)
+                                <span class="mt-1.5 inline-flex rounded-md bg-gradient-to-r from-orange-500 to-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm items-center gap-1 w-max">
+                                    <svg class="size-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2.05v9.45h5.5l-9.5 10.5v-9.5H3.5l9.5-10.45z"/></svg>
+                                    Flash Sale
+                                </span>
+                            @endif
                             @if ($variant)
                                 <p class="text-xs text-brand-300 font-semibold mt-1">Phiên bản: {{ $variant->name }}</p>
                             @endif

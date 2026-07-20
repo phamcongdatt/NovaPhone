@@ -232,6 +232,20 @@
                                         <img src="{{ $thumbnail }}" alt="{{ $product->name }}" class="size-full object-contain">
                                     </div>
                                     <div class="flex-1 min-w-0">
+                                        <h3 class="text-xs font-bold text-white truncate">
+                                            {{ $product->name }}
+                                            @if ($product->activeFlashSaleItem !== null)
+                                                <span class="ml-1 inline-flex rounded-[4px] bg-gradient-to-r from-orange-500 to-red-600 px-1 py-[2px] text-[8px] font-bold text-white shadow-sm align-middle">
+                                                    Flash Sale
+                                                </span>
+                                            @endif
+                                        </h3>
+                                        <p class="text-[10px] text-gray-400 mt-0.5">
+                                            {{ $item->quantity }} x {{ $money($item->price) }}
+                                            @if ($variant)
+                                                | <span class="text-brand-300 font-semibold">{{ $variant->name }}</span>
+                                            @endif
+                                        </p>
                                         <h3 class="text-xs font-bold text-white truncate">{{ $product->name }}</h3>
                                         @if ($variant)
                                             <p class="text-[10px] text-brand-300 font-semibold mt-0.5">{{ $variant->name }}</p>

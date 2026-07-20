@@ -25,41 +25,41 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer('*', function ($view) {
-            // Danh mục
-            $categoryLinks = \App\Models\Category::query()
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['name', 'slug'])
-                ->map(fn(\App\Models\Category $category) => [
-                    'label' => $category->name,
+            static $categoryLinks = null;
+            static $brandLinks = null;
+            static $userData = null;
 
-                    'href' => route('home', ['category' => $category->slug]) . '#san-pham',
+            if ($categoryLinks === null) {
+                $categoryLinks = \App\Models\Category::query()
+                    ->where('is_active', true)
+                    ->orderBy('name')
+                    ->get(['name', 'slug'])
+                    ->map(fn(\App\Models\Category $category) => [
+                        'label' => $category->name,
+                        'href' => route('home', ['category' => $category->slug]) . '#san-pham',
+                    ]);
 
-                    'href' => route('home', ['category' => $category->slug]).'#san-pham',
-
+                $categoryLinks->push([
+                    'label' => 'Flagship',
+                    'href' => route('home', ['features' => ['featured']]) . '#san-pham',
                 ]);
 
-            // Thêm mục Flagship
-            $categoryLinks->push([
-                'label' => 'Flagship',
-                'href' => route('home', ['features' => ['featured']]) . '#san-pham',
-            ]);
-
-            // Thêm mục Tất cả sản phẩm
-            $categoryLinks->prepend([
-                'label' => 'Tất cả sản phẩm',
-                'href' => route('home') . '#san-pham',
-            ]);
-
-            // Thương hiệu
-            $brandLinks = Brand::query()
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['name', 'slug'])
-                ->map(fn(Brand $brand) => [
-                    'label' => $brand->name,
-                    'href' => route('home', ['brand' => $brand->slug]) . '#san-pham',
+                $categoryLinks->prepend([
+                    'label' => 'Tất cả sản phẩm',
+                    'href' => route('home') . '#san-pham',
                 ]);
+            }
+
+            if ($brandLinks === null) {
+                $brandLinks = Brand::query()
+                    ->where('is_active', true)
+                    ->orderBy('name')
+                    ->get(['name', 'slug'])
+                    ->map(fn(Brand $brand) => [
+                        'label' => $brand->name,
+                        'href' => route('home', ['brand' => $brand->slug]) . '#san-pham',
+                    ]);
+            }
 
             $view->with([
                 'categoryLinks' => $categoryLinks,
@@ -67,17 +67,19 @@ class AppServiceProvider extends ServiceProvider
             ]);
 
             if (!request()->is('api/*') && request()->hasSession()) {
-                $cartService = app(CartService::class);
-
-                $view->with([
-                    'cartCount' => $cartService->getCount(),
-                    'cartTotal' => $cartService->getTotal(),
-                    'cartItems' => $cartService->getItems(),
-                    'wishlistCount' => auth()->check() ? auth()->user()->wishlists()->count() : 0,
-                    'wishlistProductIds' => auth()->check() ? auth()->user()->wishlists()->pluck('product_id')->toArray() : [],
-                    'compareCount' => app(\App\Services\CompareService::class)->getCount(),
-                    'compareProductIds' => app(\App\Services\CompareService::class)->getProductIds(),
-                ]);
+                if ($userData === null) {
+                    $cartService = app(CartService::class);
+                    $userData = [
+                        'cartCount' => $cartService->getCount(),
+                        'cartTotal' => $cartService->getTotal(),
+                        'cartItems' => $cartService->getItems(),
+                        'wishlistCount' => auth()->check() ? auth()->user()->wishlists()->count() : 0,
+                        'wishlistProductIds' => auth()->check() ? auth()->user()->wishlists()->pluck('product_id')->toArray() : [],
+                        'compareCount' => app(\App\Services\CompareService::class)->getCount(),
+                        'compareProductIds' => app(\App\Services\CompareService::class)->getProductIds(),
+                    ];
+                }
+                $view->with($userData);
             } else {
                 $view->with([
                     'cartCount' => 0,

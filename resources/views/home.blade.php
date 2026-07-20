@@ -123,6 +123,7 @@
                 <div class="absolute inset-0 m-auto h-72 w-[34rem] rounded-full bg-brand-600/25 blur-3xl"></div>
                 <img src="{{ asset($banner->image) }}"
                      alt="Banner"
+                     loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
                      data-hero-image
                      class="float-slow relative aspect-[16/9] w-[36rem] rounded-[2rem] border border-white/10 object-cover shadow-2xl shadow-black/60">
             </div>
@@ -237,6 +238,7 @@
                         :discount="$item->discount_percent" 
                         :sold="$item->sold" 
                         :sold-percent="$soldPercent"
+                        :is-flash-sale="true"
                         :href="route('products.show', $product)"
                     />
                 @endif
@@ -357,6 +359,7 @@
                 :discount="$discount"
                 :rating="$product->rating_average ? round($product->rating_average, 1) : null"
                 :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                :is-flash-sale="$product->activeFlashSaleItem !== null"
                 :href="route('products.show', $product)"
             />
         @empty
@@ -409,6 +412,7 @@
                         :discount="$discount"
                         :rating="$product->rating_average ? round($product->rating_average, 1) : null"
                         :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                        :is-flash-sale="$product->activeFlashSaleItem !== null"
                         :href="route('products.show', $product)"
                     />
                 @empty
@@ -483,6 +487,7 @@
             <div class="hidden xl:block">
                 <img src="{{ asset('images/placeholder.svg') }}"
                      alt="Thu cũ đổi mới tại NovaPhone"
+                     loading="lazy"
                      class="w-64 rounded-2xl border border-white/10 shadow-xl shadow-black/40">
             </div>
         </div>
