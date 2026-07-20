@@ -265,19 +265,173 @@
                     <span class="pb-1 text-sm text-gray-500">/ 5 từ {{ $detail['rating']['count'] }} đánh giá</span>
                 </div>
 
-                <div class="mt-4 space-y-3">
-                    @forelse ($detail['reviews']->take(3) as $review)
-                        <article class="border-t border-white/10 pt-3">
+                <div class="mt-4 space-y-2" aria-label="Phân bố điểm đánh giá">
+                    @foreach (range(5, 1) as $star)
+                        @php
+                            $ratingCount = $detail['rating']['breakdown'][$star] ?? 0;
+                            $ratingPercent = $detail['rating']['count'] > 0
+                                ? round(($ratingCount / $detail['rating']['count']) * 100)
+                                : 0;
+                        @endphp
+                        <div class="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 text-xs">
+                            <span class="font-semibold text-gray-400">{{ $star }} ★</span>
+                            <div class="h-2 overflow-hidden rounded-full bg-white/10">
+                                <div class="h-full rounded-full bg-amber-400 transition-all"
+                                     style="width: {{ $ratingPercent }}%"
+                                     role="progressbar"
+                                     aria-valuenow="{{ $ratingPercent }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"></div>
+                            </div>
+                            <span class="text-right text-gray-500">{{ $ratingCount }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
+                @auth
+                    @if ($reviewStatus === 'eligible')
+                        <form id="review-form" method="POST" action="{{ route('products.review.store', $detail['id']) }}"
+                              class="relative mt-6 overflow-hidden rounded-2xl border border-brand-500/20 bg-gradient-to-br from-brand-950/40 via-night-card to-night-card p-5 shadow-lg shadow-black/20">
+                            @csrf
+                            <input type="hidden" name="order_id" value="{{ $reviewOrderId }}">
+                            <div class="pointer-events-none absolute -right-16 -top-20 size-48 rounded-full bg-brand-500/10 blur-3xl"></div>
+                            <div class="relative flex items-start justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-brand-500/20 bg-brand-600/15 text-brand-300">
+                                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.5a.56.56 0 0 1 1.04 0l2.125 5.111a.56.56 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.56.56 0 0 0-.182.557l1.285 5.385a.56.56 0 0 1-.84.61l-4.725-2.885a.56.56 0 0 0-.586 0L6.982 20.54a.56.56 0 0 1-.84-.61l1.285-5.386a.56.56 0 0 0-.182-.557l-4.204-3.602a.56.56 0 0 1 .321-.988l5.518-.442a.56.56 0 0 0 .475-.345L11.48 3.5Z"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <h3 class="font-extrabold text-white">Đánh giá đơn hàng</h3>
+                                        <p class="mt-0.5 text-xs text-gray-500">Chia sẻ trải nghiệm thực tế của bạn</p>
+                                    </div>
+                                </div>
+                                <span class="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
+                                    <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                    Đã mua hàng
+                                </span>
+                            </div>
+
+                            <fieldset>
+                                <legend class="mt-5 text-xs font-bold uppercase tracking-wider text-gray-400">Mức độ hài lòng</legend>
+                                <div class="mt-3 flex flex-wrap items-center gap-3">
+                                    <div data-rating-picker class="flex gap-1.5 rounded-xl border border-white/5 bg-black/15 px-3 py-2" aria-label="Chọn số sao">
+                                        @foreach (range(1, 5) as $rating)
+                                            <input class="sr-only" type="radio" name="rating" id="review-rating-{{ $rating }}" value="{{ $rating }}">
+                                            <label for="review-rating-{{ $rating }}" class="cursor-pointer text-3xl leading-none text-gray-600 transition duration-150 hover:-translate-y-0.5" title="{{ $rating }} sao">★</label>
+                                        @endforeach
+                                    </div>
+                                    <span id="review-rating-label" class="rounded-full bg-white/5 px-3 py-1.5 text-xs font-bold text-gray-400" aria-live="polite">Chưa chọn sao</span>
+                                </div>
+                            </fieldset>
+
+                            <div class="mt-5">
+                                <label for="review-comment" class="block text-xs font-bold uppercase tracking-wider text-gray-400">Nhận xét của bạn</label>
+                                <div class="mt-2 overflow-hidden rounded-xl border border-white/10 bg-black/15 transition focus-within:border-brand-500/60 focus-within:ring-2 focus-within:ring-brand-500/10">
+                                    <textarea id="review-comment" name="comment" rows="4" maxlength="5000"
+                                              class="w-full resize-none bg-transparent px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-gray-600"
+                                              placeholder="Sản phẩm sử dụng thế nào? Thiết kế, hiệu năng, pin..."></textarea>
+                                    <div class="flex items-center justify-between border-t border-white/5 px-4 py-2">
+                                        <span class="text-[11px] text-gray-600">Nhận xét chân thực sẽ giúp ích cho người mua khác</span>
+                                        <span id="review-comment-count" class="shrink-0 text-[11px] font-semibold text-gray-500">0/5000</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-5">
+                                <label for="review-images" class="group flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-4 py-3 transition hover:border-brand-500/50 hover:bg-brand-600/5">
+                                    <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/5 text-gray-400 transition group-hover:bg-brand-600/15 group-hover:text-brand-300">
+                                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm12.75-11.25h.008v.008H15V8.25Z"/></svg>
+                                    </span>
+                                    <span class="min-w-0">
+                                        <span id="review-image-label" class="block text-sm font-bold text-gray-300 group-hover:text-brand-200">Thêm ảnh thực tế</span>
+                                        <span class="mt-0.5 block text-xs text-gray-600">JPG, PNG, WEBP · Tối đa 5 ảnh · 2 MB/ảnh</span>
+                                    </span>
+                                </label>
+                                <input id="review-images" name="images[]" type="file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only">
+                                <div id="review-image-preview" class="mt-3 hidden grid-cols-3 gap-2 sm:grid-cols-5" aria-label="Ảnh đánh giá đã chọn"></div>
+                            </div>
+
+                            <p id="review-form-message" class="mt-4 hidden rounded-xl border border-white/10 bg-black/15 px-4 py-3 text-sm" role="status"></p>
+                            <button id="review-submit-btn" type="submit"
+                                    class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-brand-900/30 transition hover:-translate-y-0.5 hover:shadow-brand-600/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0">
+                                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+                                <span data-review-submit-label>Gửi đánh giá</span>
+                            </button>
+                        </form>
+                    @elseif ($reviewStatus === 'reviewed')
+                        <div class="mt-5 flex items-center gap-3 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-300">
+                            <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">✓</span>
+                            <span><strong class="block text-emerald-200">Cảm ơn bạn!</strong>Bạn đã đánh giá sản phẩm này trong đơn hàng này.</span>
+                        </div>
+                    @else
+                        <div class="mt-5 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-gray-400">
+                            <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/5 text-gray-500">i</span>
+                            <span>Chỉ khách hàng đã nhận và thanh toán đơn hàng mới có thể đánh giá sản phẩm.</span>
+                        </div>
+                    @endif
+                @else
+                    <div class="mt-5 rounded-xl border border-brand-500/15 bg-brand-600/[0.06] p-4 text-center">
+                        <p class="text-sm text-gray-400">Bạn đã mua sản phẩm này?</p>
+                        <a href="{{ route('login') }}" class="mt-2 inline-flex items-center rounded-lg bg-brand-600/20 px-4 py-2 text-sm font-bold text-brand-200 transition hover:bg-brand-600 hover:text-white">Đăng nhập để đánh giá</a>
+                    </div>
+                @endauth
+
+                @if ($detail['reviews']->isNotEmpty())
+                    <div class="mt-5 flex flex-wrap gap-2" aria-label="Lọc đánh giá theo số sao">
+                        <button type="button" data-review-filter="all" aria-pressed="true"
+                                class="rounded-lg border border-brand-500 bg-brand-600/20 px-3 py-1.5 text-xs font-bold text-brand-200 transition">
+                            Tất cả
+                        </button>
+                        @foreach (range(5, 1) as $star)
+                            <button type="button" data-review-filter="{{ $star }}" aria-pressed="false"
+                                    class="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-gray-400 transition hover:border-amber-400/40 hover:text-amber-300">
+                                {{ $star }} sao ({{ $detail['rating']['breakdown'][$star] ?? 0 }})
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div id="review-list" class="mt-4 space-y-3">
+                    @forelse ($detail['reviews'] as $review)
+                        <article class="border-t border-white/10 pt-3 {{ $loop->index >= 3 ? 'hidden' : '' }}"
+                                 data-review-card data-review-rating="{{ $review['rating'] }}"
+                                 @if ($loop->index >= 3) data-extra-review @endif>
                             <div class="flex items-center justify-between">
                                 <p class="font-semibold text-white">{{ $review['user']['name'] ?? 'Khách hàng' }}</p>
                                 <span class="text-xs text-gray-500">{{ $review['created_at'] }}</span>
                             </div>
+                            <div class="mt-1 flex items-center gap-1" aria-label="{{ $review['rating'] }} trên 5 sao">
+                                @foreach (range(1, 5) as $star)
+                                    <span class="text-sm {{ $star <= $review['rating'] ? 'text-amber-400' : 'text-gray-700' }}" aria-hidden="true">★</span>
+                                @endforeach
+                                <span class="ml-1 text-xs font-semibold text-gray-500">{{ $review['rating'] }}/5</span>
+                            </div>
                             <p class="mt-1 text-sm text-gray-400">{{ $review['comment'] ?: 'Khách hàng chưa để lại nội dung nhận xét.' }}</p>
+                            @if ($review['images']->isNotEmpty())
+                                <div class="mt-3 flex flex-wrap gap-2" aria-label="Ảnh từ đánh giá của {{ $review['user']['name'] ?? 'khách hàng' }}">
+                                    @foreach ($review['images'] as $image)
+                                        <a href="{{ $image }}" target="_blank" rel="noopener noreferrer"
+                                           class="block overflow-hidden rounded-lg border border-white/10 transition hover:border-brand-500/50">
+                                            <img src="{{ $image }}" alt="Ảnh đánh giá sản phẩm"
+                                                 class="size-20 object-cover transition duration-300 hover:scale-105" loading="lazy">
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                         </article>
                     @empty
                         <p class="mt-3 text-sm text-gray-500">Chưa có đánh giá nào cho sản phẩm này.</p>
                     @endforelse
                 </div>
+
+                @if ($detail['reviews']->count() > 3)
+                    <button id="toggle-reviews-btn" type="button" aria-expanded="false" aria-controls="review-list"
+                            class="mt-4 w-full rounded-xl border border-white/10 px-4 py-2.5 text-sm font-bold text-brand-300 transition hover:border-brand-500/40 hover:bg-brand-600/10">
+                        Xem thêm {{ $detail['reviews']->count() - 3 }} đánh giá
+                    </button>
+                @endif
             </section>
         </aside>
     </section>
@@ -496,6 +650,190 @@
         }
 
         addToCartBtn.addEventListener('click', () => addToCart());
+
+        const reviewForm = document.getElementById('review-form');
+
+        if (reviewForm) {
+            const ratingInputs = Array.from(reviewForm.querySelectorAll('input[name="rating"]'));
+            const ratingLabels = Array.from(reviewForm.querySelectorAll('[data-rating-picker] label'));
+            const ratingText = document.getElementById('review-rating-label');
+            const commentInput = document.getElementById('review-comment');
+            const commentCount = document.getElementById('review-comment-count');
+            const imageInput = document.getElementById('review-images');
+            const imageLabel = document.getElementById('review-image-label');
+            const imagePreview = document.getElementById('review-image-preview');
+            const message = document.getElementById('review-form-message');
+            const submitButton = document.getElementById('review-submit-btn');
+            const submitLabel = submitButton.querySelector('[data-review-submit-label]');
+            let previewUrls = [];
+
+            function paintRating(selectedRating = 0) {
+                ratingLabels.forEach((label) => {
+                    const rating = Number(label.htmlFor.replace('review-rating-', ''));
+                    label.classList.toggle('text-amber-400', rating <= selectedRating);
+                    label.classList.toggle('text-gray-600', rating > selectedRating);
+                });
+            }
+
+            function showReviewMessage(text, type = 'error') {
+                message.textContent = text;
+                message.classList.remove('hidden', 'text-red-400', 'text-emerald-400');
+                message.classList.add(type === 'success' ? 'text-emerald-400' : 'text-red-400');
+            }
+
+            ratingInputs.forEach((input) => {
+                input.addEventListener('change', () => {
+                    paintRating(Number(input.value));
+                    ratingText.textContent = `${input.value}/5 sao`;
+                });
+            });
+
+            ratingLabels.forEach((label) => {
+                const hoveredRating = Number(label.htmlFor.replace('review-rating-', ''));
+
+                label.addEventListener('mouseenter', () => {
+                    paintRating(hoveredRating);
+                    ratingText.textContent = `${hoveredRating}/5 sao`;
+                });
+
+                label.addEventListener('mouseleave', () => {
+                    const selectedInput = reviewForm.querySelector('input[name="rating"]:checked');
+                    const selectedRating = selectedInput ? Number(selectedInput.value) : 0;
+                    paintRating(selectedRating);
+                    ratingText.textContent = selectedRating ? `${selectedRating}/5 sao` : 'Chưa chọn sao';
+                });
+            });
+
+            commentInput.addEventListener('input', () => {
+                commentCount.textContent = `${commentInput.value.length}/5000`;
+            });
+
+            imageInput.addEventListener('change', () => {
+                previewUrls.forEach((url) => URL.revokeObjectURL(url));
+                previewUrls = [];
+                imagePreview.replaceChildren();
+
+                const images = Array.from(imageInput.files);
+
+                if (images.length > 5) {
+                    imageInput.value = '';
+                    imageLabel.textContent = 'Thêm ảnh thực tế';
+                    imagePreview.classList.add('hidden');
+                    imagePreview.classList.remove('grid');
+                    showReviewMessage('Bạn chỉ có thể chọn tối đa 5 ảnh.');
+                    return;
+                }
+
+                images.forEach((file, index) => {
+                    const previewUrl = URL.createObjectURL(file);
+                    const previewItem = document.createElement('div');
+                    const image = document.createElement('img');
+                    const number = document.createElement('span');
+                    previewUrls.push(previewUrl);
+                    previewItem.className = 'relative overflow-hidden rounded-xl border border-white/10 bg-black/20';
+                    image.src = previewUrl;
+                    image.alt = `Ảnh xem trước ${file.name}`;
+                    image.className = 'aspect-square w-full object-cover';
+                    number.textContent = String(index + 1);
+                    number.className = 'absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-black/70 text-[10px] font-bold text-white';
+                    previewItem.append(image, number);
+                    imagePreview.appendChild(previewItem);
+                });
+
+                imageLabel.textContent = images.length > 0 ? `Đã chọn ${images.length} ảnh` : 'Thêm ảnh thực tế';
+                imagePreview.classList.toggle('hidden', images.length === 0);
+                imagePreview.classList.toggle('grid', images.length > 0);
+                message.classList.add('hidden');
+            });
+
+            reviewForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const formData = new FormData(reviewForm);
+
+                if (!formData.get('rating')) {
+                    showReviewMessage('Vui lòng chọn số sao trước khi gửi.');
+                    return;
+                }
+
+                submitButton.disabled = true;
+                submitLabel.textContent = 'Đang gửi đánh giá...';
+                message.classList.add('hidden');
+
+                try {
+                    const response = await fetch(reviewForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': formData.get('_token'),
+                        },
+                        body: formData,
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        const validationMessage = data.errors ? Object.values(data.errors).flat()[0] : null;
+                        throw new Error(validationMessage || data.message || 'Không thể gửi đánh giá.');
+                    }
+
+                    showReviewMessage(data.message || 'Đánh giá sản phẩm thành công.', 'success');
+                    submitLabel.textContent = 'Đã gửi đánh giá';
+                    window.setTimeout(() => window.location.reload(), 800);
+                } catch (error) {
+                    showReviewMessage(error.message || 'Không thể kết nối đến máy chủ.');
+                    submitButton.disabled = false;
+                    submitLabel.textContent = 'Gửi đánh giá';
+                }
+            });
+        }
+
+        const reviewCards = Array.from(document.querySelectorAll('[data-review-card]'));
+        const reviewFilterButtons = Array.from(document.querySelectorAll('[data-review-filter]'));
+        const toggleReviewsButton = document.getElementById('toggle-reviews-btn');
+        const extraReviews = reviewCards.filter((review) => review.hasAttribute('data-extra-review'));
+        const hiddenReviewCount = extraReviews.length;
+
+        if (toggleReviewsButton) {
+            toggleReviewsButton.addEventListener('click', () => {
+                const isExpanded = toggleReviewsButton.getAttribute('aria-expanded') === 'true';
+
+                extraReviews.forEach((review) => review.classList.toggle('hidden', isExpanded));
+                toggleReviewsButton.setAttribute('aria-expanded', String(!isExpanded));
+                toggleReviewsButton.textContent = isExpanded
+                    ? `Xem thêm ${hiddenReviewCount} đánh giá`
+                    : 'Thu gọn đánh giá';
+            });
+        }
+
+        reviewFilterButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const selectedRating = button.dataset.reviewFilter;
+
+                reviewFilterButtons.forEach((filterButton) => {
+                    const isActive = filterButton === button;
+                    filterButton.setAttribute('aria-pressed', String(isActive));
+                    filterButton.classList.toggle('border-brand-500', isActive);
+                    filterButton.classList.toggle('bg-brand-600/20', isActive);
+                    filterButton.classList.toggle('text-brand-200', isActive);
+                    filterButton.classList.toggle('border-white/10', !isActive);
+                    filterButton.classList.toggle('text-gray-400', !isActive);
+                });
+
+                reviewCards.forEach((review) => {
+                    if (selectedRating === 'all') {
+                        const isExtraReview = review.hasAttribute('data-extra-review');
+                        const isExpanded = toggleReviewsButton?.getAttribute('aria-expanded') === 'true';
+                        review.classList.toggle('hidden', isExtraReview && !isExpanded);
+                        return;
+                    }
+
+                    review.classList.toggle('hidden', review.dataset.reviewRating !== selectedRating);
+                });
+
+                if (toggleReviewsButton) {
+                    toggleReviewsButton.classList.toggle('hidden', selectedRating !== 'all');
+                }
+            });
+        });
     });
 </script>
 @endsection

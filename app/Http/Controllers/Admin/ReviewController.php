@@ -18,7 +18,7 @@ class ReviewController extends Controller
             'status' => $request->query('status'),
         ];
 
-        $reviews = Review::with(['product', 'user'])
+        $reviews = Review::with(['product', 'user', 'order:id,order_code'])
             ->when($filters['q'], function ($query, $q) {
                 $query->where(function ($q2) use ($q) {
                     $q2->whereHas('product', function ($q3) use ($q) {
@@ -75,18 +75,4 @@ class ReviewController extends Controller
         return redirect()->route('admin.reviews.index')->with('success', 'Đã ẩn đánh giá.');
     }
 
-    /**
-     * Remove the specified review from storage.
-     */
-    public function destroy($id)
-    {
-        $review = Review::find($id);
-        if (! $review) {
-            return redirect()->route('admin.reviews.index')->withErrors('Đánh giá không tồn tại.');
-        }
-
-        $review->delete();
-
-        return redirect()->route('admin.reviews.index')->with('success', 'Đã xoá đánh giá.');
-    }
 }
