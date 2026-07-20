@@ -246,10 +246,6 @@
                                                 | <span class="text-brand-300 font-semibold">{{ $variant->name }}</span>
                                             @endif
                                         </p>
-                                        <h3 class="text-xs font-bold text-white truncate">{{ $product->name }}</h3>
-                                        @if ($variant)
-                                            <p class="text-[10px] text-brand-300 font-semibold mt-0.5">{{ $variant->name }}</p>
-                                        @endif
                                         
                                         {{-- Selector số lượng --}}
                                         <div class="flex items-center gap-1 bg-white/5 rounded-lg border border-white/10 p-0.5 mt-1.5 w-max">
@@ -348,21 +344,20 @@
                                 <span class="text-gray-400">Phí vận chuyển</span>
                                 <span id="checkout-shipping" class="font-semibold text-emerald-400">Miễn phí</span>
                             </div>
-                            <div class="flex justify-between text-xs" id="discount-row" style="{{ $discountAmount > 0 ? '' : 'display: none;' }}">
+                            <div class="flex justify-between text-xs" id="discount-row" style="{{ ($discountAmount ?? 0) > 0 ? '' : 'display: none;' }}">
                                 <span class="text-gray-400">Khấu trừ giảm giá</span>
               <span id="checkout-discount" class="font-semibold text-gray-500">0đ</span>
 
-                                <span class="font-semibold text-brand-400">-<span id="discount-amount">{{ number_format($discountAmount, 0, ',', '.') }}đ</span></span>
+                                <span class="font-semibold text-brand-400">-<span id="discount-amount">{{ number_format($discountAmount ?? 0, 0, ',', '.') }}đ</span></span>
 
                             </div>
                         </div>
 
                         <div class="flex justify-between items-baseline mb-6">
                             <span class="text-sm font-bold text-white">Tổng thanh toán</span>
-         <span id="checkout-total" class="text-xl font-black text-brand-400">{{ $money($total) }}</span>
 
                             @php
-                                $finalTotal = max(0, $total - $discountAmount);
+                                $finalTotal = max(0, $total - ($discountAmount ?? 0));
                             @endphp
                             <span class="text-xl font-black text-brand-400" id="final-total">{{ $money($finalTotal) }}</span>
 
@@ -445,9 +440,10 @@
             const data = await response.json();
             if (response.ok) {
                 input.value = data.item_quantity;
-                document.getElementById(`item-subtotal-${itemId}`).textContent = data.item_subtotal;
-                document.getElementById('checkout-subtotal').textContent = data.cart_total;
-                document.getElementById('checkout-total').textContent = data.cart_total;
+                const subtotalEl = document.getElementById('checkout-subtotal');
+                if (subtotalEl) subtotalEl.textContent = data.cart_total;
+                const finalTotalEl = document.getElementById('final-total');
+                if (finalTotalEl) finalTotalEl.textContent = data.cart_total;
 
                 // Cập nhật số trên header nếu có
                 const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');

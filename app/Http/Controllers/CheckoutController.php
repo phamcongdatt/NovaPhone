@@ -101,11 +101,6 @@ class CheckoutController extends Controller
         $defaultAddress = $user->addresses()->where('is_default', true)->first()
             ?? $user->addresses()->first();
 
-        $disableCod = $total > 20000000;
-        $defaultPaymentMethod = $disableCod ? 'vnpay' : 'cod';
-
-        return view('checkout.index', compact('items', 'total', 'defaultAddress', 'disableCod', 'defaultPaymentMethod'));
-
         // Lấy danh sách mã giảm giá hợp lệ cho user hiện tại
         $now = now();
         $availableCoupons = \App\Models\Coupon::with(['eligibleUsers'])
@@ -131,7 +126,10 @@ class CheckoutController extends Controller
                 return true;
             });
 
-        return view('checkout.index', compact('items', 'total', 'defaultAddress', 'discountAmount', 'appliedCouponsData', 'availableCoupons', 'isBuyNow'));
+        $disableCod = $total > 20000000;
+        $defaultPaymentMethod = $disableCod ? 'vnpay' : 'cod';
+
+        return view('checkout.index', compact('items', 'total', 'defaultAddress', 'discountAmount', 'appliedCouponsData', 'availableCoupons', 'isBuyNow', 'disableCod', 'defaultPaymentMethod'));
     }
 
     public function applyCoupon(Request $request)
@@ -269,16 +267,10 @@ class CheckoutController extends Controller
         }
 
 
-        $total = $this->cartService->getTotal();
-
         // Kiểm tra giới hạn COD ở backend
         if ($total > 20000000 && $request->payment_method === 'cod') {
             return redirect()->back()->with('error', 'Đơn hàng có tổng giá trị vượt quá 20.000.000đ không hỗ trợ phương thức thanh toán COD. Vui lòng chọn phương thức thanh toán trực tuyến.')->withInput();
         }
-
-        try {
-            $order = DB::transaction(function () use ($request, $items, $total) {
-                // 1. Kiểm tra tồn kho và trạng thái của tất cả sản phẩm
 
         try {
             $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow) {

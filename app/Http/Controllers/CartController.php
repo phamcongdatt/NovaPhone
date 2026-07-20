@@ -79,14 +79,24 @@ class CartController extends Controller
             $item = $this->cartService->update($idOrKey, $request->integer('quantity'));
             $itemSubtotal = $item->price * $item->quantity;
 
+            $isBuyNow = session()->has('buy_now_item') && str_starts_with((string)$idOrKey, 'buy_now');
+            if ($isBuyNow) {
+                $buyNowData = session()->get('buy_now_item');
+                $total = $buyNowData['price'] * $buyNowData['quantity'];
+                $count = $buyNowData['quantity'];
+            } else {
+                $total = $this->cartService->getTotal();
+                $count = $this->cartService->getCount();
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Đã cập nhật số lượng giỏ hàng.',
                 'item_quantity' => $item->quantity,
                 'item_subtotal' => number_format($itemSubtotal, 0, ',', '.') . 'đ',
-                'cart_count' => $this->cartService->getCount(),
-                'cart_total' => number_format($this->cartService->getTotal(), 0, ',', '.') . 'đ',
-                'cart_total_raw' => $this->cartService->getTotal(),
+                'cart_count' => $count,
+                'cart_total' => number_format($total, 0, ',', '.') . 'đ',
+                'cart_total_raw' => $total,
             ]);
         } catch (Exception $e) {
             return response()->json([

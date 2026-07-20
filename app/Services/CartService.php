@@ -168,24 +168,56 @@ class CartService
             return $this->remove($itemIdOrKey);
         }
 
+        // Luồng "Mua ngay" (Buy Now) lưu ở session
+        if (str_starts_with((string)$itemIdOrKey, 'buy_now') || (session()->has('buy_now_item') && $itemIdOrKey === 'buy_now_0')) {
+            $buyNowData = session()->get('buy_now_item');
+            if ($buyNowData) {
+                $product = Product::findOrFail($buyNowData['product_id']);
+                $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
+
+                $availableQuantity = $this->getAvailableStock($product, $variant);
+                if ($availableQuantity < $quantity) {
+                    throw new Exception("Kho chỉ còn lại {$availableQuantity} sản phẩm khả dụng.");
+                }
+
+                $buyNowData['quantity'] = $quantity;
+                session()->put('buy_now_item', $buyNowData);
+
+                $mockItem = new CartItem([
+                    'product_id' => $product->id,
+                    'variant_id' => $variant ? $variant->id : null,
+                    'quantity'   => $quantity,
+                    'price'      => $buyNowData['price'],
+                ]);
+                $mockItem->id = $itemIdOrKey;
+                $mockItem->setRelation('product', $product);
+                if ($variant) {
+                    $mockItem->setRelation('variant', $variant);
+                }
+                return $mockItem;
+            }
+        }
+
         if (Auth::check()) {
             $cartItem = CartItem::whereHas('cart', function ($query) {
                 $query->where('user_id', Auth::id());
-            })->findOrFail($itemIdOrKey);
+            })->find($itemIdOrKey);
 
-            $availableQuantity = $this->getAvailableStock($cartItem->product, $cartItem->variant);
-            if ($availableQuantity < $quantity) {
-                throw new Exception("Kho chỉ còn lại {$availableQuantity} sản phẩm khả dụng.");
+            if ($cartItem) {
+                $availableQuantity = $this->getAvailableStock($cartItem->product, $cartItem->variant);
+                if ($availableQuantity < $quantity) {
+                    throw new Exception("Kho chỉ còn lại {$availableQuantity} sản phẩm khả dụng.");
+                }
+
+                $activeSale = $cartItem->product->activeFlashSaleItem;
+                $remainingFlashSaleQty = $cartItem->product->getFlashSaleRemainingQuota();
+                if ($activeSale && $remainingFlashSaleQty > 0 && $quantity > $remainingFlashSaleQty) {
+                    throw new Exception("Sản phẩm đang Flash Sale. Bạn chỉ còn {$remainingFlashSaleQty} lượt mua giá sốc. Vui lòng giảm số lượng.");
+                }
+
+                $cartItem->update(['quantity' => $quantity]);
+                return $cartItem;
             }
-
-            $activeSale = $cartItem->product->activeFlashSaleItem;
-            $remainingFlashSaleQty = $cartItem->product->getFlashSaleRemainingQuota();
-            if ($activeSale && $remainingFlashSaleQty > 0 && $quantity > $remainingFlashSaleQty) {
-                throw new Exception("Sản phẩm đang Flash Sale. Bạn chỉ còn {$remainingFlashSaleQty} lượt mua giá sốc. Vui lòng giảm số lượng.");
-            }
-
-            $cartItem->update(['quantity' => $quantity]);
-            return $cartItem;
         }
 
         $sessionCart = session()->get('cart', []);
