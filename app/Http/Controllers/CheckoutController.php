@@ -101,6 +101,11 @@ class CheckoutController extends Controller
         $defaultAddress = $user->addresses()->where('is_default', true)->first()
             ?? $user->addresses()->first();
 
+        $disableCod = $total > 20000000;
+        $defaultPaymentMethod = $disableCod ? 'vnpay' : 'cod';
+
+        return view('checkout.index', compact('items', 'total', 'defaultAddress', 'disableCod', 'defaultPaymentMethod'));
+
         // Lấy danh sách mã giảm giá hợp lệ cho user hiện tại
         $now = now();
         $availableCoupons = \App\Models\Coupon::with(['eligibleUsers'])
@@ -208,6 +213,7 @@ class CheckoutController extends Controller
             return response()->json($response);
         }
         return back()->with($success ? 'success' : 'error', $message);
+
     }
 
     /**
@@ -262,13 +268,53 @@ class CheckoutController extends Controller
             $total = $this->cartService->getTotal();
         }
 
+
+        $total = $this->cartService->getTotal();
+
+        // Kiểm tra giới hạn COD ở backend
+        if ($total > 20000000 && $request->payment_method === 'cod') {
+            return redirect()->back()->with('error', 'Đơn hàng có tổng giá trị vượt quá 20.000.000đ không hỗ trợ phương thức thanh toán COD. Vui lòng chọn phương thức thanh toán trực tuyến.')->withInput();
+        }
+
+        try {
+            $order = DB::transaction(function () use ($request, $items, $total) {
+                // 1. Kiểm tra tồn kho và trạng thái của tất cả sản phẩm
+
         try {
             $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow) {
                 // 1. Kiểm tra tồn kho và Flash Sale của tất cả sản phẩm
+
                 foreach ($items as $item) {
+                    // Kiểm tra sản phẩm còn tồn tại
+                    if (!$item->product) {
+                        throw new Exception("Sản phẩm không còn tồn tại hoặc đã bị xóa khỏi hệ thống.");
+                    }
+
+                    // Kiểm tra sản phẩm chưa bị ẩn
+                    if (!$item->product->is_active) {
+                        throw new Exception("Sản phẩm {$item->product->name} hiện không khả dụng (đã bị ẩn hoặc ngừng bán).");
+                    }
+
+                    // Nếu có biến thể thì kiểm tra biến thể
+                    if ($item->variant_id) {
+                        if (!$item->variant) {
+                            throw new Exception("Phiên bản của sản phẩm {$item->product->name} không còn tồn tại hoặc đã bị xóa.");
+                        }
+                        if (!$item->variant->is_active) {
+                            throw new Exception("Phiên bản {$item->variant->name} của sản phẩm {$item->product->name} hiện không khả dụng.");
+                        }
+                    }
+
+                    // Kiểm tra tồn kho khả dụng
                     $available = $this->cartService->getAvailableStock($item->product, $item->variant);
+                    if ($available <= 0) {
+                        $name = $item->product->name . ($item->variant ? " (" . $item->variant->name . ")" : "");
+                        throw new Exception("Sản phẩm {$name} đã hết hàng.");
+                    }
+
                     if ($available < $item->quantity) {
-                        throw new Exception("Sản phẩm {$item->product->name} (" . ($item->variant ? $item->variant->name : 'Mặc định') . ") chỉ còn lại {$available} trong kho.");
+                        $name = $item->product->name . ($item->variant ? " (" . $item->variant->name . ")" : "");
+                        throw new Exception("Sản phẩm {$name} chỉ còn {$available} sản phẩm trong kho.");
                     }
 
                     $product = $item->product;
