@@ -13,9 +13,12 @@ class ProductReviewController extends Controller
     {
         $user = $request->user();
 
-        if ($user->reviews()->where('product_id', $product->id)->exists()) {
+        if ($user->reviews()
+            ->where('order_id', $request->integer('order_id'))
+            ->where('product_id', $product->id)
+            ->exists()) {
             return response()->json([
-                'message' => 'Bạn đã đánh giá sản phẩm này rồi.',
+                'message' => 'Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.',
             ], 409);
         }
 

@@ -363,7 +363,7 @@
                     @elseif ($reviewStatus === 'reviewed')
                         <div class="mt-5 flex items-center gap-3 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-300">
                             <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">✓</span>
-                            <span><strong class="block text-emerald-200">Cảm ơn bạn!</strong>Bạn đã đánh giá sản phẩm này.</span>
+                            <span><strong class="block text-emerald-200">Cảm ơn bạn!</strong>Bạn đã đánh giá sản phẩm này trong đơn hàng này.</span>
                         </div>
                     @else
                         <div class="mt-5 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-gray-400">

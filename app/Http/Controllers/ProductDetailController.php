@@ -62,10 +62,6 @@ class ProductDetailController extends Controller
             return ['status' => null, 'order_id' => null];
         }
 
-        if ($user->reviews()->where('product_id', $product->id)->exists()) {
-            return ['status' => 'reviewed', 'order_id' => null];
-        }
-
         $eligibleOrderQuery = $user->orders()
             ->where('status', 'delivered')
             ->where('payment_status', 'paid')
@@ -73,9 +69,24 @@ class ProductDetailController extends Controller
 
         if ($request->integer('order') > 0) {
             $eligibleOrderQuery->whereKey($request->integer('order'));
+        } else {
+            $eligibleOrderQuery->whereDoesntHave(
+                'reviews',
+                fn ($query) => $query->where('product_id', $product->id)
+            );
         }
 
         $eligibleOrder = $eligibleOrderQuery->latest()->first();
+
+        if ($eligibleOrder && $eligibleOrder->reviews()->where('product_id', $product->id)->exists()) {
+            return ['status' => 'reviewed', 'order_id' => $eligibleOrder->id];
+        }
+
+        if ($request->integer('order') <= 0
+            && ! $eligibleOrder
+            && $user->reviews()->where('product_id', $product->id)->exists()) {
+            return ['status' => 'reviewed', 'order_id' => null];
+        }
 
         return $eligibleOrder
             ? ['status' => 'eligible', 'order_id' => $eligibleOrder->id]
