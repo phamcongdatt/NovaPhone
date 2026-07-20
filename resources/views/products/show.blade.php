@@ -329,9 +329,25 @@
                     </p>
                 @endauth
 
+                @if ($detail['reviews']->isNotEmpty())
+                    <div class="mt-5 flex flex-wrap gap-2" aria-label="Lọc đánh giá theo số sao">
+                        <button type="button" data-review-filter="all" aria-pressed="true"
+                                class="rounded-lg border border-brand-500 bg-brand-600/20 px-3 py-1.5 text-xs font-bold text-brand-200 transition">
+                            Tất cả
+                        </button>
+                        @foreach (range(5, 1) as $star)
+                            <button type="button" data-review-filter="{{ $star }}" aria-pressed="false"
+                                    class="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-gray-400 transition hover:border-amber-400/40 hover:text-amber-300">
+                                {{ $star }} sao ({{ $detail['rating']['breakdown'][$star] ?? 0 }})
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+
                 <div id="review-list" class="mt-4 space-y-3">
                     @forelse ($detail['reviews'] as $review)
                         <article class="border-t border-white/10 pt-3 {{ $loop->index >= 3 ? 'hidden' : '' }}"
+                                 data-review-card data-review-rating="{{ $review['rating'] }}"
                                  @if ($loop->index >= 3) data-extra-review @endif>
                             <div class="flex items-center justify-between">
                                 <p class="font-semibold text-white">{{ $review['user']['name'] ?? 'Khách hàng' }}</p>
@@ -641,12 +657,13 @@
             });
         }
 
+        const reviewCards = Array.from(document.querySelectorAll('[data-review-card]'));
+        const reviewFilterButtons = Array.from(document.querySelectorAll('[data-review-filter]'));
         const toggleReviewsButton = document.getElementById('toggle-reviews-btn');
+        const extraReviews = reviewCards.filter((review) => review.hasAttribute('data-extra-review'));
+        const hiddenReviewCount = extraReviews.length;
 
         if (toggleReviewsButton) {
-            const extraReviews = Array.from(document.querySelectorAll('[data-extra-review]'));
-            const hiddenReviewCount = extraReviews.length;
-
             toggleReviewsButton.addEventListener('click', () => {
                 const isExpanded = toggleReviewsButton.getAttribute('aria-expanded') === 'true';
 
@@ -657,6 +674,37 @@
                     : 'Thu gọn đánh giá';
             });
         }
+
+        reviewFilterButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const selectedRating = button.dataset.reviewFilter;
+
+                reviewFilterButtons.forEach((filterButton) => {
+                    const isActive = filterButton === button;
+                    filterButton.setAttribute('aria-pressed', String(isActive));
+                    filterButton.classList.toggle('border-brand-500', isActive);
+                    filterButton.classList.toggle('bg-brand-600/20', isActive);
+                    filterButton.classList.toggle('text-brand-200', isActive);
+                    filterButton.classList.toggle('border-white/10', !isActive);
+                    filterButton.classList.toggle('text-gray-400', !isActive);
+                });
+
+                reviewCards.forEach((review) => {
+                    if (selectedRating === 'all') {
+                        const isExtraReview = review.hasAttribute('data-extra-review');
+                        const isExpanded = toggleReviewsButton?.getAttribute('aria-expanded') === 'true';
+                        review.classList.toggle('hidden', isExtraReview && !isExpanded);
+                        return;
+                    }
+
+                    review.classList.toggle('hidden', review.dataset.reviewRating !== selectedRating);
+                });
+
+                if (toggleReviewsButton) {
+                    toggleReviewsButton.classList.toggle('hidden', selectedRating !== 'all');
+                }
+            });
+        });
     });
 </script>
 @endsection
