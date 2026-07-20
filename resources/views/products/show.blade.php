@@ -329,9 +329,10 @@
                     </p>
                 @endauth
 
-                <div class="mt-4 space-y-3">
-                    @forelse ($detail['reviews']->take(3) as $review)
-                        <article class="border-t border-white/10 pt-3">
+                <div id="review-list" class="mt-4 space-y-3">
+                    @forelse ($detail['reviews'] as $review)
+                        <article class="border-t border-white/10 pt-3 {{ $loop->index >= 3 ? 'hidden' : '' }}"
+                                 @if ($loop->index >= 3) data-extra-review @endif>
                             <div class="flex items-center justify-between">
                                 <p class="font-semibold text-white">{{ $review['user']['name'] ?? 'Khách hàng' }}</p>
                                 <span class="text-xs text-gray-500">{{ $review['created_at'] }}</span>
@@ -348,6 +349,13 @@
                         <p class="mt-3 text-sm text-gray-500">Chưa có đánh giá nào cho sản phẩm này.</p>
                     @endforelse
                 </div>
+
+                @if ($detail['reviews']->count() > 3)
+                    <button id="toggle-reviews-btn" type="button" aria-expanded="false" aria-controls="review-list"
+                            class="mt-4 w-full rounded-xl border border-white/10 px-4 py-2.5 text-sm font-bold text-brand-300 transition hover:border-brand-500/40 hover:bg-brand-600/10">
+                        Xem thêm {{ $detail['reviews']->count() - 3 }} đánh giá
+                    </button>
+                @endif
             </section>
         </aside>
     </section>
@@ -630,6 +638,23 @@
                     submitButton.disabled = false;
                     submitButton.textContent = 'Gửi đánh giá';
                 }
+            });
+        }
+
+        const toggleReviewsButton = document.getElementById('toggle-reviews-btn');
+
+        if (toggleReviewsButton) {
+            const extraReviews = Array.from(document.querySelectorAll('[data-extra-review]'));
+            const hiddenReviewCount = extraReviews.length;
+
+            toggleReviewsButton.addEventListener('click', () => {
+                const isExpanded = toggleReviewsButton.getAttribute('aria-expanded') === 'true';
+
+                extraReviews.forEach((review) => review.classList.toggle('hidden', isExpanded));
+                toggleReviewsButton.setAttribute('aria-expanded', String(!isExpanded));
+                toggleReviewsButton.textContent = isExpanded
+                    ? `Xem thêm ${hiddenReviewCount} đánh giá`
+                    : 'Thu gọn đánh giá';
             });
         }
     });
