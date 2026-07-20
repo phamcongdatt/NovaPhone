@@ -294,11 +294,14 @@
                             @csrf
                             <fieldset>
                                 <legend class="text-sm font-bold text-white">Đánh giá của bạn</legend>
-                                <div data-rating-picker class="mt-2 flex gap-1" aria-label="Chọn số sao">
-                                    @foreach (range(1, 5) as $rating)
-                                        <input class="sr-only" type="radio" name="rating" id="review-rating-{{ $rating }}" value="{{ $rating }}">
-                                        <label for="review-rating-{{ $rating }}" class="cursor-pointer text-3xl text-gray-600 transition hover:text-amber-400" title="{{ $rating }} sao">★</label>
-                                    @endforeach
+                                <div class="mt-2 flex items-center gap-3">
+                                    <div data-rating-picker class="flex gap-1" aria-label="Chọn số sao">
+                                        @foreach (range(1, 5) as $rating)
+                                            <input class="sr-only" type="radio" name="rating" id="review-rating-{{ $rating }}" value="{{ $rating }}">
+                                            <label for="review-rating-{{ $rating }}" class="cursor-pointer text-3xl text-gray-600 transition" title="{{ $rating }} sao">★</label>
+                                        @endforeach
+                                    </div>
+                                    <span id="review-rating-label" class="text-xs font-semibold text-gray-500" aria-live="polite">Chưa chọn</span>
                                 </div>
                             </fieldset>
 
@@ -306,6 +309,7 @@
                             <textarea id="review-comment" name="comment" rows="3" maxlength="5000"
                                       class="mt-2 w-full rounded-xl border border-white/10 bg-night px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-brand-500"
                                       placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
+                            <p id="review-comment-count" class="mt-1 text-right text-xs text-gray-600">0/5000 ký tự</p>
 
                             <p id="review-form-message" class="mt-3 hidden text-sm" role="status"></p>
                             <button id="review-submit-btn" type="submit"
@@ -596,6 +600,9 @@
         if (reviewForm) {
             const ratingInputs = Array.from(reviewForm.querySelectorAll('input[name="rating"]'));
             const ratingLabels = Array.from(reviewForm.querySelectorAll('[data-rating-picker] label'));
+            const ratingText = document.getElementById('review-rating-label');
+            const commentInput = document.getElementById('review-comment');
+            const commentCount = document.getElementById('review-comment-count');
             const message = document.getElementById('review-form-message');
             const submitButton = document.getElementById('review-submit-btn');
 
@@ -614,7 +621,30 @@
             }
 
             ratingInputs.forEach((input) => {
-                input.addEventListener('change', () => paintRating(Number(input.value)));
+                input.addEventListener('change', () => {
+                    paintRating(Number(input.value));
+                    ratingText.textContent = `${input.value}/5 sao`;
+                });
+            });
+
+            ratingLabels.forEach((label) => {
+                const hoveredRating = Number(label.htmlFor.replace('review-rating-', ''));
+
+                label.addEventListener('mouseenter', () => {
+                    paintRating(hoveredRating);
+                    ratingText.textContent = `${hoveredRating}/5 sao`;
+                });
+
+                label.addEventListener('mouseleave', () => {
+                    const selectedInput = reviewForm.querySelector('input[name="rating"]:checked');
+                    const selectedRating = selectedInput ? Number(selectedInput.value) : 0;
+                    paintRating(selectedRating);
+                    ratingText.textContent = selectedRating ? `${selectedRating}/5 sao` : 'Chưa chọn';
+                });
+            });
+
+            commentInput.addEventListener('input', () => {
+                commentCount.textContent = `${commentInput.value.length}/5000 ký tự`;
             });
 
             reviewForm.addEventListener('submit', async (event) => {
