@@ -71,7 +71,7 @@
                     
                     @if($banner->image)
                         <div class="mb-3 w-full h-32 overflow-hidden rounded-xl border border-white/10 bg-black/20 flex items-center justify-center">
-                            <img src="{{ asset('storage/' . $banner->image) }}" class="h-full object-contain">
+                            <img src="{{ asset($banner->image) }}" class="h-full object-contain">
                         </div>
                     @endif
 

@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+
 use App\Http\Controllers\Admin\CategoryController;
+
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FlashSaleController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Api\GeminiChatbotController;
 use App\Http\Controllers\AuthController;
+
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -116,7 +119,7 @@ Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
 Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buy-now');
 Route::patch('/cart/update/{item}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
-
+Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 // ---------- Checkout Routes ----------
 Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
@@ -197,6 +200,7 @@ Route::resource('flash-sales', FlashSaleController::class);
         Route::patch('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])
             ->name('users.toggle-status');
 
+
         // Thống kê đơn hàng (đặt TRƯỚC {order} để tránh conflict)
         Route::get('orders/statistics', [App\Http\Controllers\Admin\OrderStatisticsController::class, 'index'])->name('orders.statistics');
         // Đơn hàng (xem danh sách, chi tiết, xác nhận/cập nhật trạng thái, hủy)
@@ -220,6 +224,7 @@ Route::resource('flash-sales', FlashSaleController::class);
         Route::get('reports/revenue/pdf', [App\Http\Controllers\Admin\ReportController::class, 'revenuePdf'])->name('reports.revenue.pdf');
 
         // Bình luận / đánh giá (Admin Reviews management)
+
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::patch('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
         Route::patch('reviews/{review}/hide', [ReviewController::class, 'hide'])->name('reviews.hide');

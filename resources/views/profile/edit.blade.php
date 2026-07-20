@@ -28,7 +28,7 @@
                     <div class="mt-4 flex items-center gap-5">
                         <div class="relative size-24 shrink-0 overflow-hidden rounded-full border-2 border-brand-500/30 bg-night">
                             @if($user->avatar)
-                                <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . $user->avatar) }}" alt="{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}" class="h-full w-full object-cover text-center font-bold text-gray-500" onerror="this.onerror=null; this.outerHTML='<div class=\'flex h-full w-full items-center justify-center bg-brand-600 text-3xl font-extrabold text-white\'>{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</div>';">
+                                <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : (str_starts_with($user->avatar, 'images/') ? asset($user->avatar) : asset('storage/' . $user->avatar)) }}" alt="{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}" class="h-full w-full object-cover text-center font-bold text-gray-500" onerror="this.onerror=null; this.outerHTML='<div class=\'flex h-full w-full items-center justify-center bg-brand-600 text-3xl font-extrabold text-white\'>{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</div>';">
                             @else
                                 <div class="flex h-full w-full items-center justify-center bg-brand-600 text-3xl font-extrabold text-white">
                                     {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}

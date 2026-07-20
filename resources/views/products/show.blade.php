@@ -72,7 +72,15 @@
         </nav>
 
         <div class="mt-5">
-            <h1 class="text-2xl font-extrabold tracking-tight text-white">{{ $detail['name'] }}</h1>
+            <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                {{ $detail['name'] }}
+                @if ($product->activeFlashSaleItem !== null)
+                    <span class="inline-flex rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-2 py-1 text-xs font-bold text-white shadow-sm items-center gap-1 w-max">
+                        <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2.05v9.45h5.5l-9.5 10.5v-9.5H3.5l9.5-10.45z"/></svg>
+                        Flash Sale
+                    </span>
+                @endif
+            </h1>
             <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
                 <span class="text-gray-500">Đã bán {{ number_format($detail['sold_count']) }}</span>
                 <span class="text-gray-700">•</span>
@@ -114,7 +122,7 @@
                                     data-gallery-index="{{ $loop->index }}"
                                     data-gallery-src="{{ $image['url'] }}"
                                     class="product-detail-thumb shrink-0 overflow-hidden rounded-lg border {{ $loop->first ? 'border-brand-500' : 'border-white/10' }} bg-night-card p-1">
-                                <img src="{{ $image['url'] }}" alt="{{ $detail['name'] }} ảnh {{ $loop->iteration }}">
+                                <img src="{{ $image['url'] }}" alt="{{ $detail['name'] }} ảnh {{ $loop->iteration }}" loading="lazy">
                             </button>
                         @endforeach
                     </div>
@@ -225,14 +233,14 @@
                 </div>
 
                 {{-- Form AJAX --}}
-                <form id="cart-form" class="mt-5">
+                <form id="cart-form" method="POST" action="{{ route('cart.buy-now') }}" class="mt-5">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $detail['id'] }}">
                     <input type="hidden" name="variant_id" id="hidden-variant-id" value="">
                     <input type="hidden" name="quantity" value="1">
                     
                     <div class="grid gap-3">
-                        <button type="button" id="buy-now-btn" class="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3.5 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 cursor-pointer">
+                        <button type="submit" id="buy-now-btn" class="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-5 py-3.5 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 cursor-pointer">
                             Mua ngay
                         </button>
                         <button type="button" id="add-to-cart-btn" class="rounded-xl border border-brand-500/40 bg-brand-600/15 px-5 py-3.5 text-base font-black text-brand-200 transition hover:bg-brand-600 hover:text-white cursor-pointer">
@@ -257,66 +265,13 @@
                     <span class="pb-1 text-sm text-gray-500">/ 5 từ {{ $detail['rating']['count'] }} đánh giá</span>
                 </div>
 
-                @auth
-                    <form id="review-form"
-                          action="{{ route('products.review.store', $product) }}"
-                          method="POST"
-                          class="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                        @csrf
-                        <fieldset>
-                            <legend class="text-sm font-semibold text-gray-200">Bạn đánh giá sản phẩm này thế nào?</legend>
-                            <div class="mt-3 flex flex-row-reverse justify-end gap-1" data-rating-picker>
-                                @for ($rating = 5; $rating >= 1; $rating--)
-                                    <input type="radio"
-                                           id="review-rating-{{ $rating }}"
-                                           name="rating"
-                                           value="{{ $rating }}"
-                                           class="peer sr-only"
-                                           required>
-                                    <label for="review-rating-{{ $rating }}"
-                                           class="cursor-pointer text-3xl text-gray-600 transition peer-checked:text-amber-400 peer-hover:text-amber-300 hover:text-amber-300"
-                                           title="{{ $rating }} sao"
-                                           aria-label="{{ $rating }} sao">
-                                        ★
-                                    </label>
-                                @endfor
-                            </div>
-                        </fieldset>
-
-                        <label for="review-comment" class="mt-4 block text-sm font-semibold text-gray-200">Nhận xét</label>
-                        <textarea id="review-comment"
-                                  name="comment"
-                                  rows="4"
-                                  maxlength="5000"
-                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
-                                  class="mt-2 w-full rounded-xl border border-white/10 bg-night-card px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-brand-500"></textarea>
-
-                        <p id="review-form-message" class="mt-3 hidden text-sm" role="alert"></p>
-
-                        <button type="submit"
-                                id="review-submit-btn"
-                                class="mt-4 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60">
-                            Gửi đánh giá
-                        </button>
-                        <p class="mt-2 text-xs text-gray-500">Chỉ tài khoản đã nhận hàng và thanh toán thành công mới có thể đánh giá.</p>
-                    </form>
-                @else
-                    <div class="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-gray-400">
-                        <a href="{{ route('login') }}" class="font-bold text-brand-400 transition hover:text-brand-300">Đăng nhập</a>
-                        để đánh giá sản phẩm đã mua.
-                    </div>
-                @endauth
-
-                <div id="review-list" class="mt-4 space-y-3">
+                <div class="mt-4 space-y-3">
                     @forelse ($detail['reviews']->take(3) as $review)
                         <article class="border-t border-white/10 pt-3">
                             <div class="flex items-center justify-between">
                                 <p class="font-semibold text-white">{{ $review['user']['name'] ?? 'Khách hàng' }}</p>
                                 <span class="text-xs text-gray-500">{{ $review['created_at'] }}</span>
                             </div>
-                            <p class="mt-1 text-sm text-amber-400" aria-label="{{ $review['rating'] }} trên 5 sao">
-                                {{ str_repeat('★', $review['rating']) }}<span class="text-gray-700">{{ str_repeat('★', 5 - $review['rating']) }}</span>
-                            </p>
                             <p class="mt-1 text-sm text-gray-400">{{ $review['comment'] ?: 'Khách hàng chưa để lại nội dung nhận xét.' }}</p>
                         </article>
                     @empty
@@ -541,83 +496,6 @@
         }
 
         addToCartBtn.addEventListener('click', () => addToCart());
-
-        buyNowBtn.addEventListener('click', () => {
-            addToCart(() => {
-                window.location.href = "{{ route('checkout') }}";
-            });
-        });
-
-        // ---------- 4. Gửi đánh giá sản phẩm ----------
-        const reviewForm = document.getElementById('review-form');
-
-        if (reviewForm) {
-            const ratingInputs = Array.from(reviewForm.querySelectorAll('input[name="rating"]'));
-            const ratingLabels = Array.from(reviewForm.querySelectorAll('[data-rating-picker] label'));
-            const message = document.getElementById('review-form-message');
-            const submitButton = document.getElementById('review-submit-btn');
-
-            function paintRating(selectedRating = 0) {
-                ratingLabels.forEach((label) => {
-                    const rating = Number(label.getAttribute('for').replace('review-rating-', ''));
-                    label.classList.toggle('text-amber-400', rating <= selectedRating);
-                    label.classList.toggle('text-gray-600', rating > selectedRating);
-                });
-            }
-
-            function showReviewMessage(text, type = 'error') {
-                message.textContent = text;
-                message.classList.remove('hidden', 'text-red-400', 'text-emerald-400');
-                message.classList.add(type === 'success' ? 'text-emerald-400' : 'text-red-400');
-            }
-
-            ratingInputs.forEach((input) => {
-                input.addEventListener('change', () => paintRating(Number(input.value)));
-            });
-
-            reviewForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-
-                const formData = new FormData(reviewForm);
-                const rating = formData.get('rating');
-
-                if (!rating) {
-                    showReviewMessage('Vui lòng chọn số sao trước khi gửi.');
-                    return;
-                }
-
-                submitButton.disabled = true;
-                submitButton.textContent = 'Đang gửi...';
-                message.classList.add('hidden');
-
-                try {
-                    const response = await fetch(reviewForm.action, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': formData.get('_token'),
-                        },
-                        body: formData,
-                    });
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        const validationMessage = data.errors
-                            ? Object.values(data.errors).flat()[0]
-                            : null;
-                        throw new Error(validationMessage || data.message || 'Không thể gửi đánh giá.');
-                    }
-
-                    showReviewMessage(data.message || 'Đánh giá sản phẩm thành công.', 'success');
-                    submitButton.textContent = 'Đã gửi đánh giá';
-                    window.setTimeout(() => window.location.reload(), 800);
-                } catch (error) {
-                    showReviewMessage(error.message || 'Không thể kết nối đến máy chủ.');
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Gửi đánh giá';
-                }
-            });
-        }
     });
 </script>
 @endsection

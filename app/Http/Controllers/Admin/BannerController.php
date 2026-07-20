@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class BannerController extends Controller
 {
@@ -51,7 +51,9 @@ class BannerController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $banner->image = $request->file('image')->store('banners', 'public');
+            $imageName = time() . '_' . uniqid() . '.' . $request->image->extension();
+            $request->image->move(public_path('images/banners'), $imageName);
+            $banner->image = 'images/banners/' . $imageName;
         }
 
         $banner->save();
@@ -93,10 +95,12 @@ class BannerController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            if ($banner->image) {
-                Storage::disk('public')->delete($banner->image);
+            if ($banner->image && file_exists(public_path($banner->image))) {
+                unlink(public_path($banner->image));
             }
-            $banner->image = $request->file('image')->store('banners', 'public');
+            $imageName = time() . '_' . uniqid() . '.' . $request->image->extension();
+            $request->image->move(public_path('images/banners'), $imageName);
+            $banner->image = 'images/banners/' . $imageName;
         }
 
         $banner->save();
@@ -106,8 +110,8 @@ class BannerController extends Controller
 
     public function destroy(Banner $banner)
     {
-        if ($banner->image) {
-            Storage::disk('public')->delete($banner->image);
+        if ($banner->image && file_exists(public_path($banner->image))) {
+            unlink(public_path($banner->image));
         }
         $banner->delete();
 

@@ -77,7 +77,6 @@
 
                 {{-- Dropdown kết quả --}}
                 <div id="quick-search-results" class="absolute left-0 right-0 top-full mt-2 hidden max-h-96 overflow-y-auto rounded-xl border border-white/10 bg-night-soft shadow-2xl shadow-black/50 backdrop-blur-xl z-[60] no-scrollbar">
-                    {{-- Dữ liệu AJAX sẽ render ở đây --}}
                 </div>
             </div>
 
@@ -92,6 +91,7 @@
                     </span>
                     <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
                 </a>
+
                 {{-- So sánh --}}
                 <a href="{{ route('compare.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
                     <span class="relative">
@@ -107,9 +107,11 @@
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.36-1.62 1.26 12a1.13 1.13 0 0 1-1.12 1.24H4.25a1.13 1.13 0 0 1-1.12-1.24l1.26-12A1.13 1.13 0 0 1 5.51 7.88h12.98c.58 0 1.06.43 1.12 1Z"/></svg>
                         <span id="cart-count-badge"
                               class="absolute -right-2 -top-1.5 {{ ($cartCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $cartCount ?? 0 }}</span>
+
                     </span>
                     <span class="hidden text-xs font-semibold xl:block">Giỏ hàng</span>
                 </a>
+
                 {{-- Tài khoản --}}
                 @guest
                     <a href="{{ route('login') }}" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
@@ -138,6 +140,9 @@
                                 <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
                                 <a href="{{ route('coupons.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Kho Voucher</a>
                                 <a href="{{ route('password.change') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Đổi mật khẩu</a>
+                                @if(Auth::user()->isAdmin())
+                                    <a href="{{ route('admin.products.index') }}" class="block px-4 py-2 text-sm text-brand-400 hover:bg-white/5 hover:text-brand-300 transition-colors">Quản trị Admin</a>
+                                @endif
                                 <div class="my-1 border-t border-white/5"></div>
                                 <form action="{{ route('logout') }}" method="POST" class="block w-full">
                                     @csrf
@@ -149,6 +154,7 @@
                         </div>
                     </div>
                 @endauth
+
                 {{-- Nút mở menu mobile --}}
                 <button data-mobile-menu-toggle aria-expanded="false" aria-label="Mở menu"
                         class="flex size-10 items-center justify-center rounded-xl text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white lg:hidden">
@@ -217,18 +223,17 @@
     <footer id="lien-he" class="border-t border-white/5 bg-night-soft">
         <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-5">
 
-            {{-- Cột 1: Giới thiệu --}}
             <div class="lg:col-span-2 lg:pr-10">
                 <a href="{{ route('home') }}" class="mb-4 inline-flex" aria-label="NovaPhone - Trang chủ">
+
                     <img
                         src="{{ asset('images/brand/nova-phone-logo.webp') }}"
                         alt="NovaPhone"
                         class="h-14 w-auto max-w-[210px] object-contain"
                     >
+
                 </a>
-                <p class="text-sm leading-relaxed text-gray-400">
-                    NovaPhone — Hệ thống bán lẻ điện thoại, máy tính bảng và phụ kiện chính hãng. Cam kết sản phẩm chất lượng, giá tốt nhất thị trường và dịch vụ hậu mãi tận tâm.
-                </p>
+                <p class="text-sm leading-relaxed text-gray-400">NovaPhone — Hệ thống bán lẻ điện thoại, máy tính bảng và phụ kiện chính hãng. Cam kết sản phẩm chất lượng, giá tốt nhất thị trường và dịch vụ hậu mãi tận tâm.</p>
                 <div class="mt-5 flex gap-2.5">
                     <a href="#" aria-label="Facebook" class="flex size-9 items-center justify-center rounded-xl bg-white/5 text-gray-400 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-600 hover:text-white">
                         <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07Z"/></svg>
@@ -243,7 +248,6 @@
                 </div>
             </div>
 
-            {{-- Cột 2: Về chúng tôi --}}
             <div>
                 <h4 class="mb-4 text-sm font-bold uppercase tracking-wider text-white">Về chúng tôi</h4>
                 <ul class="space-y-3 text-sm text-gray-400">
@@ -254,7 +258,6 @@
                 </ul>
             </div>
 
-            {{-- Cột 3: Chính sách --}}
             <div>
                 <h4 class="mb-4 text-sm font-bold uppercase tracking-wider text-white">Chính sách</h4>
                 <ul class="space-y-3 text-sm text-gray-400">
@@ -265,7 +268,6 @@
                 </ul>
             </div>
 
-            {{-- Cột 4: Hỗ trợ + Tải ứng dụng --}}
             <div>
                 <h4 class="mb-4 text-sm font-bold uppercase tracking-wider text-white">Hỗ trợ</h4>
                 <ul class="space-y-3 text-sm text-gray-400">
@@ -274,7 +276,6 @@
                     <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Tra cứu đơn hàng</a></li>
                     <li><a href="tel:18001234" class="font-semibold text-white transition-colors duration-200 hover:text-brand-400">Hotline: 1800 1234</a></li>
                 </ul>
-
                 <h4 class="mb-3 mt-6 text-sm font-bold uppercase tracking-wider text-white">Tải ứng dụng</h4>
                 <div class="flex flex-col gap-2">
                     <a href="#" class="flex w-36 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 transition-all duration-200 ease-in-out hover:border-white/25 hover:bg-white/10">
@@ -289,7 +290,6 @@
             </div>
         </div>
 
-        {{-- Dòng cuối: bản quyền + thanh toán --}}
         <div class="border-t border-white/5 py-5">
             <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
                 <p class="text-xs text-gray-500">© {{ date('Y') }} NovaPhone. Bảo lưu mọi quyền.</p>
@@ -315,13 +315,7 @@
                 searchInput.addEventListener('input', function() {
                     clearTimeout(debounceTimer);
                     const query = this.value.trim();
-
-                    if (query.length < 2) {
-                        searchResults.classList.add('hidden');
-                        searchResults.innerHTML = '';
-                        return;
-                    }
-
+                    if (query.length < 2) { searchResults.classList.add('hidden'); searchResults.innerHTML = ''; return; }
                     debounceTimer = setTimeout(() => {
                         fetch(`{{ route('search.quick') }}?q=${encodeURIComponent(query)}`)
                             .then(res => res.json())
@@ -330,20 +324,12 @@
                                     let html = '<div class="p-2 space-y-1">';
                                     data.forEach(item => {
                                         let oldPriceHtml = item.old_price ? `<span class="text-[10px] text-gray-500 line-through">${item.old_price}</span>` : '';
-                                        html += `
-                                            <a href="${item.url}" class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 group">
-                                                <div class="flex size-12 shrink-0 items-center justify-center rounded-md bg-white/5 p-1 transition-transform group-hover:scale-105">
-                                                    <img src="${item.thumbnail}" alt="${item.name}" class="h-full w-full object-contain">
-                                                </div>
-                                                <div class="flex flex-1 flex-col justify-center overflow-hidden">
-                                                    <h4 class="truncate text-sm font-semibold text-gray-200 group-hover:text-brand-300 transition-colors">${item.name}</h4>
-                                                    <div class="flex items-baseline gap-2 mt-0.5">
-                                                        <span class="text-xs font-bold text-brand-400">${item.price}</span>
-                                                        ${oldPriceHtml}
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        `;
+                                        html += `<a href="${item.url}" class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 group">
+                                            <div class="flex size-12 shrink-0 items-center justify-center rounded-md bg-white/5 p-1"><img src="${item.thumbnail}" alt="${item.name}" class="h-full w-full object-contain"></div>
+                                            <div class="flex flex-1 flex-col justify-center overflow-hidden">
+                                                <h4 class="truncate text-sm font-semibold text-gray-200 group-hover:text-brand-300">${item.name}</h4>
+                                                <div class="flex items-baseline gap-2 mt-0.5"><span class="text-xs font-bold text-brand-400">${item.price}</span>${oldPriceHtml}</div>
+                                            </div></a>`;
                                     });
                                     html += '</div>';
                                     searchResults.innerHTML = html;
@@ -352,6 +338,7 @@
                                     searchResults.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Không tìm thấy sản phẩm nào phù hợp.</div>';
                                     searchResults.classList.remove('hidden');
                                 }
+
                             })
                             .catch(err => {
                                 console.error('Search error:', err);
@@ -371,7 +358,10 @@
                     if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
                         searchResults.classList.remove('hidden');
                     }
+
                 });
+                document.addEventListener('click', function(e) { if (!searchContainer.contains(e.target)) searchResults.classList.add('hidden'); });
+                searchInput.addEventListener('focus', function() { if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') searchResults.classList.remove('hidden'); });
             }
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');

@@ -196,7 +196,7 @@
                             {{ $index + 1 }}
                         </span>
                         <img
-                            src="{{ $prod->product_thumbnail ? asset('storage/' . $prod->product_thumbnail) : asset('images/placeholder.svg') }}"
+                            src="{{ $prod->product_thumbnail ? (str_starts_with($prod->product_thumbnail, 'images/') ? asset($prod->product_thumbnail) : asset('storage/' . $prod->product_thumbnail)) : asset('images/placeholder.svg') }}"
                             alt="{{ $prod->product_name }}"
                             class="size-10 shrink-0 rounded-lg border border-white/10 object-cover bg-white/5"
                         >

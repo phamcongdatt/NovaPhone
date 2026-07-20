@@ -27,7 +27,7 @@
                     <tr class="transition-colors hover:bg-white/[0.02]">
                         <td class="px-5 py-4 w-48">
                             <div class="relative w-40 h-24 overflow-hidden rounded-lg border border-white/10 bg-black/20">
-                                <img src="{{ asset('storage/' . $banner->image) }}" alt="Banner" class="h-full w-full object-cover">
+                                <img src="{{ asset($banner->image) }}" alt="Banner" class="h-full w-full object-cover">
                             </div>
                         </td>
                         <td class="px-5 py-4">
