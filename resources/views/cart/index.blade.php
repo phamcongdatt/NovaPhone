@@ -35,6 +35,20 @@
             @endif
         </div>
 
+        {{-- Chọn tất cả --}}
+        @if ($items->isNotEmpty())
+            <label class="mb-4 flex w-max items-center gap-2.5 cursor-pointer select-none rounded-xl border border-white/5 bg-night-soft px-4 py-3">
+                <input
+                    type="checkbox"
+                    id="select-all-checkbox"
+                    checked
+                    onchange="toggleSelectAll(this.checked)"
+                    class="size-4 rounded border-white/20 bg-white/5 text-brand-500 focus:ring-brand-500/40"
+                >
+                <span class="text-sm font-semibold text-gray-300">Chọn tất cả sản phẩm</span>
+            </label>
+        @endif
+
         {{-- Nếu giỏ hàng trống --}}
         <div id="empty-cart-view" class="{{ $items->isEmpty() ? '' : 'hidden' }} rounded-3xl border border-white/5 bg-night-soft p-12 text-center shadow-xl shadow-black/30">
             <div class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-white/5 text-gray-400 mb-4">
@@ -60,7 +74,16 @@
                         $variant = $item->variant;
                         $thumbnail = $product->thumbnail ?: asset('images/placeholder.svg');
                     @endphp
-                    <div data-cart-row="{{ $item->id }}" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-2xl border border-white/5 bg-night-soft p-4 shadow-lg transition duration-300 hover:border-white/10 hover:bg-white/[0.02]">
+                    <div data-cart-row="{{ $item->display_id }}" data-item-price="{{ $item->price }}" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-2xl border border-white/5 bg-night-soft p-4 shadow-lg transition duration-300 hover:border-white/10 hover:bg-white/[0.02]">
+
+                        {{-- Checkbox chọn sản phẩm --}}
+                        <input
+                            type="checkbox"
+                            class="cart-item-checkbox mt-1 size-4 shrink-0 rounded border-white/20 bg-white/5 text-brand-500 focus:ring-brand-500/40 sm:mt-0"
+                            data-item-id="{{ $item->display_id }}"
+                            checked
+                            onchange="onItemCheckboxChange()"
+                        >
 
                         {{-- Ảnh sản phẩm --}}
                         <div class="size-20 shrink-0 overflow-hidden rounded-xl bg-night-card p-1.5 border border-white/5">
@@ -88,7 +111,7 @@
                         <div class="flex items-center gap-2.5 bg-white/5 rounded-xl border border-white/10 p-1">
                             <button
                                 type="button"
-                                onclick="updateQuantity('{{ $item->id }}', -1)"
+                                onclick="updateQuantity('{{ $item->display_id }}', -1)"
                                 class="flex size-7 items-center justify-center rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition"
                                 aria-label="Giảm"
                             >
@@ -98,16 +121,16 @@
                             </button>
                             <input
                                 type="number"
-                                id="quantity-input-{{ $item->id }}"
+                                id="quantity-input-{{ $item->display_id }}"
                                 value="{{ $item->quantity }}"
                                 min="1"
-                                onchange="updateQuantity('{{ $item->id }}', this.value, true)"
+                                onchange="updateQuantity('{{ $item->display_id }}', this.value, true)"
                                 onkeydown="if(event.key === 'Enter') this.blur();"
                                 class="w-10 text-center bg-transparent border-0 text-sm font-bold text-white focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             >
                             <button
                                 type="button"
-                                onclick="updateQuantity('{{ $item->id }}', 1)"
+                                onclick="updateQuantity('{{ $item->display_id }}', 1)"
                                 class="flex size-7 items-center justify-center rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition"
                                 aria-label="Tăng"
                             >
@@ -121,13 +144,13 @@
                         <div class="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-4">
                             <div class="text-left sm:text-right">
                                 <p class="text-xs text-gray-500 font-medium hidden sm:block">Thành tiền</p>
-                                <p id="item-subtotal-{{ $item->id }}" class="text-lg font-black text-brand-400 mt-0.5">
+                                <p id="item-subtotal-{{ $item->display_id }}" class="text-lg font-black text-brand-400 mt-0.5">
                                     {{ $money($item->price * $item->quantity) }}
                                 </p>
                             </div>
                             <button
                                 type="button"
-                                onclick="removeItem('{{ $item->id }}')"
+                                onclick="removeItem('{{ $item->display_id }}')"
                                 class="flex size-9 items-center justify-center rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 transition hover:bg-red-500 hover:text-white"
                                 aria-label="Xóa sản phẩm"
                             >
@@ -167,12 +190,13 @@
                     </div>
 
                     <div class="grid gap-3">
-                        <a
-                            href="{{ route('checkout') }}"
+                        <button
+                            type="button"
+                            onclick="proceedToCheckout()"
                             class="flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-4 text-base font-black text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5 hover:shadow-amber-500/30"
                         >
                             Tiến hành thanh toán
-                        </a>
+                        </button>
                         <a
                             href="{{ route('home') }}"
                             class="flex items-center justify-center rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
@@ -180,6 +204,12 @@
                             Tiếp tục mua điện thoại
                         </a>
                     </div>
+
+                    {{-- Form ẩn dùng để submit danh sách item đã chọn sang route cart.set-selection --}}
+                    <form id="checkout-selection-form" method="POST" action="{{ route('cart.set-selection') }}" class="hidden">
+                        @csrf
+                        <div id="checkout-selection-inputs"></div>
+                    </form>
                 </div>
             </div>
 
@@ -213,6 +243,64 @@
         document.querySelectorAll('[data-cart-count]').forEach(el => el.textContent = count);
     }
 
+    const money = (value) => new Intl.NumberFormat('vi-VN').format(Math.round(value)) + 'đ';
+
+    function getCheckedItemIds() {
+        return Array.from(document.querySelectorAll('.cart-item-checkbox:checked')).map(cb => cb.dataset.itemId);
+    }
+
+    // Tính lại tổng tiền CHỈ dựa trên các sản phẩm đang được tích chọn.
+    function recalculateSelectedTotal() {
+        let total = 0;
+        document.querySelectorAll('[data-cart-row]').forEach(row => {
+            const checkbox = row.querySelector('.cart-item-checkbox');
+            if (!checkbox || !checkbox.checked) return;
+
+            const itemId = row.dataset.cartRow;
+            const price = parseFloat(row.dataset.itemPrice) || 0;
+            const qtyInput = document.getElementById(`quantity-input-${itemId}`);
+            const qty = qtyInput ? (parseInt(qtyInput.value) || 0) : 0;
+            total += price * qty;
+        });
+
+        document.getElementById('cart-subtotal').textContent = money(total);
+        document.getElementById('cart-total').textContent = money(total);
+    }
+
+    function toggleSelectAll(checked) {
+        document.querySelectorAll('.cart-item-checkbox').forEach(cb => cb.checked = checked);
+        recalculateSelectedTotal();
+    }
+
+    function onItemCheckboxChange() {
+        const checkboxes = document.querySelectorAll('.cart-item-checkbox');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        const selectAll = document.getElementById('select-all-checkbox');
+        if (selectAll) selectAll.checked = allChecked;
+        recalculateSelectedTotal();
+    }
+
+    function proceedToCheckout() {
+        const selectedIds = getCheckedItemIds();
+
+        if (selectedIds.length === 0) {
+            showToast('Vui lòng chọn ít nhất một sản phẩm để thanh toán.', 'error');
+            return;
+        }
+
+        const container = document.getElementById('checkout-selection-inputs');
+        container.innerHTML = '';
+        selectedIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selected_item_ids[]';
+            input.value = id;
+            container.appendChild(input);
+        });
+
+        document.getElementById('checkout-selection-form').submit();
+    }
+
     function updateQuantity(itemId, changeOrQty, isDirect = false) {
         const input = document.getElementById(`quantity-input-${itemId}`);
         const currentQty = parseInt(input.value) || 1;
@@ -233,8 +321,10 @@
             if (response.ok) {
                 input.value = data.item_quantity;
                 document.getElementById(`item-subtotal-${itemId}`).textContent = data.item_subtotal;
-                document.getElementById('cart-subtotal').textContent = data.cart_total;
-                document.getElementById('cart-total').textContent = data.cart_total;
+
+                // Chỉ tính lại tổng theo các sản phẩm đang được chọn (không dùng cart_total
+                // của server vì đó là tổng TOÀN BỘ giỏ hàng, không phải phần đã chọn).
+                recalculateSelectedTotal();
 
                 // Cập nhật số trên header
                 const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
@@ -274,15 +364,14 @@
                 setTimeout(() => {
                     row.remove();
 
-                    // Cập nhật tiền
-                    document.getElementById('cart-subtotal').textContent = data.cart_total;
-                    document.getElementById('cart-total').textContent = data.cart_total;
+                    // Chỉ tính lại tổng theo các sản phẩm đang được chọn
+                    recalculateSelectedTotal();
 
                     // Cập nhật số trên header
                     const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
                     headerCounts.forEach(el => el.textContent = data.cart_count);
 
-                    if (data.cart_total_raw <= 0) {
+                    if (document.querySelectorAll('[data-cart-row]').length === 0) {
                         document.getElementById('cart-content-view').classList.add('hidden');
                         document.getElementById('empty-cart-view').classList.remove('hidden');
                     }

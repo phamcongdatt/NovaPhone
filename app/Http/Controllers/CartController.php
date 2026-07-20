@@ -68,6 +68,9 @@ class CartController extends Controller
 
     /**
      * Cập nhật số lượng qua AJAX.
+     * Hỗ trợ cả item thật trong giỏ hàng (id/key) lẫn item "Mua ngay" tạm thời trong
+     * session (id giả 'buy_now_0') - luồng Mua ngay không có CartItem thật nên phải
+     * cập nhật trực tiếp session('buy_now_item') thay vì đi qua CartService.
      */
     public function update(Request $request, $idOrKey)
     {
@@ -76,6 +79,10 @@ class CartController extends Controller
         ]);
 
         try {
+            if ($idOrKey === 'buy_now_0') {
+                return $this->updateBuyNowQuantity($request->integer('quantity'));
+            }
+
             $item = $this->cartService->update($idOrKey, $request->integer('quantity'));
             $itemSubtotal = $item->price * $item->quantity;
 
@@ -94,6 +101,40 @@ class CartController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    /**
+     * Cập nhật số lượng cho item "Mua ngay" đang lưu tạm trong session.
+     */
+    private function updateBuyNowQuantity(int $quantity)
+    {
+        if (! session()->has('buy_now_item')) {
+            throw new Exception('Không tìm thấy sản phẩm "Mua ngay" trong phiên làm việc.');
+        }
+
+        $buyNowData = session()->get('buy_now_item');
+        $product = \App\Models\Product::findOrFail($buyNowData['product_id']);
+        $variant = $buyNowData['variant_id'] ? \App\Models\ProductVariant::findOrFail($buyNowData['variant_id']) : null;
+
+        $availableQuantity = $this->cartService->getAvailableStock($product, $variant);
+        if ($availableQuantity < $quantity) {
+            throw new Exception("Kho chỉ còn lại {$availableQuantity} sản phẩm khả dụng.");
+        }
+
+        $buyNowData['quantity'] = $quantity;
+        session()->put('buy_now_item', $buyNowData);
+
+        $itemSubtotal = $buyNowData['price'] * $quantity;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã cập nhật số lượng.',
+            'item_quantity' => $quantity,
+            'item_subtotal' => number_format($itemSubtotal, 0, ',', '.') . 'đ',
+            'cart_count' => $this->cartService->getCount(),
+            'cart_total' => number_format($itemSubtotal, 0, ',', '.') . 'đ',
+            'cart_total_raw' => $itemSubtotal,
+        ]);
     }
 
     /**
@@ -133,6 +174,35 @@ class CartController extends Controller
 
             return redirect()->route('cart.index')->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Lưu danh sách item được chọn để checkout (checkbox trên trang giỏ hàng).
+     * Chỉ chấp nhận các item thực sự có trong giỏ hàng hiện tại, tránh việc client
+     * gửi id/key không thuộc giỏ hàng của mình.
+     */
+    public function setSelection(Request $request)
+    {
+        $request->validate([
+            'selected_item_ids' => 'required|array|min:1',
+            'selected_item_ids.*' => 'required|string',
+        ], [
+            'selected_item_ids.required' => 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.',
+        ]);
+
+        $validIds = $this->cartService->getItems()->pluck('display_id')->all();
+        $selectedIds = array_values(array_intersect(
+            array_map('strval', $request->input('selected_item_ids')),
+            $validIds
+        ));
+
+        if (empty($selectedIds)) {
+            return redirect()->route('cart.index')->with('error', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
+        }
+
+        session()->put('checkout_selected_items', $selectedIds);
+
+        return redirect()->route('checkout');
     }
 
     /**

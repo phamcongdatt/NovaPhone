@@ -48,6 +48,15 @@
                 <p class="text-sm text-gray-500 mt-1">Đặt ngày {{ $order->created_at->format('H:i d/m/Y') }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+                @if ($order->status === 'pending' && $order->payment_method === 'vnpay' && $order->payment_status === 'pending')
+                    <a
+                        href="{{ route('checkout.vnpay.create', $order) }}"
+                        class="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2.5 text-sm font-bold text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5"
+                    >
+                        Tiếp tục thanh toán
+                    </a>
+                @endif
+
                 @if ($order->status === 'pending')
                     <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
                         @csrf

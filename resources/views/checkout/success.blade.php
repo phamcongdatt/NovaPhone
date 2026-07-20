@@ -69,14 +69,22 @@
 
         {{-- Buttons --}}
         <div class="mt-8 flex flex-col sm:flex-row gap-3">
-            <a 
-                href="{{ route('orders.show', $order) }}" 
+            @if ($order->status === 'pending' && $order->payment_method === 'vnpay' && $order->payment_status === 'pending')
+                <a
+                    href="{{ route('checkout.vnpay.create', $order) }}"
+                    class="flex-1 flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-3.5 text-sm font-bold text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5"
+                >
+                    Tiếp tục thanh toán
+                </a>
+            @endif
+            <a
+                href="{{ route('orders.show', $order) }}"
                 class="flex-1 flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition hover:-translate-y-0.5"
             >
                 Theo dõi đơn hàng
             </a>
-            <a 
-                href="{{ route('home') }}" 
+            <a
+                href="{{ route('home') }}"
                 class="flex-1 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 py-3.5 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
             >
                 Tiếp tục mua sắm

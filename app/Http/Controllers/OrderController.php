@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\OrderCancellationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        private readonly OrderCancellationService $cancellationService
+    ) {
         $this->middleware('auth');
     }
 
@@ -50,10 +52,11 @@ class OrderController extends Controller
             return back()->with('error', 'Chỉ đơn hàng đang chờ xác nhận mới có thể hủy.');
         }
 
-        $order->update([
-            'status' => 'cancelled',
-            'note' => 'Khách hàng hủy đơn',
-        ]);
+        $cancelled = $this->cancellationService->cancel($order, 'Khách hàng hủy đơn');
+
+        if (! $cancelled) {
+            return back()->with('error', 'Đơn hàng không còn ở trạng thái có thể hủy (có thể vừa được thanh toán/xử lý).');
+        }
 
         return back()->with('success', 'Đơn hàng đã được hủy thành công.');
     }

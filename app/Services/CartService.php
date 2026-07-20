@@ -59,11 +59,43 @@ class CartService
                 $mockItem->setRelation('variant', $variant);
             }
 
-            $mockItem->id = $key;
+            $mockItem->setDisplayId((string) $key);
             $items->push($mockItem);
         }
 
         return $items;
+    }
+
+    /**
+     * Lấy các item trong giỏ hàng đã được người dùng chọn để checkout.
+     * Selection được lưu tạm trong session('checkout_selected_items') (danh sách id/key),
+     * set bởi CartController::setSelection() khi bấm "Tiến hành thanh toán".
+     *
+     * Nếu không có session selection (vd. truy cập /checkout trực tiếp), fallback lấy toàn bộ giỏ hàng
+     * để không phá vỡ hành vi hiện có.
+     */
+    public function getSelectedItems(): Collection
+    {
+        $items = $this->getItems();
+
+        if (! session()->has('checkout_selected_items')) {
+            return $items;
+        }
+
+        $selectedIds = array_map('strval', session()->get('checkout_selected_items', []));
+
+        return $items->filter(fn (CartItem $item) => in_array($item->display_id, $selectedIds, true))->values();
+    }
+
+    /**
+     * Xóa nhiều item khỏi giỏ hàng theo danh sách id/key (dùng sau khi đặt hàng thành công
+     * để chỉ xóa các item đã checkout, giữ lại các item không được chọn).
+     */
+    public function removeMany(array $itemIdsOrKeys): void
+    {
+        foreach ($itemIdsOrKeys as $idOrKey) {
+            $this->remove($idOrKey);
+        }
     }
 
     /**
@@ -150,7 +182,7 @@ class CartService
         session()->put('cart', $sessionCart);
 
         $mockItem = new CartItem($sessionCart[$key]);
-        $mockItem->id = $key;
+        $mockItem->setDisplayId((string) $key);
         $mockItem->setRelation('product', $product);
         if ($variant) {
             $mockItem->setRelation('variant', $variant);
@@ -161,6 +193,11 @@ class CartService
 
     /**
      * Cập nhật số lượng của một item trong giỏ hàng.
+     *
+     * Quan trọng: $itemIdOrKey định danh duy nhất một dòng (cart_items.id cho user đã login,
+     * hoặc key "{product_id}-{variant_id}" cho guest) nên việc cập nhật số lượng KHÔNG được
+     * phép suy luận lại product_id/variant_id từ nơi khác - phải luôn thao tác trên đúng
+     * variant đã xác định bởi key này để tránh nhầm lẫn màu/phiên bản giữa các dòng.
      */
     public function update($itemIdOrKey, int $quantity): CartItem
     {
@@ -213,7 +250,7 @@ class CartService
         session()->put('cart', $sessionCart);
 
         $mockItem = new CartItem($sessionCart[$itemIdOrKey]);
-        $mockItem->id = $itemIdOrKey;
+        $mockItem->setDisplayId((string) $itemIdOrKey);
         $mockItem->setRelation('product', $product);
         if ($variant) {
             $mockItem->setRelation('variant', $variant);
