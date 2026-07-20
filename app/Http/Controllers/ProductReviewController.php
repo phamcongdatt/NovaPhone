@@ -32,13 +32,18 @@ class ProductReviewController extends Controller
             ], 403);
         }
 
+        $imagePaths = collect($request->file('images', []))
+            ->map(fn ($image) => $image->store('reviews', 'public'))
+            ->values()
+            ->all();
+
         $review = Review::create([
             'user_id' => $user->id,
             'product_id' => $product->id,
             'order_id' => $order->id,
             'rating' => $request->integer('rating'),
             'comment' => $request->input('comment'),
-            'images' => $request->input('images'),
+            'images' => $imagePaths ?: null,
             'is_visible' => true,
         ]);
 
