@@ -17,24 +17,24 @@
             <svg class="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
         </div>
 
-        <select name="category_id" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-brand-500">
-            <option value="">Tất cả danh mục</option>
+        <select name="category_id" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-brand-500 [&>option]:bg-gray-900 [&>option]:text-white">
+            <option value="" class="bg-gray-900 text-white">Tất cả danh mục</option>
             @foreach ($categories as $cat)
-                <option value="{{ $cat->id }}" @selected(($filters['category_id'] ?? null) == $cat->id)>{{ $cat->name }}</option>
+                <option value="{{ $cat->id }}" class="bg-gray-900 text-white" @selected(($filters['category_id'] ?? null) == $cat->id)>{{ $cat->name }}</option>
             @endforeach
         </select>
 
-        <select name="brand_id" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-brand-500">
-            <option value="">Tất cả thương hiệu</option>
+        <select name="brand_id" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-brand-500 [&>option]:bg-gray-900 [&>option]:text-white">
+            <option value="" class="bg-gray-900 text-white">Tất cả thương hiệu</option>
             @foreach ($brands as $brand)
-                <option value="{{ $brand->id }}" @selected(($filters['brand_id'] ?? null) == $brand->id)>{{ $brand->name }}</option>
+                <option value="{{ $brand->id }}" class="bg-gray-900 text-white" @selected(($filters['brand_id'] ?? null) == $brand->id)>{{ $brand->name }}</option>
             @endforeach
         </select>
 
-        <select name="status" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-brand-500">
-            <option value="">Tất cả trạng thái</option>
-            <option value="active" @selected(($filters['status'] ?? null) === 'active')>Đang bán</option>
-            <option value="inactive" @selected(($filters['status'] ?? null) === 'inactive')>Đã ẩn</option>
+        <select name="status" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-brand-500 [&>option]:bg-gray-900 [&>option]:text-white">
+            <option value="" class="bg-gray-900 text-white">Tất cả trạng thái</option>
+            <option value="active" class="bg-gray-900 text-white" @selected(($filters['status'] ?? null) === 'active')>Đang bán</option>
+            <option value="inactive" class="bg-gray-900 text-white" @selected(($filters['status'] ?? null) === 'inactive')>Đã ẩn</option>
         </select>
 
         <button type="submit" class="rounded-xl bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-white/10">
@@ -74,7 +74,7 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                             <img
-                                src="{{ $product->thumbnail ? asset('storage/' . $product->thumbnail) : 'https://placehold.co/64x64/12151d/93c5fd?text=No+Img' }}"
+                                src="{{ $product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg') }}"
                                 alt="{{ $product->name }}"
                                 class="size-12 shrink-0 rounded-lg border border-white/10 object-cover"
                             >

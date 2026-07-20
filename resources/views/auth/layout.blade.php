@@ -19,7 +19,7 @@ $navActive = 'border border-blue-400/25 bg-gradient-to-r from-blue-600/30 to-blu
 <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-blue-400/10 bg-[#07111e]/95 shadow-2xl shadow-black/40 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0">
 <div class="flex h-[76px] shrink-0 items-center justify-between border-b border-white/[0.06] px-5">
 <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center" aria-label="NovaPhone Admin">
-<img src="{{ asset('images/brand/nova-phone-logo.png') }}" alt="NovaPhone" class="h-12 w-auto max-w-[178px] object-contain">
+<img src="{{ asset('images/brand/nova-phone-logo.webp') }}" alt="NovaPhone" class="h-12 w-auto max-w-[178px] object-contain">
 </a>
 <button id="admin-sidebar-close" type="button" class="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white lg:hidden" aria-label="Đóng menu">
 <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg>

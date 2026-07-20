@@ -1,0 +1,3 @@
+/* Bộ icon chỉ dùng trong khu vực admin — tách khỏi app.css để trang bán hàng
+   không phải tải ~134KB font icon không dùng đến. */
+@import 'bootstrap-icons/font/bootstrap-icons.css';

@@ -54,7 +54,7 @@ class ProductDetailController extends Controller
     {
         $images = $product->images
             ->map(fn ($image) => [
-                'url' => $image->image_url,
+                'url' => str_starts_with($image->image_url, 'images/') ? asset($image->image_url) : asset('storage/' . $image->image_url),
                 'is_primary' => $image->is_primary,
                 'sort_order' => $image->sort_order,
             ])
@@ -62,7 +62,7 @@ class ProductDetailController extends Controller
 
         if ($images->isEmpty()) {
             $images = collect([[
-                'url' => $product->thumbnail ?: 'https://placehold.co/900x900/12151d/93c5fd?text='.urlencode($product->name),
+                'url' => $product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg'),
                 'is_primary' => true,
                 'sort_order' => 0,
             ]]);

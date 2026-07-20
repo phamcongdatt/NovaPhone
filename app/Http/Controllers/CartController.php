@@ -107,7 +107,7 @@ class CartController extends Controller
 
 
 
-    
+
     {
         try {
             $this->cartService->remove($idOrKey);
@@ -137,7 +137,8 @@ class CartController extends Controller
 
     /**
      * Mua ngay một sản phẩm từ trang chi tiết.
-     * Thêm sản phẩm vào giỏ và chuyển hướng đến trang thanh toán.
+     * Lưu thông tin sản phẩm vào session và chuyển hướng đến trang thanh toán.
+     * KHÔNG thêm vào giỏ hàng để tránh xung đột với các sản phẩm đã có trong giỏ.
      */
     public function buyNow(Request $request)
     {
@@ -148,15 +149,37 @@ class CartController extends Controller
         ]);
 
         try {
-            // Thêm sản phẩm vào giỏ hàng
-            $item = $this->cartService->add(
-                $request->integer('product_id'),
-                $request->input('variant_id') ? $request->integer('variant_id') : null,
-                $request->integer('quantity')
-            );
+            $productId = $request->integer('product_id');
+            $variantId = $request->input('variant_id') ? $request->integer('variant_id') : null;
+            $quantity = $request->integer('quantity');
+
+            // Lấy thông tin sản phẩm để kiểm tra tồn kho
+            $product = \App\Models\Product::findOrFail($productId);
+            $variant = $variantId ? \App\Models\ProductVariant::findOrFail($variantId) : null;
+
+            // Tính giá
+            $price = $product->effective_price;
+            if ($variant) {
+                $price += (float) $variant->additional_price;
+            }
+
+            // Kiểm tra tồn kho
+            $availableQuantity = $this->cartService->getAvailableStock($product, $variant);
+            if ($availableQuantity < $quantity) {
+                throw new Exception("Sản phẩm này chỉ còn lại {$availableQuantity} sản phẩm trong kho.");
+            }
+
+            // Lưu thông tin sản phẩm vào session với key 'buy_now_item'
+            // Điều này sẽ được sử dụng trong CheckoutController::index
+            session()->put('buy_now_item', [
+                'product_id' => $productId,
+                'variant_id' => $variantId,
+                'quantity' => $quantity,
+                'price' => $price,
+            ]);
 
             // Chuyển hướng đến trang thanh toán
-            return redirect()->route('checkout')->with('success', 'Đã thêm sản phẩm vào giỏ hàng! Tiếp tục thanh toán.');
+            return redirect()->route('checkout')->with('success', 'Tiếp tục thanh toán.');
         } catch (Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
