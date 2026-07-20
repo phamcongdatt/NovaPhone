@@ -14,6 +14,7 @@ class StoreProductReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'order_id' => ['required', 'integer', 'exists:orders,id'],
             'rating' => ['required', 'integer', 'between:1,5'],
             'comment' => ['nullable', 'string', 'max:5000'],
             'images' => ['nullable', 'array', 'max:5'],
@@ -24,6 +25,8 @@ class StoreProductReviewRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'order_id.required' => 'Không xác định được đơn hàng cần đánh giá.',
+            'order_id.exists' => 'Đơn hàng cần đánh giá không tồn tại.',
             'images.max' => 'Bạn chỉ có thể tải lên tối đa 5 ảnh.',
             'images.*.image' => 'Tệp tải lên phải là hình ảnh.',
             'images.*.mimes' => 'Ảnh đánh giá phải có định dạng JPG, JPEG, PNG hoặc WEBP.',

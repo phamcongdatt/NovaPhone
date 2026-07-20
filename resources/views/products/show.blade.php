@@ -293,6 +293,7 @@
                         <form id="review-form" method="POST" action="{{ route('products.review.store', $detail['id']) }}"
                               class="relative mt-6 overflow-hidden rounded-2xl border border-brand-500/20 bg-gradient-to-br from-brand-950/40 via-night-card to-night-card p-5 shadow-lg shadow-black/20">
                             @csrf
+                            <input type="hidden" name="order_id" value="{{ $reviewOrderId }}">
                             <div class="pointer-events-none absolute -right-16 -top-20 size-48 rounded-full bg-brand-500/10 blur-3xl"></div>
                             <div class="relative flex items-start justify-between gap-3">
                                 <div class="flex items-center gap-3">

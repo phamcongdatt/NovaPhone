@@ -20,6 +20,7 @@ class ProductReviewController extends Controller
         }
 
         $order = $user->orders()
+            ->whereKey($request->integer('order_id'))
             ->where('status', 'delivered')
             ->where('payment_status', 'paid')
             ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
@@ -28,7 +29,7 @@ class ProductReviewController extends Controller
 
         if (! $order) {
             return response()->json([
-                'message' => 'Chỉ khách hàng đã mua hàng thành công và thanh toán thành công mới được đánh giá.',
+                'message' => 'Đơn hàng không hợp lệ hoặc chưa được giao và thanh toán thành công.',
             ], 403);
         }
 

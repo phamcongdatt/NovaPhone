@@ -22,12 +22,14 @@ class ProductDetailController extends Controller
         abort_unless($product->is_active, 404);
 
         $product->increment('view_count');
+        $reviewContext = $this->reviewContext($request, $product);
 
         return view('products.show', [
             'product' => $product->refresh()->loadMissing($this->relations()),
             'cartCount' => $this->cartService->getCount(),
             'detail' => $this->detailPayload($product),
-            'reviewStatus' => $this->reviewStatus($request, $product),
+            'reviewStatus' => $reviewContext['status'],
+            'reviewOrderId' => $reviewContext['order_id'],
         ]);
     }
 
@@ -52,25 +54,32 @@ class ProductDetailController extends Controller
         ];
     }
 
-    private function reviewStatus(Request $request, Product $product): ?string
+    private function reviewContext(Request $request, Product $product): array
     {
         $user = $request->user();
 
         if (! $user) {
-            return null;
+            return ['status' => null, 'order_id' => null];
         }
 
         if ($user->reviews()->where('product_id', $product->id)->exists()) {
-            return 'reviewed';
+            return ['status' => 'reviewed', 'order_id' => null];
         }
 
-        $hasEligibleOrder = $user->orders()
+        $eligibleOrderQuery = $user->orders()
             ->where('status', 'delivered')
             ->where('payment_status', 'paid')
-            ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
-            ->exists();
+            ->whereHas('items', fn ($query) => $query->where('product_id', $product->id));
 
-        return $hasEligibleOrder ? 'eligible' : 'purchase_required';
+        if ($request->integer('order') > 0) {
+            $eligibleOrderQuery->whereKey($request->integer('order'));
+        }
+
+        $eligibleOrder = $eligibleOrderQuery->latest()->first();
+
+        return $eligibleOrder
+            ? ['status' => 'eligible', 'order_id' => $eligibleOrder->id]
+            : ['status' => 'purchase_required', 'order_id' => null];
     }
 
     private function detailPayload(Product $product): array
