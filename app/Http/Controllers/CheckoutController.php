@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderCreated;
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Address;
 use App\Models\CartItem;
@@ -414,6 +415,9 @@ class CheckoutController extends Controller
             // Gửi thông báo Telegram cho đơn hàng mới tạo
             $this->telegramNotificationService->notifyNewOrder($order);
 
+            // Gửi email xác nhận đơn hàng cho khách hàng
+            OrderCreated::dispatch($order);
+
             // Điều hướng theo phương thức thanh toán
             if ($order->payment_method === 'cod') {
                 return redirect()->route('checkout.success', $order)
@@ -521,6 +525,9 @@ class CheckoutController extends Controller
 
             // pending → confirmed: cộng sold_count
             $this->soldCountService->syncOnStatusChange($order, $oldStatus, 'confirmed');
+
+            // Gửi email xác nhận thanh toán
+            OrderCreated::dispatch($order);
 
             if (session('pending_payment_order_id') == $order->id) {
                 session()->forget('pending_payment_order_id');

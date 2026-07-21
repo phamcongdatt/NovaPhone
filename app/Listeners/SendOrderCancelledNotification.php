@@ -14,8 +14,8 @@ class SendOrderCancelledNotification implements ShouldQueue
             new OrderCancelledNotification(
                 $event->order,
                 $event->reason,
-                $event->cancelledBy,
-                $event->cancelledBy?->name
+                isAdminCancel: $event->cancelledBy !== null,
+                adminName: $event->cancelledBy?->name
             )
         );
     }

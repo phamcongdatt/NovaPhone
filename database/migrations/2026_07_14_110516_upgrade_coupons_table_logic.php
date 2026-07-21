@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Modify the `type` column to string to support more actions.
-        DB::statement("ALTER TABLE coupons MODIFY COLUMN type ENUM('fixed', 'percent', 'free_shipping', 'gift', 'reward_points') DEFAULT 'fixed'");
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE coupons MODIFY COLUMN type ENUM('fixed', 'percent', 'free_shipping', 'gift', 'reward_points') DEFAULT 'fixed'");
+        }
 
         Schema::table('coupons', function (Blueprint $table) {
             $table->foreignId('gift_product_id')->nullable()->after('value')->constrained('products')->nullOnDelete();
@@ -61,6 +63,8 @@ return new class extends Migration
             $table->dropColumn('gift_product_id');
         });
 
-        DB::statement("ALTER TABLE coupons MODIFY COLUMN type ENUM('fixed', 'percent') DEFAULT 'fixed'");
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE coupons MODIFY COLUMN type ENUM('fixed', 'percent') DEFAULT 'fixed'");
+        }
     }
 };
