@@ -22,6 +22,6 @@ return [
     | "pending" trước khi bị lệnh orders:cancel-stale tự động hủy.
     |
     */
-    'pending_order_timeout_minutes' => env('PENDING_ORDER_TIMEOUT_MINUTES', 10),
+    'pending_order_timeout_minutes' => env('PENDING_ORDER_TIMEOUT_MINUTES', 5),
 
 ];

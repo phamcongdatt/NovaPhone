@@ -148,11 +148,28 @@
             </div>
         @elseif ($order->status === 'cancelled')
             <div class="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
-                <h3 class="mb-2 text-sm font-bold text-red-400">Đơn đã bị hủy</h3>
-                <p class="text-sm text-gray-300">{{ $order->cancelled_reason ?? '—' }}</p>
-                @if ($order->cancelledBy)
-                    <p class="mt-2 text-xs text-gray-500">Hủy bởi: {{ $order->cancelledBy->name }}</p>
-                @endif
+                <h3 class="mb-3 text-sm font-bold text-red-400">Đơn đã bị hủy</h3>
+                <dl class="space-y-2 text-sm">
+                    <div>
+                        <dt class="text-xs text-gray-500">Lý do hủy</dt>
+                        <dd class="mt-0.5 text-gray-300">{{ $order->cancelled_reason ?? '—' }}</dd>
+                    </div>
+                    @if ($order->cancelledBy)
+                        <div>
+                            <dt class="text-xs text-gray-500">Hủy bởi</dt>
+                            <dd class="mt-0.5 text-gray-300">{{ $order->cancelledBy->name }}</dd>
+                        </div>
+                    @endif
+                    @if ($order->statusHistories()->where('status', 'cancelled')->first())
+                        @php
+                            $cancelHistory = $order->statusHistories()->where('status', 'cancelled')->first();
+                        @endphp
+                        <div>
+                            <dt class="text-xs text-gray-500">Thời gian hủy</dt>
+                            <dd class="mt-0.5 text-gray-300">{{ $cancelHistory->created_at?->format('d/m/Y H:i') }}</dd>
+                        </div>
+                    @endif
+                </dl>
             </div>
         @else
             <div class="rounded-2xl border border-green-500/20 bg-green-500/5 p-6 text-sm text-green-400">

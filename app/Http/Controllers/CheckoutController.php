@@ -90,9 +90,30 @@ class CheckoutController extends Controller
     public function index()
     {
         $user = Auth::user();
+
+        // Nếu trước đó user đã tạo đơn nhưng rời khỏi cổng thanh toán online
+        // (bấm Back/đóng tab) mà chưa hoàn tất, hiển thị lại đơn đó để "Tiếp tục thanh toán"
+        // thay vì cho đặt hàng mới đè lên.
+        $pendingPaymentOrder = null;
+        if ($pendingOrderId = session('pending_payment_order_id')) {
+            $pendingPaymentOrder = Order::where('id', $pendingOrderId)
+                ->where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->where('payment_status', 'pending')
+                ->where('payment_method', 'vnpay')
+                ->first();
+
+            if (! $pendingPaymentOrder) {
+                session()->forget('pending_payment_order_id');
+            }
+        }
+
         ['items' => $items, 'total' => $total, 'isBuyNow' => $isBuyNow] = $this->resolveCheckoutData();
 
         if (! $isBuyNow && $items->isEmpty()) {
+            if ($pendingPaymentOrder) {
+                return redirect()->route('checkout.success', $pendingPaymentOrder);
+            }
             return redirect()->route('cart.index')->with('error', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
         }
 
@@ -141,10 +162,16 @@ class CheckoutController extends Controller
                 return true;
             });
 
-        return view('checkout.index', compact(
-            'items', 'total', 'defaultAddress', 'disableCod', 'defaultPaymentMethod',
-            'codMaxAmount', 'discountAmount', 'appliedCouponsData', 'availableCoupons', 'isBuyNow'
-        ));
+        // Bắt buộc trình duyệt phải gọi lại server (không phục hồi từ bfcache) khi user
+        // bấm nút Back từ cổng thanh toán VNPay, để banner "Tiếp tục thanh toán" luôn cập nhật.
+        return response()
+            ->view('checkout.index', compact(
+                'items', 'total', 'defaultAddress', 'disableCod', 'defaultPaymentMethod',
+                'codMaxAmount', 'discountAmount', 'appliedCouponsData', 'availableCoupons', 'isBuyNow',
+                'pendingPaymentOrder'
+            ))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function applyCoupon(Request $request)
@@ -393,6 +420,10 @@ class CheckoutController extends Controller
                     ->with('success', 'Đặt hàng thành công!');
             }
 
+            // VNPay: ghi nhớ đơn này để nếu user back lại trang /checkout trước khi
+            // hoàn tất thanh toán, ta vẫn nhận diện được và mời tiếp tục thanh toán.
+            session()->put('pending_payment_order_id', $order->id);
+
             // VNPay: chuyển thẳng sang cổng thanh toán thật
             return redirect()->route('checkout.vnpay.create', $order);
 
@@ -490,6 +521,10 @@ class CheckoutController extends Controller
 
             // pending → confirmed: cộng sold_count
             $this->soldCountService->syncOnStatusChange($order, $oldStatus, 'confirmed');
+
+            if (session('pending_payment_order_id') == $order->id) {
+                session()->forget('pending_payment_order_id');
+            }
 
             return redirect()->route('checkout.success', $order)
                 ->with('success', 'Thanh toán VNPay thành công!');

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\OrderCancelled;
 use App\Models\Inventory;
 use App\Models\InventoryHistory;
 use App\Models\Order;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  * - Lệnh tự động hủy đơn quá hạn thanh toán (CancelStaleOrdersCommand)
  *
  * Đảm bảo mọi đường hủy đơn đều nhất quán: hoàn kho, đồng bộ sold_count,
- * ghi lịch sử trạng thái và giải phóng lượt dùng mã giảm giá.
+ * ghi lịch sử trạng thái, giải phóng lượt dùng mã giảm giá, và gửi thông báo cho khách.
  */
 class OrderCancellationService
 {
@@ -31,7 +32,7 @@ class OrderCancellationService
      */
     public function cancel(Order $order, string $reason, ?User $cancelledBy = null): bool
     {
-        return DB::transaction(function () use ($order, $reason, $cancelledBy) {
+        $result = DB::transaction(function () use ($order, $reason, $cancelledBy) {
             // Khóa dòng đơn hàng để tránh race condition với vnpayReturn() cập nhật đồng thời
             $locked = Order::whereKey($order->id)->lockForUpdate()->first();
 
@@ -58,7 +59,7 @@ class OrderCancellationService
             $this->soldCountService->syncOnStatusChange($locked, $oldStatus, 'cancelled');
 
             // Hoàn lại tồn kho & ghi lịch sử xuất/nhập kho
-            $locked->loadMissing('items', 'orderCoupons.coupon');
+            $locked->loadMissing('items', 'orderCoupons.coupon', 'user');
 
             foreach ($locked->items as $item) {
                 $inventory = $item->variant_id
@@ -86,5 +87,12 @@ class OrderCancellationService
 
             return true;
         });
+
+        // Dispatch event sau transaction (outside transaction để tránh lock)
+        if ($result) {
+            OrderCancelled::dispatch($order->fresh(), $reason, $cancelledBy);
+        }
+
+        return $result;
     }
 }

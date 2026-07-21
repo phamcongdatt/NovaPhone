@@ -58,6 +58,10 @@ class OrderController extends Controller
             return back()->with('error', 'Đơn hàng không còn ở trạng thái có thể hủy (có thể vừa được thanh toán/xử lý).');
         }
 
+        if (session('pending_payment_order_id') == $order->id) {
+            session()->forget('pending_payment_order_id');
+        }
+
         return back()->with('success', 'Đơn hàng đã được hủy thành công.');
     }
 

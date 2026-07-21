@@ -27,6 +27,21 @@
             </div>
         @endif
 
+        @if (isset($pendingPaymentOrder) && $pendingPaymentOrder)
+            <div class="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-300 sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                    Bạn có đơn hàng <strong>#{{ $pendingPaymentOrder->order_code }}</strong>
+                    ({{ $money($pendingPaymentOrder->total_amount) }}) đã được ghi nhận nhưng chưa hoàn tất thanh toán.
+                </span>
+                <a
+                    href="{{ route('checkout.vnpay.create', $pendingPaymentOrder) }}"
+                    class="inline-flex shrink-0 items-center justify-center rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-night transition-all duration-200 ease-in-out hover:bg-amber-400"
+                >
+                    Tiếp tục thanh toán
+                </a>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('checkout.place-order') }}">
             @csrf
 

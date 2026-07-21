@@ -84,9 +84,28 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
                     </div>
-                    <div>
+                    <div class="flex-1">
                         <h3 class="font-bold text-white text-base">Đơn hàng đã bị hủy</h3>
-                        <p class="text-sm text-red-400 mt-1">Lý do hủy: {{ $order->cancelled_reason ?: 'Không có lý do chi tiết.' }}</p>
+                        <div class="space-y-1.5 mt-2">
+                            <p class="text-sm text-red-400">
+                                <span class="font-semibold">Lý do hủy:</span> {{ $order->cancelled_reason ?: 'Không có lý do chi tiết.' }}
+                            </p>
+                            @if ($order->cancelledBy)
+                                <p class="text-sm text-red-400">
+                                    <span class="font-semibold">Được hủy bởi:</span> {{ $order->cancelledBy->name }}
+                                </p>
+                            @endif
+                            @if ($order->statusHistories()->where('status', 'cancelled')->first())
+                                @php
+                                    $cancelledAt = $order->statusHistories()->where('status', 'cancelled')->first()?->created_at;
+                                @endphp
+                                @if ($cancelledAt)
+                                    <p class="text-sm text-red-400">
+                                        <span class="font-semibold">Thời gian hủy:</span> {{ $cancelledAt->format('H:i d/m/Y') }}
+                                    </p>
+                                @endif
+                            @endif
+                        </div>
                     </div>
                 </div>
             @else

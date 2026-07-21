@@ -246,7 +246,9 @@
                         <button type="button" id="add-to-cart-btn" class="rounded-xl border border-brand-500/40 bg-brand-600/15 px-5 py-3.5 text-base font-black text-brand-200 transition hover:bg-brand-600 hover:text-white cursor-pointer">
                             Thêm vào giỏ hàng
                         </button>
-                        @php($isCompared = in_array($detail['id'], $compareProductIds ?? [], true))
+                        @php
+                            $isCompared = in_array($detail['id'], $compareProductIds ?? [], true);
+                        @endphp
                         <button type="button"
                                 data-compare-toggle="{{ $detail['id'] }}"
                                 data-compared="{{ $isCompared ? 'true' : 'false' }}"
