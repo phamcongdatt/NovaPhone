@@ -10,6 +10,7 @@
         'processing' => 'bg-indigo-500/15 text-indigo-300',
         'shipping'   => 'bg-cyan-500/15 text-cyan-300',
         'delivered'  => 'bg-green-500/15 text-green-400',
+        'received'   => 'bg-emerald-500/15 text-emerald-400',
         'cancelled'  => 'bg-red-500/15 text-red-400',
     ];
     $paymentLabel = ['pending' => 'Chưa thanh toán', 'paid' => 'Đã thanh toán', 'refunded' => 'Đã hoàn tiền'];
@@ -69,15 +70,26 @@
         <div class="rounded-2xl border border-white/5 bg-night-soft p-6">
             <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-500">Lịch sử trạng thái</h3>
             @forelse ($order->statusHistories->sortByDesc('created_at') as $history)
-                <div class="flex gap-3 border-l-2 border-white/10 py-2 pl-4">
-                    <div>
+                <div class="flex gap-3 border-l-2 border-white/10 py-3 pl-4 mb-3">
+                    <div class="flex-1">
                         <span class="rounded-full px-2.5 py-0.5 text-xs font-bold {{ $statusBadge[$history->status] ?? 'bg-white/5 text-gray-400' }}">
                             {{ $statusLabels[$history->status] ?? $history->status }}
                         </span>
                         @if ($history->note)
                             <p class="mt-1.5 text-sm text-gray-300">{{ $history->note }}</p>
                         @endif
-                        <p class="mt-1 text-xs text-gray-500">
+                        @if ($history->delivery_proof_image)
+                            <div class="mt-2.5 rounded-lg border border-white/10 p-2 bg-white/5">
+                                <a href="{{ asset('storage/' . $history->delivery_proof_image) }}" target="_blank" class="inline-flex items-center gap-2 text-xs text-brand-400 hover:text-brand-300 transition-colors">
+                                    <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Xem hình ảnh chứng minh
+                                </a>
+                                <img src="{{ asset('storage/' . $history->delivery_proof_image) }}" alt="Hình ảnh chứng minh giao hàng" class="mt-2 rounded-lg max-w-full max-h-32 object-contain">
+                            </div>
+                        @endif
+                        <p class="mt-2 text-xs text-gray-500">
                             {{ $history->created_at?->format('d/m/Y H:i') }}
                             @if ($history->creator) · {{ $history->creator->name }} @endif
                         </p>
@@ -119,19 +131,45 @@
                 @php $advanceStatuses = array_values(array_diff($nextStatuses, ['cancelled'])); @endphp
 
                 @if (! empty($advanceStatuses))
-                    <form method="POST" action="{{ route('admin.orders.update-status', $order) }}" class="space-y-3">
+                    <form method="POST" action="{{ route('admin.orders.update-status', $order) }}" class="space-y-3" enctype="multipart/form-data">
                         @csrf
                         @method('PATCH')
-                        <select name="status" required class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-brand-500">
+                        <select name="status" required class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-brand-500" id="statusSelect">
                             @foreach ($advanceStatuses as $next)
                                 <option value="{{ $next }}">{{ $statusLabels[$next] ?? $next }}</option>
                             @endforeach
                         </select>
+
+                        {{-- Input upload hình ảnh khi chuyển sang 'delivered' --}}
+                        <div id="deliveryImageField" class="hidden space-y-2">
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400">Hình ảnh chứng minh giao</label>
+                            <input type="file" name="delivery_proof_image" accept="image/*" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-gray-300 outline-none focus:border-brand-500">
+                            <p class="text-xs text-gray-500">Hỗ trợ: JPG, PNG, WebP (tối đa 5MB)</p>
+                        </div>
+
                         <textarea name="note" rows="2" placeholder="Ghi chú (tùy chọn)..." class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none placeholder:text-gray-500 focus:border-brand-500"></textarea>
                         <button type="submit" class="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-500">
                             Cập nhật trạng thái
                         </button>
                     </form>
+
+                    <script>
+                        const statusSelect = document.getElementById('statusSelect');
+                        const deliveryImageField = document.getElementById('deliveryImageField');
+
+                        statusSelect.addEventListener('change', function() {
+                            if (this.value === 'delivered') {
+                                deliveryImageField.classList.remove('hidden');
+                            } else {
+                                deliveryImageField.classList.add('hidden');
+                            }
+                        });
+
+                        // Check initial value
+                        if (statusSelect.value === 'delivered') {
+                            deliveryImageField.classList.remove('hidden');
+                        }
+                    </script>
                 @endif
 
                 @if ($order->isCancellable())

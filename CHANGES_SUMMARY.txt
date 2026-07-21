@@ -1,0 +1,152 @@
+================================================================================
+THAY ĐỔI - HỆ THỐNG XÁC NHẬN GIAO HÀNG (DELIVERY CONFIRMATION SYSTEM)
+================================================================================
+Ngày: 2026-07-21
+Tác giả: Claude Code
+
+================================================================================
+CÁC FILE ĐƯỢC THAY ĐỔI / THÊM MỚI
+================================================================================
+
+🆕 MIGRATION (Cơ Sở Dữ Liệu):
+─────────────────────────────
+  ✓ database/migrations/2026_07_21_000001_add_delivery_proof_to_order_status_histories.php
+    - Thêm cột delivery_proof_image vào order_status_histories
+    - Thêm cột user_received_at vào orders
+
+  ✓ database/migrations/2026_07_21_000002_add_received_status_to_orders.php
+    - Cập nhật ENUM status: thêm 'received'
+
+📝 MODELS:
+─────────
+  ✓ app/Models/Order.php
+    - Thêm 'user_received_at' vào $fillable
+
+  ✓ app/Models/OrderStatusHistory.php
+    - Thêm 'delivery_proof_image' vào $fillable
+
+🔧 CONTROLLERS:
+───────────────
+  ✓ app/Http/Controllers/OrderController.php
+    + Thêm method: confirmReceived(Order $order)
+    - User xác nhận đã nhận hàng
+
+  ✓ app/Http/Controllers/Admin/OrderController.php
+    - Cập nhật TRANSITIONS: delivered → [received]
+    - Cập nhật STATUS_LABELS: thêm 'received'
+    - Cập nhật updateStatus(): yêu cầu upload hình ảnh khi status='delivered'
+
+📋 FORM REQUEST:
+─────────────────
+  ✓ app/Http/Requests/Admin/OrdrerRequest.php
+    - Cập nhật rules: thêm 'received' vào status.in
+    - Thêm validation: delivery_proof_image
+
+🌐 ROUTES:
+──────────
+  ✓ routes/web.php
+    + POST /orders/{order}/confirm-received (name: orders.confirm-received)
+
+🎨 VIEWS - ADMIN:
+──────────────────
+  ✓ resources/views/admin/orders/show.blade.php
+    - Thêm form upload hình ảnh cho status='delivered'
+    - Thêm toggle JS (hiển thị/ẩn input file)
+    - Hiển thị hình ảnh trong lịch sử trạng thái
+    - Thêm badge color: 'received' = emerald
+
+🎨 VIEWS - USER:
+─────────────────
+  ✓ resources/views/orders/show.blade.php
+    - Cập nhật timeline: 4 bước → 5 bước
+    - Thêm bước 'received' vào $statusSteps
+    - Thêm $currentStep case cho 'received'
+    - Thêm nút "Xác nhận đã nhận hàng" (hiện khi status='delivered')
+
+📚 DOCUMENTATION:
+──────────────────
+  ✓ docs/ORDER_DELIVERY_SYSTEM.md
+    - Tài liệu kỹ thuật chi tiết
+
+================================================================================
+WORKFLOW - QUY TRÌNH MỚI
+================================================================================
+
+CÁ NHÂN (ADMIN):
+  1. Chọn "Đã giao" từ select status
+  2. BẮTBUỘC upload hình ảnh chứng minh
+  3. Thêm ghi chú (tùy chọn)
+  4. Click cập nhật
+  → Hình ảnh lưu + lịch sử cập nhật
+
+NGƯỜI DÙNG (USER):
+  1. Nhìn thấy nút "Xác nhận đã nhận hàng" khi status='delivered'
+  2. Click nút → xác nhận dialog
+  3. Hệ thống cập nhật status → 'received'
+  4. Thời gian lưu vào user_received_at
+  → Đơn hàng hoàn tất
+
+================================================================================
+TRẠNG THÁI ĐƠN HÀNG (STATE MACHINE)
+================================================================================
+
+TRƯỚC:
+  pending → confirmed → processing → shipping → delivered (THE END)
+
+SAU:
+  pending → confirmed → processing → shipping → delivered → received (THE END)
+                                                    ↓
+                                              (Admin xác nhận giao)
+                                              (Có hình ảnh chứng minh)
+                                                    ↓
+                                              (User xác nhận nhận)
+                                              (Đơn hàng hoàn tất)
+
+================================================================================
+ĐIỂM QUAN TRỌNG
+================================================================================
+
+✅ Hình ảnh chứng minh bắt buộc:
+   - Admin phải upload khi chuyển sang 'delivered'
+   - Định dạng: jpeg, png, jpg, webp
+   - Giới hạn: 5MB
+
+✅ Lịch sử được lưu:
+   - Thời gian
+   - Người cập nhật
+   - Ghi chú
+   - Hình ảnh (nếu có)
+
+✅ User xác nhận:
+   - Chỉ user sở hữu đơn hàng mới xác nhận được
+   - Chỉ xác nhận được khi status='delivered'
+   - Timestamp lưu vào user_received_at
+
+✅ UI/UX:
+   - Timeline hiển thị rõ 5 bước
+   - Nút hành động phù hợp cho từng trạng thái
+   - Badge colors phân biệt các trạng thái
+
+================================================================================
+DATABASE
+================================================================================
+
+Hình ảnh được lưu:
+  📁 storage/app/public/deliveries/
+  📄 delivery_{order_id}_{timestamp}.{ext}
+  🌐 Truy cập: /storage/deliveries/...
+
+Migration đã chạy thành công ✓
+
+================================================================================
+TEST CHECKLIST
+================================================================================
+
+[ ] Admin upload hình ảnh khi status='delivered'
+[ ] Hình ảnh hiển thị thumbnail + link download
+[ ] User thấy nút xác nhận khi status='delivered'
+[ ] User không xác nhận được đơn người khác
+[ ] Timeline hiển thị 5 bước đúng
+[ ] Badge colors phù hợp
+
+================================================================================

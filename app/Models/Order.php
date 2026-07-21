@@ -19,7 +19,7 @@ class Order extends Model
         'coupon_id', 'coupon_code',
         'shipping_full_name', 'shipping_phone', 'shipping_address',
         'shipping_ward', 'shipping_district', 'shipping_province',
-        'note', 'cancelled_reason', 'cancelled_by',
+        'note', 'cancelled_reason', 'cancelled_by', 'user_received_at',
     ];
 
     protected function casts(): array

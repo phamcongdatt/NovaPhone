@@ -82,4 +82,32 @@ class OrderController extends Controller
 
         return view('orders.show', compact('order'));
     }
+
+    /**
+     * User xác nhận đã nhận hàng (chuyển từ 'delivered' sang 'received').
+     */
+    public function confirmReceived(Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($order->status !== 'delivered') {
+            return back()->with('error', 'Chỉ đơn hàng đã giao mới có thể xác nhận nhận.');
+        }
+
+        $order->update([
+            'status' => 'received',
+            'user_received_at' => now(),
+        ]);
+
+        \App\Models\OrderStatusHistory::create([
+            'order_id' => $order->id,
+            'status' => 'received',
+            'note' => 'Khách hàng xác nhận đã nhận hàng',
+            'created_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Đơn hàng đã được xác nhận là đã nhận.');
+    }
 }

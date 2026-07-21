@@ -130,6 +130,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/confirm-received', [OrderController::class, 'confirmReceived'])->name('orders.confirm-received');
 });
 
 // VNPay - cổng thanh toán thật

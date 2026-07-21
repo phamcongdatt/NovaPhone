@@ -21,14 +21,17 @@ class OrderController extends Controller
 
     /**
      * Các bước chuyển trạng thái hợp lệ (state machine).
-     * Đơn đã "delivered" hoặc "cancelled" là trạng thái kết thúc.
+     * Admin: pending → confirmed → processing → shipping → delivered
+     * User: delivered → received (xác nhận đã nhận)
+     * Trạng thái cuối cùng: "received" hoặc "cancelled"
      */
     private const TRANSITIONS = [
         'pending'    => ['confirmed', 'cancelled'],
         'confirmed'  => ['processing', 'cancelled'],
         'processing' => ['shipping'],
         'shipping'   => ['delivered'],
-        'delivered'  => [],
+        'delivered'  => ['received'],
+        'received'   => [],
         'cancelled'  => [],
     ];
 
@@ -38,6 +41,7 @@ class OrderController extends Controller
         'processing' => 'Đang xử lý',
         'shipping'   => 'Đang giao hàng',
         'delivered'  => 'Đã giao',
+        'received'   => 'Đã nhận',
         'cancelled'  => 'Đã hủy',
     ];
 
@@ -98,7 +102,8 @@ class OrderController extends Controller
 
     public function updateStatus(OrdrerRequest $request, Order $order)
     {
-        $newStatus = $request->validated()['status'];
+        $validated = $request->validated();
+        $newStatus = $validated['status'];
         $allowed   = self::TRANSITIONS[$order->status] ?? [];
 
         if (! in_array($newStatus, $allowed, true)) {
@@ -108,17 +113,34 @@ class OrderController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($order, $newStatus, $request) {
+        // Require delivery proof image khi chuyển sang 'delivered'
+        if ($newStatus === 'delivered' && ! $request->hasFile('delivery_proof_image')) {
+            return back()->withErrors([
+                'delivery_proof_image' => 'Vui lòng cung cấp hình ảnh chứng minh giao hàng.',
+            ]);
+        }
+
+        DB::transaction(function () use ($order, $newStatus, $validated, $request) {
             $oldStatus = $order->status;
 
             $order->update(['status' => $newStatus]);
 
-            OrderStatusHistory::create([
+            $historyData = [
                 'order_id'   => $order->id,
                 'status'     => $newStatus,
-                'note'       => $request->input('note'),
+                'note'       => $validated['note'] ?? null,
                 'created_by' => $request->user()->id,
-            ]);
+            ];
+
+            // Lưu hình ảnh chứng minh giao hàng
+            if ($newStatus === 'delivered' && $request->hasFile('delivery_proof_image')) {
+                $file = $request->file('delivery_proof_image');
+                $filename = 'delivery_' . $order->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('deliveries', $filename, 'public');
+                $historyData['delivery_proof_image'] = $path;
+            }
+
+            OrderStatusHistory::create($historyData);
 
             $this->soldCountService->syncOnStatusChange($order, $oldStatus, $newStatus);
         });

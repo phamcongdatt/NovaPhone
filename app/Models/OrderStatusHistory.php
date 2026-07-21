@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderStatusHistory extends Model
 {
-    protected $fillable = ['order_id', 'status', 'note', 'created_by'];
+    protected $fillable = ['order_id', 'status', 'note', 'delivery_proof_image', 'created_by'];
 
     public function order(): BelongsTo
     {

@@ -10,7 +10,8 @@
         ['status' => 'pending', 'label' => 'Đã đặt', 'desc' => 'Đơn hàng đã được tiếp nhận'],
         ['status' => 'confirmed', 'label' => 'Đã xác nhận', 'desc' => 'Đơn hàng đang được xác nhận'],
         ['status' => 'shipping', 'label' => 'Đang giao', 'desc' => 'Đơn hàng đang được giao tới bạn'],
-        ['status' => 'delivered', 'label' => 'Hoàn thành', 'desc' => 'Đơn hàng đã được giao thành công'],
+        ['status' => 'delivered', 'label' => 'Đã giao', 'desc' => 'Đơn hàng đã được giao'],
+        ['status' => 'received', 'label' => 'Hoàn thành', 'desc' => 'Bạn đã xác nhận nhận hàng'],
     ];
 
     $currentStep = match ($order->status) {
@@ -18,6 +19,7 @@
         'confirmed', 'processing' => 1,
         'shipping' => 2,
         'delivered' => 3,
+        'received' => 4,
         'cancelled' => -1,
         default => 0
     };
@@ -62,6 +64,15 @@
                         @csrf
                         <button type="submit" class="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm font-bold text-red-300 transition hover:bg-red-500/20 hover:text-red-100">
                             Hủy đơn
+                        </button>
+                    </form>
+                @endif
+
+                @if ($order->status === 'delivered')
+                    <form method="POST" action="{{ route('orders.confirm-received', $order) }}" onsubmit="return confirm('Xác nhận bạn đã nhận được hàng?');">
+                        @csrf
+                        <button type="submit" class="rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-500 px-4 py-2.5 text-sm font-bold text-gray-950 shadow-lg shadow-emerald-500/20 transition hover:-translate-y-0.5">
+                            Xác nhận đã nhận hàng
                         </button>
                     </form>
                 @endif
@@ -112,11 +123,11 @@
                 <div class="relative">
                     {{-- Đường thẳng nối --}}
                     <div class="absolute top-5 left-8 right-8 h-1 bg-white/10 hidden md:block z-0">
-                        <div class="h-full bg-gradient-to-r from-brand-600 to-cyan-500 transition-all duration-500" style="width: {{ ($currentStep / 3) * 100 }}%"></div>
+                        <div class="h-full bg-gradient-to-r from-brand-600 to-cyan-500 transition-all duration-500" style="width: {{ ($currentStep / 4) * 100 }}%"></div>
                     </div>
 
                     {{-- Các bước timeline --}}
-                    <div class="grid gap-6 md:grid-cols-4 relative z-10">
+                    <div class="grid gap-6 md:grid-cols-5 relative z-10">
                         @foreach ($statusSteps as $index => $step)
                             @php
                                 $isCompleted = $index <= $currentStep;

@@ -17,6 +17,7 @@ return new class extends Migration
                 'processing',
                 'shipping',
                 'delivered',
+                'received',
                 'cancelled',
             ]);
             $table->text('note')->nullable();
