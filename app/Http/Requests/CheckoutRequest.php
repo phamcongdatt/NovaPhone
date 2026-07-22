@@ -20,7 +20,7 @@ class CheckoutRequest extends FormRequest
             'shipping_district' => 'required|string|max:255',
             'shipping_ward' => 'required|string|max:255',
             'shipping_address' => 'required|string|max:255',
-            'payment_method' => 'required|in:cod,momo,vnpay',
+            'payment_method' => 'required|in:cod,vnpay',
             'note' => 'nullable|string|max:1000',
         ];
     }

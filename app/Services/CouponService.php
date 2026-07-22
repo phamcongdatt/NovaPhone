@@ -112,8 +112,8 @@ class CouponService
 
         if ($user) {
             if ($coupon->per_user_limit !== null) {
-                $userUsedCount = $user->orders()->where('coupon_id', $coupon->id)->count();
-                // Check in order_coupons too if needed, but keeping simple for now
+                // Đơn đã hủy không tính vào lượt đã dùng, tránh việc hủy đơn làm mất vĩnh viễn lượt dùng mã.
+                $userUsedCount = $user->orders()->where('coupon_id', $coupon->id)->where('status', '!=', 'cancelled')->count();
                 if ($userUsedCount >= $coupon->per_user_limit) {
                     return $this->error("Bạn đã hết lượt sử dụng mã {$coupon->code}.");
                 }

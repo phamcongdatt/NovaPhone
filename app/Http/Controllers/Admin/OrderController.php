@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OrdrerRequest;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
+use App\Services\OrderCancellationService;
 use App\Services\SoldCountService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,20 +14,24 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
     public function __construct(
-        private readonly SoldCountService $soldCountService
+        private readonly SoldCountService $soldCountService,
+        private readonly OrderCancellationService $cancellationService
     ) {
     }
 
     /**
      * Các bước chuyển trạng thái hợp lệ (state machine).
-     * Đơn đã "delivered" hoặc "cancelled" là trạng thái kết thúc.
+     * Admin: pending → confirmed → processing → shipping → delivered
+     * User: delivered → received (xác nhận đã nhận)
+     * Trạng thái cuối cùng: "received" hoặc "cancelled"
      */
     private const TRANSITIONS = [
         'pending'    => ['confirmed', 'cancelled'],
         'confirmed'  => ['processing', 'cancelled'],
         'processing' => ['shipping'],
         'shipping'   => ['delivered'],
-        'delivered'  => [],
+        'delivered'  => ['received'],
+        'received'   => [],
         'cancelled'  => [],
     ];
 
@@ -36,6 +41,7 @@ class OrderController extends Controller
         'processing' => 'Đang xử lý',
         'shipping'   => 'Đang giao hàng',
         'delivered'  => 'Đã giao',
+        'received'   => 'Đã nhận',
         'cancelled'  => 'Đã hủy',
     ];
 
@@ -96,7 +102,8 @@ class OrderController extends Controller
 
     public function updateStatus(OrdrerRequest $request, Order $order)
     {
-        $newStatus = $request->validated()['status'];
+        $validated = $request->validated();
+        $newStatus = $validated['status'];
         $allowed   = self::TRANSITIONS[$order->status] ?? [];
 
         if (! in_array($newStatus, $allowed, true)) {
@@ -106,17 +113,34 @@ class OrderController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($order, $newStatus, $request) {
+        // Require delivery proof image khi chuyển sang 'delivered'
+        if ($newStatus === 'delivered' && ! $request->hasFile('delivery_proof_image')) {
+            return back()->withErrors([
+                'delivery_proof_image' => 'Vui lòng cung cấp hình ảnh chứng minh giao hàng.',
+            ]);
+        }
+
+        DB::transaction(function () use ($order, $newStatus, $validated, $request) {
             $oldStatus = $order->status;
 
             $order->update(['status' => $newStatus]);
 
-            OrderStatusHistory::create([
+            $historyData = [
                 'order_id'   => $order->id,
                 'status'     => $newStatus,
-                'note'       => $request->input('note'),
+                'note'       => $validated['note'] ?? null,
                 'created_by' => $request->user()->id,
-            ]);
+            ];
+
+            // Lưu hình ảnh chứng minh giao hàng
+            if ($newStatus === 'delivered' && $request->hasFile('delivery_proof_image')) {
+                $file = $request->file('delivery_proof_image');
+                $filename = 'delivery_' . $order->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('deliveries', $filename, 'public');
+                $historyData['delivery_proof_image'] = $path;
+            }
+
+            OrderStatusHistory::create($historyData);
 
             $this->soldCountService->syncOnStatusChange($order, $oldStatus, $newStatus);
         });
@@ -140,45 +164,13 @@ class OrderController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($order, $validated, $request) {
-            $oldStatus = $order->status;
+        $cancelled = $this->cancellationService->cancel($order, $validated['cancelled_reason'], $request->user());
 
-            $order->update([
-                'status'           => 'cancelled',
-                'cancelled_reason' => $validated['cancelled_reason'],
-                'cancelled_by'     => $request->user()->id,
+        if (! $cancelled) {
+            return back()->withErrors([
+                'cancelled_reason' => 'Đơn hàng ở trạng thái hiện tại không thể hủy.',
             ]);
-
-            OrderStatusHistory::create([
-                'order_id'   => $order->id,
-                'status'     => 'cancelled',
-                'note'       => $validated['cancelled_reason'],
-                'created_by' => $request->user()->id,
-            ]);
-
-            // Nếu đơn đã thuộc nhóm sales thì trừ sold_count
-            $this->soldCountService->syncOnStatusChange($order, $oldStatus, 'cancelled');
-
-            // Hoàn lại tồn kho & ghi lịch sử
-            foreach ($order->items as $item) {
-                $inventory = $item->variant_id
-                    ? \App\Models\Inventory::where('product_id', $item->product_id)->where('variant_id', $item->variant_id)->first()
-                    : \App\Models\Inventory::where('product_id', $item->product_id)->whereNull('variant_id')->first();
-
-                if ($inventory) {
-                    $inventory->increment('quantity', $item->quantity);
-                }
-
-                \App\Models\InventoryHistory::create([
-                    'product_id' => $item->product_id,
-                    'variant_id' => $item->variant_id,
-                    'type'       => 'import',
-                    'quantity'   => $item->quantity,
-                    'note'       => 'Hoàn kho tự động do huỷ đơn hàng #' . $order->order_code,
-                    'user_id'    => $request->user()->id,
-                ]);
-            }
-        });
+        }
 
         return back()->with('success', 'Đã hủy đơn hàng "' . $order->order_code . '".');
     }

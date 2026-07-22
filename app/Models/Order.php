@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,8 @@ use Illuminate\Support\Str;
 
 class Order extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id', 'order_code', 'status',
         'payment_method', 'payment_status',
@@ -16,7 +19,7 @@ class Order extends Model
         'coupon_id', 'coupon_code',
         'shipping_full_name', 'shipping_phone', 'shipping_address',
         'shipping_ward', 'shipping_district', 'shipping_province',
-        'note', 'cancelled_reason', 'cancelled_by',
+        'note', 'cancelled_reason', 'cancelled_by', 'user_received_at',
     ];
 
     protected function casts(): array
@@ -59,6 +62,11 @@ class Order extends Model
     public function statusHistories(): HasMany
     {
         return $this->hasMany(OrderStatusHistory::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
     }
 
     public function cancelledBy(): BelongsTo

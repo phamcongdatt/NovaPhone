@@ -29,9 +29,11 @@ class ProductReviewTest extends TestCase
     {
         $user = User::factory()->create();
         $product = $this->createProduct();
+        $order = $this->createDeliveredOrderWithProduct($user, $product);
 
         $this->actingAs($user)
             ->postJson(route('products.review.store', $product), [
+                'order_id' => $order->id,
                 'rating' => 6,
             ])
             ->assertUnprocessable()
@@ -42,9 +44,14 @@ class ProductReviewTest extends TestCase
     {
         $user = User::factory()->create();
         $product = $this->createProduct();
+        $order = $this->createDeliveredOrderWithProduct($user, $product, [
+            'status' => 'pending',
+            'payment_status' => 'pending',
+        ]);
 
         $this->actingAs($user)
             ->postJson(route('products.review.store', $product), [
+                'order_id' => $order->id,
                 'rating' => 5,
                 'comment' => 'Sản phẩm tốt.',
             ])
@@ -55,12 +62,13 @@ class ProductReviewTest extends TestCase
     {
         $user = User::factory()->create();
         $product = $this->createProduct();
-        $this->createDeliveredOrderWithProduct($user, $product, [
+        $order = $this->createDeliveredOrderWithProduct($user, $product, [
             'payment_status' => 'pending',
         ]);
 
         $this->actingAs($user)
             ->postJson(route('products.review.store', $product), [
+                'order_id' => $order->id,
                 'rating' => 5,
                 'comment' => 'Sản phẩm tốt.',
             ])
@@ -75,6 +83,7 @@ class ProductReviewTest extends TestCase
 
         $response = $this->actingAs($user)
             ->postJson(route('products.review.store', $product), [
+                'order_id' => $order->id,
                 'rating' => 5,
                 'comment' => 'Máy đẹp, dùng mượt.',
             ]);
@@ -98,7 +107,7 @@ class ProductReviewTest extends TestCase
     {
         $user = User::factory()->create();
         $product = $this->createProduct();
-        $this->createDeliveredOrderWithProduct($user, $product);
+        $order = $this->createDeliveredOrderWithProduct($user, $product);
 
         Review::create([
             'user_id' => $user->id,
@@ -108,6 +117,7 @@ class ProductReviewTest extends TestCase
 
         $this->actingAs($user)
             ->postJson(route('products.review.store', $product), [
+                'order_id' => $order->id,
                 'rating' => 5,
             ])
             ->assertConflict();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderCreated;
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Address;
 use App\Models\CartItem;
@@ -43,24 +44,22 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Hiển thị giao diện thanh toán.
+     * Xây dựng danh sách item + tổng tiền cho luồng hiện tại.
      * Hỗ trợ hai luồng:
-     * 1. Thanh toán từ giỏ hàng (lấy data từ CartService)
+     * 1. Thanh toán từ giỏ hàng (chỉ lấy các item đã được chọn - xem CartService::getSelectedItems)
      * 2. Mua ngay (lấy data từ session 'buy_now_item')
+     *
+     * @return array{items: \Illuminate\Support\Collection, total: float, isBuyNow: bool}
      */
-    public function index()
+    private function resolveCheckoutData(): array
     {
-        $user = Auth::user();
         $isBuyNow = session()->has('buy_now_item');
 
-        // Xác định nguồn dữ liệu: Session (Mua ngay) hay CartService (Giỏ hàng)
         if ($isBuyNow) {
-            // Luồng "Mua ngay": Lấy từ session
             $buyNowData = session()->get('buy_now_item');
             $product = Product::findOrFail($buyNowData['product_id']);
             $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
 
-            // Tạo collection giả lập CartItem cho view
             $items = collect();
             $mockItem = new CartItem([
                 'product_id' => $product->id,
@@ -72,17 +71,51 @@ class CheckoutController extends Controller
             if ($variant) {
                 $mockItem->setRelation('variant', $variant);
             }
-            $mockItem->id = 'buy_now_0'; // ID tạm thời để phân biệt
+            $mockItem->setDisplayId('buy_now_0');
             $items->push($mockItem);
 
             $total = $buyNowData['price'] * $buyNowData['quantity'];
-        } else {
-            // Luồng "Giỏ hàng": Lấy từ CartService
-            $items = $this->cartService->getItems();
-            if ($items->isEmpty()) {
-                return redirect()->route('cart.index')->with('error', 'Giỏ hàng của bạn đang trống.');
+
+            return compact('items', 'total', 'isBuyNow');
+        }
+
+        $items = $this->cartService->getSelectedItems();
+        $total = (float) $items->sum(fn ($item) => $item->price * $item->quantity);
+
+        return compact('items', 'total', 'isBuyNow');
+    }
+
+    /**
+     * Hiển thị giao diện thanh toán.
+     */
+    public function index()
+    {
+        $user = Auth::user();
+
+        // Nếu trước đó user đã tạo đơn nhưng rời khỏi cổng thanh toán online
+        // (bấm Back/đóng tab) mà chưa hoàn tất, hiển thị lại đơn đó để "Tiếp tục thanh toán"
+        // thay vì cho đặt hàng mới đè lên.
+        $pendingPaymentOrder = null;
+        if ($pendingOrderId = session('pending_payment_order_id')) {
+            $pendingPaymentOrder = Order::where('id', $pendingOrderId)
+                ->where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->where('payment_status', 'pending')
+                ->where('payment_method', 'vnpay')
+                ->first();
+
+            if (! $pendingPaymentOrder) {
+                session()->forget('pending_payment_order_id');
             }
-            $total = $this->cartService->getTotal();
+        }
+
+        ['items' => $items, 'total' => $total, 'isBuyNow' => $isBuyNow] = $this->resolveCheckoutData();
+
+        if (! $isBuyNow && $items->isEmpty()) {
+            if ($pendingPaymentOrder) {
+                return redirect()->route('checkout.success', $pendingPaymentOrder);
+            }
+            return redirect()->route('cart.index')->with('error', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
         }
 
         // Xử lý mã giảm giá (nếu có)
@@ -101,6 +134,10 @@ class CheckoutController extends Controller
         $defaultAddress = $user->addresses()->where('is_default', true)->first()
             ?? $user->addresses()->first();
 
+        $codMaxAmount = (float) config('shop.cod_max_amount');
+        $disableCod = $total > $codMaxAmount;
+        $defaultPaymentMethod = $disableCod ? 'vnpay' : 'cod';
+
         // Lấy danh sách mã giảm giá hợp lệ cho user hiện tại
         $now = now();
         $availableCoupons = \App\Models\Coupon::with(['eligibleUsers'])
@@ -117,7 +154,7 @@ class CheckoutController extends Controller
             ->get()
             ->filter(function ($coupon) use ($user) {
                 if ($coupon->per_user_limit !== null) {
-                    $userUsedCount = $user->orders()->where('coupon_id', $coupon->id)->count();
+                    $userUsedCount = $user->orders()->where('coupon_id', $coupon->id)->where('status', '!=', 'cancelled')->count();
                     if ($userUsedCount >= $coupon->per_user_limit) return false;
                 }
                 if ($coupon->eligibleUsers->isNotEmpty()) {
@@ -126,45 +163,23 @@ class CheckoutController extends Controller
                 return true;
             });
 
-        $disableCod = $total > 20000000;
-        $defaultPaymentMethod = $disableCod ? 'vnpay' : 'cod';
-
-        return view('checkout.index', compact('items', 'total', 'defaultAddress', 'discountAmount', 'appliedCouponsData', 'availableCoupons', 'isBuyNow', 'disableCod', 'defaultPaymentMethod'));
+        // Bắt buộc trình duyệt phải gọi lại server (không phục hồi từ bfcache) khi user
+        // bấm nút Back từ cổng thanh toán VNPay, để banner "Tiếp tục thanh toán" luôn cập nhật.
+        return response()
+            ->view('checkout.index', compact(
+                'items', 'total', 'defaultAddress', 'disableCod', 'defaultPaymentMethod',
+                'codMaxAmount', 'discountAmount', 'appliedCouponsData', 'availableCoupons', 'isBuyNow',
+                'pendingPaymentOrder'
+            ))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function applyCoupon(Request $request)
     {
         $request->validate(['code' => 'required|string']);
-        
-        // Xác định loại thanh toán: Mua ngay hay Giỏ hàng
-        $isBuyNow = session()->has('buy_now_item');
 
-        if ($isBuyNow) {
-            // Luồng "Mua ngay": Lấy từ session
-            $buyNowData = session()->get('buy_now_item');
-            $product = Product::findOrFail($buyNowData['product_id']);
-            $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
-
-            // Tạo collection giả lập CartItem
-            $items = collect();
-            $mockItem = new CartItem([
-                'product_id' => $product->id,
-                'variant_id' => $variant ? $variant->id : null,
-                'quantity' => $buyNowData['quantity'],
-                'price' => $buyNowData['price'],
-            ]);
-            $mockItem->setRelation('product', $product);
-            if ($variant) {
-                $mockItem->setRelation('variant', $variant);
-            }
-            $items->push($mockItem);
-
-            $total = $buyNowData['price'] * $buyNowData['quantity'];
-        } else {
-            // Luồng "Giỏ hàng": Lấy từ CartService
-            $items = $this->cartService->getItems();
-            $total = $this->cartService->getTotal();
-        }
+        ['items' => $items, 'total' => $total] = $this->resolveCheckoutData();
 
         $user = Auth::user();
         $codes = session()->get('applied_coupons', []);
@@ -182,7 +197,7 @@ class CheckoutController extends Controller
         }
 
         session()->put('applied_coupons', $testCodes);
-        
+
         return $this->jsonOrBack($request, true, $result['message'], $result);
     }
 
@@ -190,7 +205,7 @@ class CheckoutController extends Controller
     {
         $codeToRemove = strtoupper($request->input('code'));
         $codes = session()->get('applied_coupons', []);
-        
+
         if ($codeToRemove) {
             $codes = array_filter($codes, function ($c) use ($codeToRemove) {
                 return strtoupper($c) !== $codeToRemove;
@@ -211,65 +226,27 @@ class CheckoutController extends Controller
             return response()->json($response);
         }
         return back()->with($success ? 'success' : 'error', $message);
-
     }
 
     /**
      * Xử lý đặt hàng.
      * Hỗ trợ hai luồng:
-     * 1. Thanh toán từ giỏ hàng (xóa giỏ sau thanh toán)
+     * 1. Thanh toán từ giỏ hàng (chỉ xóa khỏi giỏ các item đã đặt, giữ lại các item chưa chọn)
      * 2. Mua ngay (không xóa giỏ, chỉ xóa session 'buy_now_item')
      */
     public function store(CheckoutRequest $request)
     {
-        $request->validate([
-            'shipping_full_name' => 'required|string|max:255',
-            'shipping_phone' => 'required|string|max:15',
-            'shipping_province' => 'required|string|max:255',
-            'shipping_district' => 'required|string|max:255',
-            'shipping_ward' => 'required|string|max:255',
-            'shipping_address' => 'required|string|max:255',
-            'payment_method' => 'required|in:cod,vnpay',
-            'note' => 'nullable|string',
-        ]);
+        ['items' => $items, 'total' => $total, 'isBuyNow' => $isBuyNow] = $this->resolveCheckoutData();
 
-        // Xác định loại thanh toán: Mua ngay hay Giỏ hàng
-        $isBuyNow = session()->has('buy_now_item');
-
-        if ($isBuyNow) {
-            // Luồng "Mua ngay": Lấy từ session
-            $buyNowData = session()->get('buy_now_item');
-            $product = Product::findOrFail($buyNowData['product_id']);
-            $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
-
-            // Tạo collection giả lập CartItem
-            $items = collect();
-            $mockItem = new CartItem([
-                'product_id' => $product->id,
-                'variant_id' => $variant ? $variant->id : null,
-                'quantity' => $buyNowData['quantity'],
-                'price' => $buyNowData['price'],
-            ]);
-            $mockItem->setRelation('product', $product);
-            if ($variant) {
-                $mockItem->setRelation('variant', $variant);
-            }
-            $items->push($mockItem);
-
-            $total = $buyNowData['price'] * $buyNowData['quantity'];
-        } else {
-            // Luồng "Giỏ hàng": Lấy từ CartService
-            $items = $this->cartService->getItems();
-            if ($items->isEmpty()) {
-                return redirect()->route('cart.index')->with('error', 'Giỏ hàng đang trống.');
-            }
-            $total = $this->cartService->getTotal();
+        if (! $isBuyNow && $items->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
         }
 
+        $codMaxAmount = (float) config('shop.cod_max_amount');
 
         // Kiểm tra giới hạn COD ở backend
-        if ($total > 20000000 && $request->payment_method === 'cod') {
-            return redirect()->back()->with('error', 'Đơn hàng có tổng giá trị vượt quá 20.000.000đ không hỗ trợ phương thức thanh toán COD. Vui lòng chọn phương thức thanh toán trực tuyến.')->withInput();
+        if ($total > $codMaxAmount && $request->payment_method === 'cod') {
+            return redirect()->back()->with('error', 'Đơn hàng có tổng giá trị vượt quá ' . number_format($codMaxAmount, 0, ',', '.') . 'đ không hỗ trợ phương thức thanh toán COD. Vui lòng chọn phương thức thanh toán trực tuyến.')->withInput();
         }
 
         try {
@@ -328,7 +305,6 @@ class CheckoutController extends Controller
                 }
 
                 $discountAmount = 0;
-                $rewardPoints = 0;
                 $appliedCouponsList = [];
 
                 // 2. Tính lại mã giảm giá nếu có
@@ -419,12 +395,6 @@ class CheckoutController extends Controller
                     }
                 }
 
-                // Cộng điểm thưởng
-                if ($rewardPoints > 0 && \Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                    $user = Auth::user();
-                    $user->increment('points', $rewardPoints);
-                }
-
                 // 5. Lưu địa chỉ vào database (nếu chưa tồn tại)
                 $this->saveShippingAddress($request);
 
@@ -433,8 +403,9 @@ class CheckoutController extends Controller
                     // Luồng "Mua ngay": Chỉ xóa session, KHÔNG xóa giỏ hàng
                     session()->forget('buy_now_item');
                 } else {
-                    // Luồng "Giỏ hàng": Xóa giỏ hàng và session mã giảm giá
-                    $this->cartService->clear();
+                    // Luồng "Giỏ hàng": Chỉ xóa các item đã đặt, giữ lại các item chưa được chọn
+                    $this->cartService->removeMany($items->pluck('display_id')->all());
+                    session()->forget('checkout_selected_items');
                 }
                 session()->forget('applied_coupons');
 
@@ -444,11 +415,18 @@ class CheckoutController extends Controller
             // Gửi thông báo Telegram cho đơn hàng mới tạo
             $this->telegramNotificationService->notifyNewOrder($order);
 
-            // 5. Điều hướng theo phương thức thanh toán
+            // Gửi email xác nhận đơn hàng cho khách hàng
+            OrderCreated::dispatch($order);
+
+            // Điều hướng theo phương thức thanh toán
             if ($order->payment_method === 'cod') {
                 return redirect()->route('checkout.success', $order)
                     ->with('success', 'Đặt hàng thành công!');
             }
+
+            // VNPay: ghi nhớ đơn này để nếu user back lại trang /checkout trước khi
+            // hoàn tất thanh toán, ta vẫn nhận diện được và mời tiếp tục thanh toán.
+            session()->put('pending_payment_order_id', $order->id);
 
             // VNPay: chuyển thẳng sang cổng thanh toán thật
             return redirect()->route('checkout.vnpay.create', $order);
@@ -472,6 +450,8 @@ class CheckoutController extends Controller
 
     /**
      * Tạo URL và chuyển hướng người dùng sang cổng VNPay.
+     * Cũng được dùng lại cho luồng "Tiếp tục thanh toán" (đơn pending chưa thanh toán) -
+     * KHÔNG tạo đơn hàng mới, chỉ tạo thêm một PaymentTransaction pending cho đơn đã có.
      */
     public function vnpayCreate(Request $request, Order $order)
     {
@@ -481,6 +461,10 @@ class CheckoutController extends Controller
 
         if ($order->payment_status === 'paid') {
             return redirect()->route('checkout.success', $order);
+        }
+
+        if ($order->status !== 'pending') {
+            return redirect()->route('orders.show', $order)->with('error', 'Đơn hàng này không thể tiếp tục thanh toán.');
         }
 
         // Ghi nhận một giao dịch chờ xử lý để đối soát
@@ -542,10 +526,19 @@ class CheckoutController extends Controller
             // pending → confirmed: cộng sold_count
             $this->soldCountService->syncOnStatusChange($order, $oldStatus, 'confirmed');
 
+            // Gửi email xác nhận thanh toán
+            OrderCreated::dispatch($order);
+
+            if (session('pending_payment_order_id') == $order->id) {
+                session()->forget('pending_payment_order_id');
+            }
+
             return redirect()->route('checkout.success', $order)
                 ->with('success', 'Thanh toán VNPay thành công!');
         }
 
+        // Thanh toán thất bại hoặc bị hủy: đơn vẫn giữ nguyên trạng thái "pending" để
+        // khách hàng có thể dùng nút "Tiếp tục thanh toán" thử lại, KHÔNG khóa đơn vĩnh viễn.
         return redirect()->route('checkout.success', $order)
             ->with('error', 'Thanh toán không thành công (mã lỗi: ' . $responseCode . ').');
     }

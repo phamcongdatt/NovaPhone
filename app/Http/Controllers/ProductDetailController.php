@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ProductDetailController extends Controller
@@ -16,16 +17,19 @@ class ProductDetailController extends Controller
         $this->cartService = $cartService;
     }
 
-    public function show(Product $product): View
+    public function show(Request $request, Product $product): View
     {
         abort_unless($product->is_active, 404);
 
         $product->increment('view_count');
+        $reviewContext = $this->reviewContext($request, $product);
 
         return view('products.show', [
             'product' => $product->refresh()->loadMissing($this->relations()),
             'cartCount' => $this->cartService->getCount(),
             'detail' => $this->detailPayload($product),
+            'reviewStatus' => $reviewContext['status'],
+            'reviewOrderId' => $reviewContext['order_id'],
         ]);
     }
 
@@ -48,6 +52,45 @@ class ProductDetailController extends Controller
             'inventory',
             'reviews' => fn ($query) => $query->where('is_visible', true)->latest()->with('user:id,name'),
         ];
+    }
+
+    private function reviewContext(Request $request, Product $product): array
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return ['status' => null, 'order_id' => null];
+        }
+
+        $eligibleOrderQuery = $user->orders()
+            ->where('status', 'delivered')
+            ->where('payment_status', 'paid')
+            ->whereHas('items', fn ($query) => $query->where('product_id', $product->id));
+
+        if ($request->integer('order') > 0) {
+            $eligibleOrderQuery->whereKey($request->integer('order'));
+        } else {
+            $eligibleOrderQuery->whereDoesntHave(
+                'reviews',
+                fn ($query) => $query->where('product_id', $product->id)
+            );
+        }
+
+        $eligibleOrder = $eligibleOrderQuery->latest()->first();
+
+        if ($eligibleOrder && $eligibleOrder->reviews()->where('product_id', $product->id)->exists()) {
+            return ['status' => 'reviewed', 'order_id' => $eligibleOrder->id];
+        }
+
+        if ($request->integer('order') <= 0
+            && ! $eligibleOrder
+            && $user->reviews()->where('product_id', $product->id)->exists()) {
+            return ['status' => 'reviewed', 'order_id' => null];
+        }
+
+        return $eligibleOrder
+            ? ['status' => 'eligible', 'order_id' => $eligibleOrder->id]
+            : ['status' => 'purchase_required', 'order_id' => null];
     }
 
     private function detailPayload(Product $product): array
@@ -111,7 +154,9 @@ class ProductDetailController extends Controller
                     'id' => $review->id,
                     'rating' => $review->rating,
                     'comment' => $review->comment,
-                    'images' => $review->images ?? [],
+                    'images' => collect($review->images ?? [])
+                        ->map(fn ($image) => $this->reviewImageUrl($image))
+                        ->values(),
                     'user' => $review->user?->only(['id', 'name']),
                     'created_at' => $review->created_at?->toDateString(),
                 ])
@@ -135,6 +180,19 @@ class ProductDetailController extends Controller
             ['label' => 'Màu sắc', 'value' => $product->variants->pluck('color')->filter()->unique()->join(', ') ?: 'Đang cập nhật'],
             ['label' => 'Tình trạng', 'value' => $product->is_active ? 'Đang kinh doanh' : 'Ngừng kinh doanh'],
         ];
+    }
+
+    private function reviewImageUrl(string $image): string
+    {
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+            return $image;
+        }
+
+        if (str_starts_with($image, 'images/') || str_starts_with($image, 'storage/')) {
+            return asset($image);
+        }
+
+        return asset('storage/' . ltrim($image, '/'));
     }
 
     private function discountPercent(Product $product): ?int

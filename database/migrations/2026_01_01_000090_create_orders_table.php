@@ -17,7 +17,8 @@ return new class extends Migration
                 'confirmed',    // đã xác nhận
                 'processing',   // đang xử lý
                 'shipping',     // đang giao hàng
-                'delivered',    // đã giao
+                'delivered',    // đã giao (admin xác nhận)
+                'received',     // đã nhận (user xác nhận)
                 'cancelled',    // đã hủy
             ])->default('pending');
             $table->enum('payment_method', ['cod', 'vnpay', 'momo'])->default('cod');

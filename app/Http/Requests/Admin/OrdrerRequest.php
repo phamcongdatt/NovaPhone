@@ -15,8 +15,9 @@ class OrdrerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'in:pending,confirmed,processing,shipping,delivered,cancelled'],
+            'status' => ['required', 'in:pending,confirmed,processing,shipping,delivered,received,cancelled'],
             'note'   => ['nullable', 'string', 'max:1000'],
+            'delivery_proof_image' => ['nullable', 'image', 'max:5120', 'mimes:jpeg,png,jpg,webp'],
         ];
     }
 

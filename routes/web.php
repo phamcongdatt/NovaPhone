@@ -120,17 +120,17 @@ Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buy-
 Route::patch('/cart/update/{item}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+Route::post('/cart/set-selection', [CartController::class, 'setSelection'])->name('cart.set-selection');
 // ---------- Checkout Routes ----------
 Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
     Route::post('/checkout/remove-coupon', [CheckoutController::class, 'removeCoupon'])->name('checkout.remove-coupon');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
-    Route::get('/checkout/payment-gateway/{order}', [CheckoutController::class, 'paymentGateway'])->name('checkout.payment-gateway');
-    Route::post('/checkout/payment-process/{order}', [CheckoutController::class, 'processPayment'])->name('checkout.payment-process');
     Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/confirm-received', [OrderController::class, 'confirmReceived'])->name('orders.confirm-received');
 });
 
 // VNPay - cổng thanh toán thật
@@ -228,7 +228,6 @@ Route::resource('flash-sales', FlashSaleController::class);
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::patch('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
         Route::patch('reviews/{review}/hide', [ReviewController::class, 'hide'])->name('reviews.hide');
-        Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
         //   GEMMINI CHAT
 
         // Cài đặt

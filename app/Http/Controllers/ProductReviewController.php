@@ -6,6 +6,8 @@ use App\Http\Requests\StoreProductReviewRequest;
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class ProductReviewController extends Controller
 {
@@ -13,13 +15,17 @@ class ProductReviewController extends Controller
     {
         $user = $request->user();
 
-        if ($user->reviews()->where('product_id', $product->id)->exists()) {
+        if ($user->reviews()
+            ->where('order_id', $request->integer('order_id'))
+            ->where('product_id', $product->id)
+            ->exists()) {
             return response()->json([
-                'message' => 'Bạn đã đánh giá sản phẩm này rồi.',
+                'message' => 'Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.',
             ], 409);
         }
 
         $order = $user->orders()
+            ->whereKey($request->integer('order_id'))
             ->where('status', 'delivered')
             ->where('payment_status', 'paid')
             ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
@@ -28,19 +34,30 @@ class ProductReviewController extends Controller
 
         if (! $order) {
             return response()->json([
-                'message' => 'Chỉ khách hàng đã mua hàng thành công và thanh toán thành công mới được đánh giá.',
+                'message' => 'Đơn hàng không hợp lệ hoặc chưa được giao và thanh toán thành công.',
             ], 403);
         }
 
-        $review = Review::create([
-            'user_id' => $user->id,
-            'product_id' => $product->id,
-            'order_id' => $order->id,
-            'rating' => $request->integer('rating'),
-            'comment' => $request->input('comment'),
-            'images' => $request->input('images'),
-            'is_visible' => true,
-        ]);
+        $imagePaths = collect($request->file('images', []))
+            ->map(fn ($image) => $image->store('reviews', 'public'))
+            ->values()
+            ->all();
+
+        try {
+            $review = Review::create([
+                'user_id' => $user->id,
+                'product_id' => $product->id,
+                'order_id' => $order->id,
+                'rating' => $request->integer('rating'),
+                'comment' => $request->input('comment'),
+                'images' => $imagePaths ?: null,
+                'is_visible' => true,
+            ]);
+        } catch (Throwable $exception) {
+            Storage::disk('public')->delete($imagePaths);
+
+            throw $exception;
+        }
 
         return response()->json([
             'message' => 'Đánh giá sản phẩm thành công.',

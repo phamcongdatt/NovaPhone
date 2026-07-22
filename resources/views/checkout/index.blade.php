@@ -27,6 +27,21 @@
             </div>
         @endif
 
+        @if (isset($pendingPaymentOrder) && $pendingPaymentOrder)
+            <div class="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-300 sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                    Bạn có đơn hàng <strong>#{{ $pendingPaymentOrder->order_code }}</strong>
+                    ({{ $money($pendingPaymentOrder->total_amount) }}) đã được ghi nhận nhưng chưa hoàn tất thanh toán.
+                </span>
+                <a
+                    href="{{ route('checkout.vnpay.create', $pendingPaymentOrder) }}"
+                    class="inline-flex shrink-0 items-center justify-center rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-night transition-all duration-200 ease-in-out hover:bg-amber-400"
+                >
+                    Tiếp tục thanh toán
+                </a>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('checkout.place-order') }}">
             @csrf
 
@@ -227,7 +242,7 @@
                                     $variant = $item->variant;
                                     $thumbnail = $product->thumbnail ?: asset('images/placeholder.svg');
                                 @endphp
-                                <div class="flex items-center gap-3" data-cart-row="{{ $item->id }}">
+                                <div class="flex items-center gap-3" data-cart-row="{{ $item->display_id }}" data-item-price="{{ $item->price }}">
                                     <div class="size-11 shrink-0 overflow-hidden rounded-lg bg-night-card p-1 border border-white/10">
                                         <img src="{{ $thumbnail }}" alt="{{ $product->name }}" class="size-full object-contain">
                                     </div>
@@ -251,7 +266,7 @@
                                         <div class="flex items-center gap-1 bg-white/5 rounded-lg border border-white/10 p-0.5 mt-1.5 w-max">
                                             <button
                                                 type="button"
-                                                onclick="updateCheckoutQuantity('{{ $item->id }}', -1)"
+                                                onclick="updateCheckoutQuantity('{{ $item->display_id }}', -1)"
                                                 class="flex size-5 items-center justify-center rounded text-gray-400 hover:bg-white/10 hover:text-white transition"
                                                 aria-label="Giảm"
                                             >
@@ -261,16 +276,16 @@
                                             </button>
                                             <input
                                                 type="number"
-                                                id="quantity-input-{{ $item->id }}"
+                                                id="quantity-input-{{ $item->display_id }}"
                                                 value="{{ $item->quantity }}"
                                                 min="1"
-                                                onchange="updateCheckoutQuantity('{{ $item->id }}', this.value, true)"
+                                                onchange="updateCheckoutQuantity('{{ $item->display_id }}', this.value, true)"
                                                 onkeydown="if(event.key === 'Enter') this.blur();"
                                                 class="w-7 text-center bg-transparent border-0 text-xs font-bold text-white focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                             >
                                             <button
                                                 type="button"
-                                                onclick="updateCheckoutQuantity('{{ $item->id }}', 1)"
+                                                onclick="updateCheckoutQuantity('{{ $item->display_id }}', 1)"
                                                 class="flex size-5 items-center justify-center rounded text-gray-400 hover:bg-white/10 hover:text-white transition"
                                                 aria-label="Tăng"
                                             >
@@ -281,7 +296,7 @@
                                         </div>
                                     </div>
                                     <div class="text-right shrink-0">
-                                        <p id="item-subtotal-{{ $item->id }}" class="text-xs font-bold text-white">{{ $money($item->price * $item->quantity) }}</p>
+                                        <p id="item-subtotal-{{ $item->display_id }}" class="text-xs font-bold text-white">{{ $money($item->price * $item->quantity) }}</p>
                                     </div>
                                 </div>
                             @endforeach
@@ -416,6 +431,27 @@
         }, 3000);
     }
 
+    // Tính lại tổng tiền CHỈ dựa trên các sản phẩm đang hiển thị trên trang checkout
+    // (tức các item đã được chọn từ giỏ hàng, hoặc item "Mua ngay") - KHÔNG dùng
+    // cart_total từ server vì đó là tổng của TOÀN BỘ giỏ hàng, có thể bao gồm cả
+    // các sản phẩm không được chọn để thanh toán lần này.
+    function recalculateCheckoutTotal() {
+        let total = 0;
+        document.querySelectorAll('[data-cart-row]').forEach(row => {
+            const itemId = row.dataset.cartRow;
+            const price = parseFloat(row.dataset.itemPrice) || 0;
+            const qtyInput = document.getElementById(`quantity-input-${itemId}`);
+            const qty = qtyInput ? (parseInt(qtyInput.value) || 0) : 0;
+            total += price * qty;
+        });
+
+        const formatted = new Intl.NumberFormat('vi-VN').format(Math.round(total)) + 'đ';
+        document.getElementById('checkout-subtotal').textContent = formatted;
+        document.getElementById('checkout-total').textContent = formatted;
+
+        return total;
+    }
+
     function updateCheckoutQuantity(itemId, changeOrQty, isDirect = false) {
         const input = document.getElementById(`quantity-input-${itemId}`);
         const currentQty = parseInt(input.value) || 1;
@@ -440,10 +476,9 @@
             const data = await response.json();
             if (response.ok) {
                 input.value = data.item_quantity;
-                const subtotalEl = document.getElementById('checkout-subtotal');
-                if (subtotalEl) subtotalEl.textContent = data.cart_total;
-                const finalTotalEl = document.getElementById('final-total');
-                if (finalTotalEl) finalTotalEl.textContent = data.cart_total;
+                document.getElementById(`item-subtotal-${itemId}`).textContent = data.item_subtotal;
+
+                const selectedTotal = recalculateCheckoutTotal();
 
                 // Cập nhật số trên header nếu có
                 const headerCounts = document.querySelectorAll('.absolute.-right-2.-top-1\\.5');
@@ -451,8 +486,8 @@
 
                 showToast('Đã cập nhật số lượng thành công!');
 
-                // Kiểm tra phương thức thanh toán dựa trên tổng tiền
-                checkPaymentMethods(data.cart_total_raw);
+                // Kiểm tra phương thức thanh toán dựa trên tổng tiền của các item đang checkout
+                checkPaymentMethods(selectedTotal);
             } else {
                 showToast(data.message || 'Có lỗi xảy ra', 'error');
                 if (data.item_quantity) {
@@ -469,12 +504,14 @@
         });
     }
 
+    const codMaxAmount = {{ (float) $codMaxAmount }};
+
     function checkPaymentMethods(totalRaw) {
         const codLabel = document.getElementById('payment-method-cod');
         const codInput = document.getElementById('input-payment-cod');
         const vnpayInput = document.getElementById('input-payment-vnpay');
 
-        if (totalRaw > 20000000) {
+        if (totalRaw > codMaxAmount) {
             if (codLabel) {
                 codLabel.classList.add('hidden');
             }
