@@ -24,8 +24,17 @@ class ProductDetailController extends Controller
         $product->increment('view_count');
         $reviewContext = $this->reviewContext($request, $product);
 
+        $relatedProducts = Product::where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('is_active', true)
+            ->with(['brand', 'activeFlashSaleItem.flashSale'])
+            ->withAvg(['reviews as rating_average' => fn($q) => $q->where('is_visible', true)], 'rating')
+            ->limit(4)
+            ->get();
+
         return view('products.show', [
             'product' => $product->refresh()->loadMissing($this->relations()),
+            'relatedProducts' => $relatedProducts,
             'cartCount' => $this->cartService->getCount(),
             'detail' => $this->detailPayload($product),
             'reviewStatus' => $reviewContext['status'],

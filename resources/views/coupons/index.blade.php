@@ -1,155 +1,59 @@
 @extends('layouts.app')
-
-@section('title', 'Kho Voucher | NovaPhone')
+@section('title', 'Ưu đãi chung - NovaPhone')
 
 @section('content')
-<div class="bg-night text-gray-100 min-h-[calc(100vh-68px-340px)] py-8">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6">
-        
-        {{-- Breadcrumb --}}
-        <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-            <a href="{{ route('home') }}" class="transition-colors hover:text-brand-400">Trang chủ</a>
-            <span>/</span>
-            <span class="font-medium text-gray-300">Kho Voucher</span>
-        </nav>
-
-        <h1 class="text-3xl font-black text-white tracking-tight mb-2">Kho Voucher</h1>
-        <p class="text-gray-400 mb-8">Lưu ngay các mã giảm giá hấp dẫn để sử dụng khi thanh toán.</p>
-
-        @if ($coupons->isEmpty())
-            <div class="rounded-3xl border border-white/5 bg-night-soft p-12 text-center shadow-xl shadow-black/30">
-                <div class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-white/5 text-gray-400 mb-4">
-                    <svg class="size-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z" /></svg>
-                </div>
-                <h2 class="text-xl font-bold text-white mb-2">Hiện chưa có mã giảm giá nào</h2>
-                <p class="text-gray-400 max-w-md mx-auto">Vui lòng quay lại sau để nhận các ưu đãi mới nhất từ NovaPhone.</p>
-            </div>
-        @else
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach ($coupons as $coupon)
-                    <div class="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-night-soft shadow-lg transition-all hover:border-brand-500/30 hover:shadow-brand-500/10">
-                        {{-- Gờ cắt coupon --}}
-                        <div class="absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-night"></div>
-                        <div class="absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-night"></div>
-                        
-                        <div class="flex-1 p-6 border-b border-dashed border-white/10 relative">
-                            <div class="flex items-start justify-between gap-4 mb-4">
-                                <div class="rounded-xl bg-brand-500/10 p-3 text-brand-400">
-                                    <svg class="size-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z" /></svg>
-                                </div>
-                                <div class="text-right">
-                                    <span class="inline-block rounded bg-brand-600 px-2.5 py-1 text-xs font-black tracking-wider text-white">
-                                        {{ $coupon->code }}
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <h3 class="text-lg font-bold text-white">
-                                @if ($coupon->type === 'fixed')
-                                    Giảm {{ number_format($coupon->value, 0, ',', '.') }}đ
-                                @else
-                                    Giảm {{ floatval($coupon->value) }}%
-                                @endif
-                            </h3>
-                            
-                            @if ($coupon->description)
-                                <p class="text-sm text-gray-400 mt-2">{{ $coupon->description }}</p>
-                            @endif
-                            
-                            <ul class="text-xs text-gray-500 mt-4 space-y-1.5">
-                                @if ($coupon->min_order_amount > 0)
-                                    <li>• Đơn tối thiểu: {{ number_format($coupon->min_order_amount, 0, ',', '.') }}đ</li>
-                                @endif
-                                @if ($coupon->type === 'percent' && $coupon->max_discount > 0)
-                                    <li>• Giảm tối đa: {{ number_format($coupon->max_discount, 0, ',', '.') }}đ</li>
-                                @endif
-                                @if ($coupon->expires_at)
-                                    <li>• HSD: {{ $coupon->expires_at->format('d/m/Y H:i') }}</li>
-                                @endif
-                            </ul>
+<div class="space-y-3">
+    <div class="flex">
+        <span class="rounded-full border border-[#e8e4de] bg-white px-3 py-1 text-[11px] font-semibold text-[#444] shadow-sm">Ưu đãi chung</span>
+    </div>
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <h1 class="text-2xl font-bold">Ưu đãi chung</h1>
+        <p class="mt-1 text-sm text-[#7f7f7f]">Khám phá các mã giảm giá đang áp dụng cho mọi khách hàng và lưu mã phù hợp vào tài khoản.</p>
+        <div class="mt-5 space-y-3">
+            @forelse ($coupons as $coupon)
+                <div class="flex flex-col gap-4 rounded-[22px] border border-[#ece8e2] p-4 sm:flex-row sm:items-center">
+                    <div class="w-full rounded-[18px] bg-gradient-to-r from-[#171717] to-[#4b4b4b] p-4 text-white sm:w-40">
+                        <div class="text-lg font-bold">
+                            {{ $coupon->type === 'percent' ? 'Giảm ' . rtrim(rtrim((string) $coupon->value, '0'), '.') . '%' : 'Giảm ' . number_format($coupon->value, 0, ',', '.') . 'đ' }}
                         </div>
-                        
-                        <div class="p-4 bg-white/[0.02]">
-                            @if (in_array($coupon->id, $savedCouponIds))
-                                <button disabled class="w-full rounded-xl bg-white/5 py-3 text-sm font-bold text-gray-400 cursor-not-allowed border border-white/5">
-                                    Đã lưu
-                                </button>
-                            @else
-                                <button type="button" onclick="saveCoupon({{ $coupon->id }}, this)" class="w-full rounded-xl bg-brand-600 py-3 text-sm font-bold text-white hover:bg-brand-500 transition shadow-lg shadow-brand-600/20">
-                                    Lưu mã
-                                </button>
+                        @if ($coupon->max_discount)
+                            <div class="mt-1 text-xs opacity-90">Tối đa {{ number_format($coupon->max_discount, 0, ',', '.') }}đ</div>
+                        @endif
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-lg font-bold">{{ $coupon->code }}</div>
+                        @if ($coupon->description)
+                            <div class="mt-1 text-sm text-[#7f7f7f]">{{ $coupon->description }}</div>
+                        @endif
+                        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#7f7f7f]">
+                            @if ($coupon->min_order_amount > 0)
+                                <span>Đơn tối thiểu {{ number_format($coupon->min_order_amount, 0, ',', '.') }}đ</span>
                             @endif
+                            <span>
+                                {{ $coupon->expires_at ? 'HSD: ' . $coupon->expires_at->format('d/m/Y') : 'Không giới hạn thời gian' }}
+                            </span>
                         </div>
                     </div>
-                @endforeach
-            </div>
-
-            <div class="mt-8">
-                {{ $coupons->links() }}
-            </div>
+                    @php($isSaved = in_array($coupon->id, $savedCouponIds, true))
+                    <button
+                        type="button"
+                        class="shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition {{ $isSaved ? 'border border-[#e8e4de] text-[#777]' : 'bg-black text-white hover:bg-[#222]' }}"
+                        data-coupon-save
+                        data-save-url="{{ route('coupons.save', $coupon) }}"
+                        data-login-url="{{ route('login') }}"
+                        data-saved="{{ $isSaved ? 'true' : 'false' }}"
+                        {{ $isSaved ? 'disabled' : '' }}
+                    >
+                        {{ $isSaved ? 'Đã lưu' : 'Lưu mã' }}
+                    </button>
+                </div>
+            @empty
+                <div class="rounded-2xl border-2 border-dashed border-[#e5e1db] p-10 text-center text-sm text-[#8b8b8b]">Hiện chưa có mã giảm giá khả dụng.</div>
+            @endforelse
+        </div>
+        @if ($coupons->hasPages())
+            <div class="mt-6">{{ $coupons->links() }}</div>
         @endif
-        
-    </div>
+    </section>
 </div>
-
-{{-- Popup Alert / Toast --}}
-<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
-
-@push('scripts')
-<script>
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `flex items-center gap-3 rounded-2xl border px-5 py-3.5 shadow-2xl backdrop-blur-xl transition duration-300 transform translate-y-5 opacity-0 ${
-            type === 'success' 
-                ? 'border-emerald-500/20 bg-emerald-950/80 text-emerald-300' 
-                : 'border-red-500/20 bg-red-950/80 text-red-300'
-        }`;
-        
-        const icon = type === 'success' 
-            ? `<svg class="size-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`
-            : `<svg class="size-5 text-red-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`;
-            
-        toast.innerHTML = `${icon}<span class="text-sm font-semibold">${message}</span>`;
-        document.getElementById('toast-container').appendChild(toast);
-        
-        setTimeout(() => toast.classList.remove('translate-y-5', 'opacity-0'), 10);
-        
-        setTimeout(() => {
-            toast.classList.add('translate-y-5', 'opacity-0');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    function saveCoupon(couponId, buttonEl) {
-        fetch(`/coupons/${couponId}/save`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        })
-        .then(async response => {
-            const data = await response.json();
-            if (response.ok || data.success) {
-                showToast(data.message || 'Đã lưu mã giảm giá thành công!');
-                // Đổi trạng thái button
-                buttonEl.textContent = 'Đã lưu';
-                buttonEl.disabled = true;
-                buttonEl.className = 'w-full rounded-xl bg-white/5 py-3 text-sm font-bold text-gray-400 cursor-not-allowed border border-white/5';
-                buttonEl.removeAttribute('onclick');
-            } else {
-                if (response.status === 401) {
-                    showToast('Vui lòng đăng nhập để lưu mã.', 'error');
-                } else {
-                    showToast(data.message || 'Có lỗi xảy ra', 'error');
-                }
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            showToast('Không thể kết nối đến máy chủ.', 'error');
-        });
-    }
-</script>
-@endpush
 @endsection

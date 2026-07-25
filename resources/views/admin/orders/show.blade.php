@@ -43,7 +43,9 @@
                     <div class="flex items-center gap-4 py-3">
                         <span class="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/5">
                             @if ($item->product_thumbnail)
-                                <img src="{{ $item->product_thumbnail }}" alt="{{ $item->product_name }}" class="size-full object-cover">
+                                <img src="{{ str_starts_with($item->product_thumbnail, 'http') ? $item->product_thumbnail : (str_starts_with($item->product_thumbnail, 'images/') ? asset($item->product_thumbnail) : asset('storage/' . $item->product_thumbnail)) }}" alt="{{ $item->product_name }}" class="size-full object-cover">
+                            @else
+                                <img src="{{ asset('images/placeholder.svg') }}" alt="placeholder" class="size-full object-cover">
                             @endif
                         </span>
                         <div class="min-w-0 flex-1">
@@ -198,10 +200,8 @@
                             <dd class="mt-0.5 text-gray-300">{{ $order->cancelledBy->name }}</dd>
                         </div>
                     @endif
-                    @if ($order->statusHistories()->where('status', 'cancelled')->first())
-                        @php
-                            $cancelHistory = $order->statusHistories()->where('status', 'cancelled')->first();
-                        @endphp
+                    @php($cancelHistory = $order->statusHistories->firstWhere('status', 'cancelled'))
+                    @if ($cancelHistory)
                         <div>
                             <dt class="text-xs text-gray-500">Thời gian hủy</dt>
                             <dd class="mt-0.5 text-gray-300">{{ $cancelHistory->created_at?->format('d/m/Y H:i') }}</dd>

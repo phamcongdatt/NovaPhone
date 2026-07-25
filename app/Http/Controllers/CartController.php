@@ -15,9 +15,6 @@ class CartController extends Controller
         $this->cartService = $cartService;
     }
 
-    /**
-     * Hiển thị trang giỏ hàng.
-     */
     public function index()
     {
         $items = $this->cartService->getItems();
@@ -26,9 +23,6 @@ class CartController extends Controller
         return view('cart.index', compact('items', 'total'));
     }
 
-    /**
-     * Thêm sản phẩm vào giỏ hàng.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -38,7 +32,7 @@ class CartController extends Controller
         ]);
 
         try {
-            $item = $this->cartService->add(
+            $this->cartService->add(
                 $request->integer('product_id'),
                 $request->input('variant_id') ? $request->integer('variant_id') : null,
                 $request->integer('quantity')
@@ -66,12 +60,6 @@ class CartController extends Controller
         }
     }
 
-    /**
-     * Cập nhật số lượng qua AJAX.
-     * Hỗ trợ cả item thật trong giỏ hàng (id/key) lẫn item "Mua ngay" tạm thời trong
-     * session (id giả 'buy_now_0') - luồng Mua ngay không có CartItem thật nên phải
-     * cập nhật trực tiếp session('buy_now_item') thay vì đi qua CartService.
-     */
     public function update(Request $request, $idOrKey)
     {
         $request->validate([
@@ -103,9 +91,6 @@ class CartController extends Controller
         }
     }
 
-    /**
-     * Cập nhật số lượng cho item "Mua ngay" đang lưu tạm trong session.
-     */
     private function updateBuyNowQuantity(int $quantity)
     {
         if (! session()->has('buy_now_item')) {
@@ -137,18 +122,7 @@ class CartController extends Controller
         ]);
     }
 
-    /**
-     * Xóa sản phẩm khỏi giỏ hàng.
-     */
     public function destroy(Request $request, $idOrKey)
-
-
-
-
-
-
-
-
     {
         try {
             $this->cartService->remove($idOrKey);
@@ -176,11 +150,6 @@ class CartController extends Controller
         }
     }
 
-    /**
-     * Lưu danh sách item được chọn để checkout (checkbox trên trang giỏ hàng).
-     * Chỉ chấp nhận các item thực sự có trong giỏ hàng hiện tại, tránh việc client
-     * gửi id/key không thuộc giỏ hàng của mình.
-     */
     public function setSelection(Request $request)
     {
         $request->validate([
@@ -205,11 +174,6 @@ class CartController extends Controller
         return redirect()->route('checkout');
     }
 
-    /**
-     * Mua ngay một sản phẩm từ trang chi tiết.
-     * Lưu thông tin sản phẩm vào session và chuyển hướng đến trang thanh toán.
-     * KHÔNG thêm vào giỏ hàng để tránh xung đột với các sản phẩm đã có trong giỏ.
-     */
     public function buyNow(Request $request)
     {
         $request->validate([
@@ -223,24 +187,21 @@ class CartController extends Controller
             $variantId = $request->input('variant_id') ? $request->integer('variant_id') : null;
             $quantity = $request->integer('quantity');
 
-            // Lấy thông tin sản phẩm để kiểm tra tồn kho
             $product = \App\Models\Product::findOrFail($productId);
             $variant = $variantId ? \App\Models\ProductVariant::findOrFail($variantId) : null;
+            $variant = $this->cartService->resolveVariant($product, $variant);
+            $variantId = $variant?->id;
 
-            // Tính giá
             $price = $product->effective_price;
             if ($variant) {
                 $price += (float) $variant->additional_price;
             }
 
-            // Kiểm tra tồn kho
             $availableQuantity = $this->cartService->getAvailableStock($product, $variant);
             if ($availableQuantity < $quantity) {
                 throw new Exception("Sản phẩm này chỉ còn lại {$availableQuantity} sản phẩm trong kho.");
             }
 
-            // Lưu thông tin sản phẩm vào session với key 'buy_now_item'
-            // Điều này sẽ được sử dụng trong CheckoutController::index
             session()->put('buy_now_item', [
                 'product_id' => $productId,
                 'variant_id' => $variantId,
@@ -248,10 +209,49 @@ class CartController extends Controller
                 'price' => $price,
             ]);
 
-            // Chuyển hướng đến trang thanh toán
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tiếp tục thanh toán.',
+                    'redirect_url' => route('checkout'),
+                ]);
+            }
+
             return redirect()->route('checkout')->with('success', 'Tiếp tục thanh toán.');
         } catch (Exception $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+
             return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function clear(Request $request)
+    {
+        try {
+            $this->cartService->clear();
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Đã xóa tất cả sản phẩm khỏi giỏ hàng.',
+                ]);
+            }
+
+            return redirect()->route('cart.index')->with('success', 'Đã xóa tất cả sản phẩm khỏi giỏ hàng.');
+        } catch (Exception $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 }

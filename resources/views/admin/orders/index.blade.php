@@ -77,7 +77,7 @@
                 <tr class="transition-colors duration-150 hover:bg-white/[0.03]">
                     <td class="px-4 py-3">
                         <p class="font-semibold text-white">{{ $order->order_code }}</p>
-                        <p class="mt-0.5 text-xs text-gray-500">{{ $order->items_count ?? $order->items()->count() }} sản phẩm</p>
+                        <p class="mt-0.5 text-xs text-gray-500">{{ $order->items_count ?? '—' }} sản phẩm</p>
                     </td>
                     <td class="px-4 py-3">
                         <p class="font-medium text-gray-200">{{ $order->shipping_full_name }}</p>

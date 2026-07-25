@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Address extends Model
 {
     protected $fillable = [
-        'user_id', 'full_name', 'phone',
-        'address', 'ward', 'district', 'province', 'is_default',
+        'user_id', 'name', 'full_name', 'phone',
+        'street', 'address', 'ward', 'district', 'province', 'is_default',
     ];
 
     protected function casts(): array
@@ -20,6 +20,16 @@ class Address extends Model
     public function getFullAddressAttribute(): string
     {
         return "{$this->address}, {$this->ward}, {$this->district}, {$this->province}";
+    }
+
+    public function getNameAttribute(): ?string
+    {
+        return $this->full_name;
+    }
+
+    public function getStreetAttribute(): ?string
+    {
+        return $this->address;
     }
 
     public function user(): BelongsTo

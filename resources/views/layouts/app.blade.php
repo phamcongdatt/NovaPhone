@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'NovaPhone — Hệ thống bán lẻ điện thoại chính hãng')</title>
+    <title>@yield('title', 'NovaPhone')</title>
+    @stack('head')
 
-    {{-- Stub chạy trước module app.js: gom callback biểu đồ vào hàng đợi để charts.js rút ra sau. --}}
     <script>
         window.__novaChartQueue = [];
         window.novaChart = (cb) => window.__novaChartQueue.push({ lib: 'apex', cb });
@@ -15,506 +15,310 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-night font-sans text-gray-100 antialiased">
+<body class="overflow-x-hidden bg-[#f5f4f1] text-[#161616] antialiased">
+    @php
+        $navLinks = [
+            ['label' => 'Shop', 'href' => route('home')],
+            ['label' => 'iPhone', 'href' => route('products.index', ['search' => 'iPhone'])],
+            ['label' => 'Samsung', 'href' => route('products.index', ['search' => 'Samsung'])],
+            ['label' => 'Xiaomi', 'href' => route('products.index', ['search' => 'Xiaomi'])],
+            ['label' => 'Mã khuyến mại', 'href' => route('coupons.index')],
+            ['label' => 'Tin công nghệ', 'href' => route('posts.index')],
+        ];
+    @endphp
 
-    {{-- ===================== Topbar dịch vụ ===================== --}}
-    <div class="hidden border-b border-white/5 bg-night-soft text-[11px] text-gray-400 lg:block">
-        <div class="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 sm:px-6">
-            <div class="flex items-center gap-5">
-                @foreach ([
-                    ['icon' => 'M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.9 17.9 0 0 0-3.213-9.193 2.06 2.06 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12', 'label' => 'Miễn phí giao hàng toàn quốc'],
-                    ['icon' => 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99', 'label' => 'Thu cũ đổi mới — Trợ giá đến 5 triệu'],
-                    ['icon' => 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z', 'label' => 'Trả góp 0% lãi suất'],
-                ] as $item)
-                    <span class="flex items-center gap-1.5">
-                        <svg class="size-3.5 text-brand-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/></svg>
-                        {{ $item['label'] }}
-                    </span>
-                @endforeach
-            </div>
-            <div class="flex items-center gap-5">
-                <span class="flex items-center gap-1.5">
-                    <svg class="size-3.5 text-brand-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z M19.5 10.5c0 7.14-7.5 11.25-7.5 11.25S4.5 17.64 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-                    Hệ thống 100+ cửa hàng
-                </span>
-                <span class="flex items-center gap-1.5">
-                    <svg class="size-3.5 text-brand-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.28 6.72 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.37c0-.52-.35-.97-.85-1.09l-4.42-1.11c-.44-.11-.9.06-1.18.42l-.97 1.29c-.28.38-.77.54-1.21.38a12.04 12.04 0 0 1-7.14-7.14c-.16-.44 0-.93.38-1.21l1.29-.97c.36-.27.53-.73.42-1.17L6.96 3.1a1.13 1.13 0 0 0-1.09-.85H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/></svg>
-                    Hỗ trợ 24/7: <a href="tel:18001234" class="font-semibold text-white transition-colors duration-200 hover:text-brand-400">1800 1234</a>
-                </span>
-            </div>
-        </div>
-    </div>
+    <div class="w-full">
+        <header data-site-header class="relative z-50 w-full border-b border-[#e5e5e7] bg-[#fbfbfd]/95 backdrop-blur">
+            <div class="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+                <a href="{{ route('home') }}" class="inline-flex shrink-0 items-center gap-2.5" aria-label="NovaPhone">
+                    <img src="{{ asset('images/brand/novaphone-mark-v2.png') }}" alt="" aria-hidden="true" width="28" height="28" fetchpriority="high" decoding="async" class="size-7 object-contain">
+                    <span class="whitespace-nowrap text-[15px] font-semibold tracking-[-0.045em] text-[#111827]">Nova<span class="text-[#0a84ff]">Phone</span></span>
+                </a>
 
-    {{-- ===================== Header chính ===================== --}}
-    <header class="sticky top-0 z-50 border-b border-white/5 bg-night/85 backdrop-blur-xl">
-        <div class="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:h-[68px] lg:gap-8">
+                <nav class="hidden flex-1 items-center justify-center gap-8 lg:flex">
+                    @foreach ($navLinks as $link)
+                        <a href="{{ $link['href'] }}" class="text-[13px] font-medium text-[#303030] transition hover:text-black">
+                            {{ $link['label'] }}
+                        </a>
+                    @endforeach
+                </nav>
 
-            {{-- Logo --}}
-            <a href="{{ route('home') }}" class="flex shrink-0 items-center" aria-label="NovaPhone - Trang chủ">
-                <img
-                    src="{{ asset('images/brand/nova-phone-logo.webp') }}"
-                    alt="NovaPhone"
-                    class="h-11 w-auto max-w-[180px] object-contain sm:h-12"
-                >
-            </a>
-
-            {{-- Ô tìm kiếm trung tâm --}}
-            <div class="relative min-w-0 flex-1" id="quick-search-container">
-                <form action="{{ route('products.index') }}" method="GET" class="relative">
-                    <input
-                        type="search"
-                        name="search"
-                        id="quick-search-input"
-                        autocomplete="off"
-                        value="{{ request('search') }}"
-                        placeholder="Bạn cần tìm gì hôm nay?"
-                        class="w-full rounded-full border border-white/10 bg-white/5 py-2.5 pl-11 pr-4 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-brand-500/25"
-                    >
-                    <button type="submit" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-brand-500 transition-colors">
-                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
+                <div class="ml-auto flex items-center gap-1.5">
+                    <button type="button" data-search-open aria-controls="nova-search-overlay" aria-expanded="false" class="inline-flex size-9 items-center justify-center rounded-full border border-transparent text-[#222] transition hover:border-[#e6e2dc] hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0066cc]" aria-label="Tìm kiếm">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.3-4.3m1.8-5.2a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
                     </button>
-                </form>
-
-                {{-- Dropdown kết quả --}}
-                <div id="quick-search-results" class="absolute left-0 right-0 top-full mt-2 hidden max-h-96 overflow-y-auto rounded-xl border border-white/10 bg-night-soft shadow-2xl shadow-black/50 backdrop-blur-xl z-[60] no-scrollbar">
-                </div>
-            </div>
-
-            {{-- Cụm hành động bên phải --}}
-            <div class="flex shrink-0 items-center gap-1 sm:gap-2">
-                {{-- Yêu thích --}}
-                <a href="{{ route('wishlist.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-                    <span class="relative">
-                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
-                        <span id="wishlist-count-badge"
-                              class="absolute -right-2 -top-1.5 {{ ($wishlistCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $wishlistCount ?? 0 }}</span>
-                    </span>
-                    <span class="hidden text-xs font-semibold xl:block">Yêu thích</span>
-                </a>
-
-                {{-- So sánh --}}
-                <a href="{{ route('compare.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-                    <span class="relative">
-                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/></svg>
-                        <span id="compare-count-badge"
-                              class="absolute -right-2 -top-1.5 {{ ($compareCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $compareCount ?? 0 }}</span>
-                    </span>
-                    <span class="hidden text-xs font-semibold xl:block">So sánh</span>
-                </a>
-                {{-- Giỏ hàng --}}
-                <a href="{{ route('cart.index') }}" class="group relative flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-                    <span class="relative">
-                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.36-1.62 1.26 12a1.13 1.13 0 0 1-1.12 1.24H4.25a1.13 1.13 0 0 1-1.12-1.24l1.26-12A1.13 1.13 0 0 1 5.51 7.88h12.98c.58 0 1.06.43 1.12 1Z"/></svg>
-                        <span id="cart-count-badge"
-                              class="absolute -right-2 -top-1.5 {{ ($cartCount ?? 0) > 0 ? 'flex' : 'hidden' }} size-[17px] items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">{{ $cartCount ?? 0 }}</span>
-
-                    </span>
-                    <span class="hidden text-xs font-semibold xl:block">Giỏ hàng</span>
-                </a>
-
-                {{-- Tài khoản --}}
-                @guest
-                    <a href="{{ route('login') }}" class="group flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3">
-                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-                        <span class="hidden text-left text-xs leading-tight xl:block">
-                            <span class="block text-gray-500">Đăng nhập</span>
-                            <span class="block font-semibold text-white">Tài khoản</span>
-                        </span>
+                    <a href="{{ route('compare.index') }}" class="inline-flex size-9 items-center justify-center rounded-full border border-transparent text-[#222] transition hover:border-[#e6e2dc] hover:bg-[#faf9f7]" aria-label="So sánh sản phẩm">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/></svg>
                     </a>
-                @endguest
-
-                @auth
-                    <div class="group relative">
-                        <button class="flex items-center gap-2 rounded-xl px-2.5 py-2 text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white sm:px-3 focus:outline-none">
-                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.98 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2.01.03c0 .22-.01.44-.04.65a11.94 11.94 0 0 1-11.9 0 8.97 8.97 0 0 1-.04-.68m11.97 0a8.97 8.97 0 0 0-.94-3.2M6.02 18.72a9.09 9.09 0 0 1-3.74-.48 3 3 0 0 1 4.68-2.72m-.94 3.2a8.97 8.97 0 0 0 .94-3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
-                            <span class="hidden text-left text-xs leading-tight xl:block">
-                                <span class="block text-gray-500">Xin chào,</span>
-                                <span class="block font-semibold text-white truncate max-w-[100px]">{{ explode(' ', Auth::user()->name)[count(explode(' ', Auth::user()->name))-1] }}</span>
-                            </span>
-                        </button>
-
-                        {{-- Dropdown menu --}}
-                        <div class="invisible absolute right-0 top-full mt-1 w-48 opacity-0 transition-all duration-200 ease-in-out group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-50">
-                            <div class="rounded-xl border border-white/10 bg-night-soft py-2 shadow-2xl shadow-black/50">
-                                <a href="{{ route('account.show') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Tài khoản của tôi</a>
-                                <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Quản lý đơn hàng</a>
-                                <a href="{{ route('coupons.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Kho Voucher</a>
-                                <a href="{{ route('password.change') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">Đổi mật khẩu</a>
-                                @if(Auth::user()->isAdmin())
-                                    <a href="{{ route('admin.products.index') }}" class="block px-4 py-2 text-sm text-brand-400 hover:bg-white/5 hover:text-brand-300 transition-colors">Quản trị Admin</a>
-                                @endif
-                                <div class="my-1 border-t border-white/5"></div>
-                                <form action="{{ route('logout') }}" method="POST" class="block w-full">
-                                    @csrf
-                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors">
-                                        Đăng xuất
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                @endauth
-
-                {{-- Nút mở menu mobile --}}
-                <button data-mobile-menu-toggle aria-expanded="false" aria-label="Mở menu"
-                        class="flex size-10 items-center justify-center rounded-xl text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white lg:hidden">
-                    <svg class="size-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-                </button>
-            </div>
-        </div>
-
-        {{-- Thanh điều hướng danh mục --}}
-        <nav class="hidden border-t border-white/5 lg:block">
-            <div class="mx-auto flex h-11 max-w-7xl items-center gap-1 px-4 sm:px-6">
-                <div class="group relative mr-2 flex h-full items-center">
-                    @auth
-                        @if(Auth::user()->isAdmin())
-                            <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-600/30">
-                        @else
-                            <a href="{{ route('home') }}#san-pham" class="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-600/30">
+                    <a href="{{ route('wishlist.index') }}" class="relative inline-flex size-9 items-center justify-center rounded-full border border-transparent text-[#222] transition hover:border-[#e6e2dc] hover:bg-[#faf9f7]" aria-label="Yêu thích">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+                    </a>
+                    <a href="{{ route('account.show') }}" class="inline-flex size-9 items-center justify-center rounded-full border border-transparent text-[#222] transition hover:border-[#e6e2dc] hover:bg-[#faf9f7]" aria-label="Tài khoản">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.375a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Zm-10.5 15.75a7.5 7.5 0 0 1 15 0"/></svg>
+                    </a>
+                    <a href="{{ route('cart.index') }}" class="relative inline-flex size-9 items-center justify-center rounded-full border border-transparent text-[#222] transition hover:border-[#e6e2dc] hover:bg-[#faf9f7]" aria-label="Giỏ hàng">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.51c.41 0 .78.26.92.65l1.67 4.75m0 0L7.2 13.5a2.25 2.25 0 0 0 2.15 1.6h7.9a2.25 2.25 0 0 0 2.16-1.63l1.6-5.52H6.35Zm4.65 14.25a1.125 1.125 0 1 1 0-2.25 1.125 1.125 0 0 1 0 2.25Zm9 0a1.125 1.125 0 1 1 0-2.25 1.125 1.125 0 0 1 0 2.25Z"/></svg>
+                        @if (isset($cartCount) && $cartCount > 0)
+                            <span data-cart-badge class="absolute -right-1 -top-1 inline-flex size-4 items-center justify-center rounded-full bg-black text-[9px] font-bold text-white">{{ $cartCount }}</span>
                         @endif
-                    @else
-                        <a href="{{ route('home') }}#san-pham" class="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-600/30">
-                    @endauth
-                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-                        Danh mục
-                        <svg class="size-3.5 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
-                    </a>
-                    <div class="invisible absolute left-0 top-full z-50 w-64 translate-y-2 pt-2 opacity-0 transition-all duration-200 ease-in-out group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                        <div class="overflow-hidden rounded-2xl border border-white/10 bg-night-card p-2 shadow-2xl shadow-black/50 backdrop-blur-xl">
-                            <a href="{{ route('home') }}#san-pham" class="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-bold text-white transition-colors duration-200 hover:bg-brand-600/15 hover:text-brand-300">
-                                Tất cả sản phẩm
-                                <span class="text-xs text-gray-500">→</span>
-                            </a>
-                            @foreach (($categoryLinks ?? []) as $cat)
-                                <a href="{{ $cat['href'] }}" class="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-300 transition-colors duration-200 hover:bg-white/5 hover:text-white">
-                                    {{ $cat['label'] }}
-                                    <span class="text-xs text-gray-600">→</span>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-                @foreach (($brandLinks ?? []) as $brand)
-                    <a href="{{ $brand['href'] }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $brand['label'] }}</a>
-                @endforeach
-                <a href="{{ route('posts.index') }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-gray-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
-                <a href="{{ route('coupons.index') }}" class="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-amber-300">Kho Voucher</a>
-            </div>
-        </nav>
-
-        {{-- Menu mobile --}}
-        <div data-mobile-menu class="hidden border-t border-white/5 bg-night px-4 pb-4 pt-2 lg:hidden">
-            @foreach (($brandLinks ?? []) as $brand)
-                <a href="{{ $brand['href'] }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">{{ $brand['label'] }}</a>
-            @endforeach
-            <a href="#flash-sale" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Khuyến mãi</a>
-            <a href="{{ route('coupons.index') }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-amber-400 transition-all duration-200 ease-in-out hover:bg-amber-400/10">Kho Voucher</a>
-            <a href="{{ route('posts.index') }}" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">Tin công nghệ</a>
-        </div>
-    </header>
-
-    {{-- ===================== Nội dung trang ===================== --}}
-    <main>
-        @yield('content')
-    </main>
-
-    {{-- ===================== Footer ===================== --}}
-    <footer id="lien-he" class="border-t border-white/5 bg-night-soft">
-        <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-5">
-
-            <div class="lg:col-span-2 lg:pr-10">
-                <a href="{{ route('home') }}" class="mb-4 inline-flex" aria-label="NovaPhone - Trang chủ">
-
-                    <img
-                        src="{{ asset('images/brand/nova-phone-logo.webp') }}"
-                        alt="NovaPhone"
-                        class="h-14 w-auto max-w-[210px] object-contain"
-                    >
-
-                </a>
-                <p class="text-sm leading-relaxed text-gray-400">NovaPhone — Hệ thống bán lẻ điện thoại, máy tính bảng và phụ kiện chính hãng. Cam kết sản phẩm chất lượng, giá tốt nhất thị trường và dịch vụ hậu mãi tận tâm.</p>
-                <div class="mt-5 flex gap-2.5">
-                    <a href="#" aria-label="Facebook" class="flex size-9 items-center justify-center rounded-xl bg-white/5 text-gray-400 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-600 hover:text-white">
-                        <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07Z"/></svg>
-                    </a>
-                    <a href="#" aria-label="YouTube" class="flex size-9 items-center justify-center rounded-xl bg-white/5 text-gray-400 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-600 hover:text-white">
-                        <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.88.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>
-                    </a>
-                    <a href="#" aria-label="TikTok" class="flex size-9 items-center justify-center rounded-xl bg-white/5 text-gray-400 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-600 hover:text-white">
-                        <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.9 2.9 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.3 0 .58.04.86.13V9.4a6.33 6.33 0 0 0-5.39 10.69 6.33 6.33 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1Z"/></svg>
-                    </a>
-                    <a href="#" aria-label="Zalo" class="flex size-9 items-center justify-center rounded-xl bg-white/5 text-xs font-extrabold text-gray-400 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-600 hover:text-white">Z</a>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="mb-4 text-sm font-bold uppercase tracking-wider text-white">Về chúng tôi</h4>
-                <ul class="space-y-3 text-sm text-gray-400">
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Giới thiệu</a></li>
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Tuyển dụng</a></li>
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Tin tức</a></li>
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Hệ thống cửa hàng</a></li>
-                </ul>
-            </div>
-
-            <div>
-                <h4 class="mb-4 text-sm font-bold uppercase tracking-wider text-white">Chính sách</h4>
-                <ul class="space-y-3 text-sm text-gray-400">
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Chính sách bảo hành</a></li>
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Chính sách đổi trả</a></li>
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Chính sách bảo mật</a></li>
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Chính sách trả góp</a></li>
-                </ul>
-            </div>
-
-            <div>
-                <h4 class="mb-4 text-sm font-bold uppercase tracking-wider text-white">Hỗ trợ</h4>
-                <ul class="space-y-3 text-sm text-gray-400">
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Trung tâm hỗ trợ</a></li>
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Hướng dẫn mua hàng</a></li>
-                    <li><a href="#" class="transition-colors duration-200 hover:text-brand-400">Tra cứu đơn hàng</a></li>
-                    <li><a href="tel:18001234" class="font-semibold text-white transition-colors duration-200 hover:text-brand-400">Hotline: 1800 1234</a></li>
-                </ul>
-                <h4 class="mb-3 mt-6 text-sm font-bold uppercase tracking-wider text-white">Tải ứng dụng</h4>
-                <div class="flex flex-col gap-2">
-                    <a href="#" class="flex w-36 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 transition-all duration-200 ease-in-out hover:border-white/25 hover:bg-white/10">
-                        <svg class="size-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                        <span class="text-left text-[10px] leading-tight text-gray-300"><span class="block text-[8px] text-gray-500">Tải về trên</span><span class="font-bold text-white">App Store</span></span>
-                    </a>
-                    <a href="#" class="flex w-36 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 transition-all duration-200 ease-in-out hover:border-white/25 hover:bg-white/10">
-                        <svg class="size-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M3.61 1.81 13.79 12 3.61 22.19c-.36-.19-.61-.57-.61-1.04V2.85c0-.47.25-.85.61-1.04ZM14.85 13.06l2.44 2.44-9.91 5.7 7.47-8.14Zm3.78-2.16 2.59 1.49c.78.45.78 1.58 0 2.03l-2.59 1.49-2.72-2.5 2.72-2.51ZM7.38 2.8l9.91 5.7-2.44 2.44L7.38 2.8Z"/></svg>
-                        <span class="text-left text-[10px] leading-tight text-gray-300"><span class="block text-[8px] text-gray-500">Tải về trên</span><span class="font-bold text-white">Google Play</span></span>
                     </a>
                 </div>
             </div>
-        </div>
-
-        <div class="border-t border-white/5 py-5">
-            <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
-                <p class="text-xs text-gray-500">© {{ date('Y') }} NovaPhone. Bảo lưu mọi quyền.</p>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] uppercase tracking-wider text-gray-600">Phương thức thanh toán</span>
-                    @foreach (['VISA', 'MC', 'Momo', 'ZaloPay', 'COD'] as $pay)
-                        <span class="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-bold text-gray-400">{{ $pay }}</span>
+            <div class="border-t border-[#f0eeea] px-4 py-2 sm:px-6 lg:hidden">
+                <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#777]">
+                    @foreach ($navLinks as $link)
+                        <a href="{{ $link['href'] }}" class="rounded-full px-2.5 py-1 transition hover:bg-[#f6f4f1] hover:text-black">{{ $link['label'] }}</a>
                     @endforeach
                 </div>
             </div>
+        </header>
+
+        <div id="nova-search-overlay" data-search-overlay class="fixed inset-0 z-40 bg-[rgba(245,245,247,.46)] backdrop-blur-md" aria-hidden="true" inert>
+            <section data-search-panel class="nova-search-panel absolute inset-x-0 overflow-y-auto border-b border-[#e5e5e7] bg-[#fbfbfd]/[.98] shadow-[0_24px_55px_rgba(0,0,0,.08)]" role="dialog" aria-modal="true" aria-labelledby="nova-search-title">
+                <div class="mx-auto max-w-[1120px] px-5 py-10 sm:px-8 sm:py-14">
+                    <div class="flex items-start gap-3">
+                        <form action="{{ route('products.index') }}" method="GET" class="min-w-0 flex-1" role="search">
+                            <label id="nova-search-title" class="sr-only" for="quick-search-input">Tìm kiếm sản phẩm NovaPhone</label>
+                            <div class="flex items-center gap-3 border-b border-[#d2d2d7] pb-3 sm:gap-4">
+                                <svg class="size-6 shrink-0 text-[#6e6e73] sm:size-7" fill="none" stroke="currentColor" stroke-width="1.65" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.3-4.3m1.8-5.2a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"/></svg>
+                                <input
+                                    id="quick-search-input"
+                                    name="search"
+                                    data-quick-search-url="{{ route('search.quick') }}"
+                                    data-search-results-url="{{ route('products.index') }}"
+                                    type="search"
+                                    autocomplete="off"
+                                    placeholder="Tìm kiếm trên NovaPhone"
+                                    class="min-w-0 flex-1 bg-transparent text-2xl font-semibold tracking-[-0.035em] text-[#1d1d1f] outline-none placeholder:text-[#86868b] sm:text-4xl"
+                                >
+                            </div>
+                            <div id="quick-search-results" class="mt-6 hidden max-h-[44vh] overflow-y-auto border-y border-[#e5e5e7] bg-white"></div>
+                        </form>
+                        <button type="button" data-search-close class="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[#424245] transition hover:bg-[#e8e8ed] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0066cc]" aria-label="Đóng tìm kiếm">
+                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/></svg>
+                        </button>
+                    </div>
+
+                    <div data-search-quick-links class="mt-10 max-w-xl sm:mt-12">
+                        <p class="text-sm font-medium text-[#6e6e73]">Liên kết nhanh</p>
+                        <ul class="mt-3 space-y-1">
+                            @foreach ($navLinks as $link)
+                                <li>
+                                    <a href="{{ $link['href'] }}" class="group inline-flex items-center gap-3 py-2 text-base font-semibold text-[#424245] transition hover:text-[#0066cc]">
+                                        <svg class="size-4 text-[#6e6e73] transition group-hover:translate-x-0.5 group-hover:text-[#0066cc]" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 3.5 13 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        {{ $link['label'] }}
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </section>
         </div>
-    </footer>
+
+        <main data-page-enter class="mx-auto w-full px-3 pt-5 sm:px-4 lg:w-[90%] lg:px-0">
+            @if (session('success'))
+                <div data-toast="{{ session('success') }}" data-toast-type="success"></div>
+            @endif
+            @if (session('error'))
+                <div data-toast="{{ session('error') }}" data-toast-type="error"></div>
+            @endif
+            @yield('content')
+        </main>
+    </div>
 
     @stack('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('quick-search-input');
-            const searchResults = document.getElementById('quick-search-results');
-            const searchContainer = document.getElementById('quick-search-container');
-            let debounceTimer;
+<footer class="defer-render mt-12 rounded-[28px] border border-[#e9e7e2] bg-white shadow-[0_12px_40px_rgba(0,0,0,.04)]">
+    <div class="px-6 py-12">
 
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    clearTimeout(debounceTimer);
-                    const query = this.value.trim();
-                    if (query.length < 2) { searchResults.classList.add('hidden'); searchResults.innerHTML = ''; return; }
-                    debounceTimer = setTimeout(() => {
-                        fetch(`{{ route('search.quick') }}?q=${encodeURIComponent(query)}`)
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.length > 0) {
-                                    let html = '<div class="p-2 space-y-1">';
-                                    data.forEach(item => {
-                                        let oldPriceHtml = item.old_price ? `<span class="text-[10px] text-gray-500 line-through">${item.old_price}</span>` : '';
-                                        html += `<a href="${item.url}" class="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 group">
-                                            <div class="flex size-12 shrink-0 items-center justify-center rounded-md bg-white/5 p-1"><img src="${item.thumbnail}" alt="${item.name}" class="h-full w-full object-contain"></div>
-                                            <div class="flex flex-1 flex-col justify-center overflow-hidden">
-                                                <h4 class="truncate text-sm font-semibold text-gray-200 group-hover:text-brand-300">${item.name}</h4>
-                                                <div class="flex items-baseline gap-2 mt-0.5"><span class="text-xs font-bold text-brand-400">${item.price}</span>${oldPriceHtml}</div>
-                                            </div></a>`;
-                                    });
-                                    html += '</div>';
-                                    searchResults.innerHTML = html;
-                                    searchResults.classList.remove('hidden');
-                                } else {
-                                    searchResults.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Không tìm thấy sản phẩm nào phù hợp.</div>';
-                                    searchResults.classList.remove('hidden');
-                                }
+        {{-- Top --}}
+        <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
 
-                            })
-                            .catch(err => {
-                                console.error('Search error:', err);
-                            });
-                    }, 300); // delay 300ms
-                });
+            {{-- Brand --}}
+            <div class="lg:col-span-2">
 
-                // Ẩn khi click ra ngoài
-                document.addEventListener('click', function(e) {
-                    if (!searchContainer.contains(e.target)) {
-                        searchResults.classList.add('hidden');
-                    }
-                });
+                <div class="inline-flex items-center gap-2.5" aria-label="NovaPhone">
+                    <img src="{{ asset('images/brand/novaphone-mark-v2.png') }}" alt="" aria-hidden="true" width="32" height="32" loading="lazy" decoding="async" class="size-8 object-contain">
+                    <span class="text-lg font-semibold tracking-[-0.045em] text-[#111827]">Nova<span class="text-[#0a84ff]">Phone</span></span>
+                </div>
 
-                // Hiện lại khi focus vào input nếu đã có giá trị
-                searchInput.addEventListener('focus', function() {
-                    if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
-                        searchResults.classList.remove('hidden');
-                    }
+                <p class="mt-5 max-w-sm text-sm leading-7 text-[#666]">
+                    NovaPhone là hệ thống bán lẻ điện thoại, máy tính bảng,
+                    phụ kiện và thiết bị công nghệ chính hãng với trải nghiệm
+                    mua sắm hiện đại, minh bạch và nhanh chóng.
+                </p>
 
-                });
-                document.addEventListener('click', function(e) { if (!searchContainer.contains(e.target)) searchResults.classList.add('hidden'); });
-                searchInput.addEventListener('focus', function() { if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') searchResults.classList.remove('hidden'); });
-            }
+                <div class="mt-6 flex gap-3">
 
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full border text-xs font-semibold text-[#777]">
+                        FB
+                    </span>
 
-            const updateCompareBadge = (count) => {
-                const badge = document.getElementById('compare-count-badge');
-                if (!badge) return;
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full border text-xs font-semibold text-[#777]">
+                        IG
+                    </span>
 
-                badge.textContent = count;
-                badge.classList.toggle('hidden', count === 0);
-                badge.classList.toggle('flex', count > 0);
-            };
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full border text-xs font-semibold text-[#777]">
+                        YT
+                    </span>
 
-            const showCompareToast = (message, type = 'success') => {
-                const toast = document.createElement('div');
-                toast.setAttribute('role', 'status');
-                toast.setAttribute('aria-live', 'polite');
-                toast.className = `fixed bottom-5 right-5 z-[100] rounded-xl border px-4 py-3 text-sm font-semibold shadow-2xl transition ${type === 'success' ? 'border-emerald-400/30 bg-emerald-950 text-emerald-200' : 'border-red-400/30 bg-red-950 text-red-200'}`;
-                toast.textContent = message;
-                document.body.appendChild(toast);
-                window.setTimeout(() => toast.remove(), 3200);
-            };
+                </div>
 
-            document.addEventListener('click', async (event) => {
-                const button = event.target.closest('[data-compare-toggle]');
-                if (!button) return;
+            </div>
 
-                event.preventDefault();
-                event.stopPropagation();
+            {{-- Shop --}}
+            <div>
 
-                const productId = button.dataset.compareToggle;
-                const isCompared = button.dataset.compared === 'true';
-                const url = isCompared
-                    ? `{{ url('/compare') }}/${productId}`
-                    : '{{ route('compare.add') }}';
+                <h3 class="font-semibold">
+                    Mua sắm
+                </h3>
 
-                button.disabled = true;
+                <ul class="mt-5 space-y-3 text-sm text-[#666]">
 
-                try {
-                    const response = await fetch(url, {
-                        method: isCompared ? 'DELETE' : 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
-                        body: isCompared ? null : JSON.stringify({ product_id: Number(productId) }),
-                    });
-                    const data = await response.json();
+                    <li><a href="{{ route('products.index') }}" class="hover:text-black">Tất cả sản phẩm</a></li>
 
-                    if (!response.ok || !data.success) {
-                        throw new Error(data.message || 'Không thể cập nhật danh sách so sánh.');
-                    }
+                    <li><a href="{{ route('products.index',['search'=>'iPhone']) }}" class="hover:text-black">iPhone</a></li>
 
-                    const compared = data.action === 'added';
-                    document.querySelectorAll(`[data-compare-toggle="${productId}"]`).forEach((control) => {
-                        control.dataset.compared = compared ? 'true' : 'false';
-                        control.setAttribute('aria-label', compared ? 'Xóa khỏi so sánh' : 'Thêm vào so sánh');
-                        control.querySelector('svg')?.classList.toggle('text-brand-300', compared);
+                    <li><a href="{{ route('products.index',['search'=>'Samsung']) }}" class="hover:text-black">Samsung</a></li>
 
-                        const label = control.querySelector('[data-compare-label]');
-                        if (label) label.textContent = compared ? 'Xóa khỏi so sánh' : 'So sánh sản phẩm';
-                    });
-                    updateCompareBadge(data.count);
-                    showCompareToast(data.message);
-                } catch (error) {
-                    showCompareToast(error.message || 'Không thể cập nhật danh sách so sánh.', 'error');
-                } finally {
-                    button.disabled = false;
-                }
-            });
+                    <li><a href="{{ route('products.index',['search'=>'Xiaomi']) }}" class="hover:text-black">Xiaomi</a></li>
 
-            // Wishlist Toggle
-            document.querySelectorAll('[data-wishlist-toggle]').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    <li><a href="{{ route('coupons.index') }}" class="hover:text-black">Khuyến mãi</a></li>
 
-                    const productId = this.getAttribute('data-wishlist-toggle');
-                    const svg = this.querySelector('svg');
-                    const originalHTML = this.innerHTML;
+                </ul>
 
-                    svg.style.opacity = '0.5';
+            </div>
 
-                    fetch('{{ route("wishlist.toggle") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ product_id: productId })
-                    })
-                    .then(response => {
-                        if (response.status === 401) {
-                            window.location.href = '{{ route("login") }}';
-                            throw new Error('Unauthorized');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        svg.style.opacity = '1';
-                        if (data.status === 'added') {
-                            svg.classList.remove('fill-transparent', 'text-white', 'hover:text-red-400');
-                            svg.classList.add('fill-red-500', 'text-red-500');
-                            this.setAttribute('aria-label', 'Xóa khỏi yêu thích');
-                        } else if (data.status === 'removed') {
-                            svg.classList.remove('fill-red-500', 'text-red-500');
-                            svg.classList.add('fill-transparent', 'text-white', 'hover:text-red-400');
-                            this.setAttribute('aria-label', 'Thêm vào yêu thích');
-                        }
+            {{-- Customer --}}
+            <div>
 
-                        // Cập nhật badge
-                        const badge = document.getElementById('wishlist-count-badge');
-                        if (badge) {
-                            badge.textContent = data.count;
-                            if (data.count > 0) {
-                                badge.classList.remove('hidden');
-                                badge.classList.add('flex');
-                            } else {
-                                badge.classList.add('hidden');
-                                badge.classList.remove('flex');
-                            }
-                        }
-                        
-                        // Nếu đang ở trang wishlist, ẩn thẻ sản phẩm và cập nhật tổng số lượng
-                        if (data.status === 'removed' && window.location.pathname.includes('wishlist')) {
-                            const card = this.closest('.wishlist-item');
-                            if (card) {
-                                card.remove();
-                            }
-                            const totalCountEl = document.getElementById('wishlist-total-count');
-                            if (totalCountEl) {
-                                totalCountEl.textContent = data.count;
-                            }
-                            
-                            // Nếu hết sản phẩm, có thể reload để hiện màn hình trống
-                            if (data.count === 0) {
-                                window.location.reload();
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        if (error.message !== 'Unauthorized') {
-                            console.error('Error toggling wishlist:', error);
-                            svg.style.opacity = '1';
-                        }
-                    });
-                });
-            });
-        });
-    </script>
+                <h3 class="font-semibold">
+                    Khách hàng
+                </h3>
 
-    <x-chatbot-widget />
+                <ul class="mt-5 space-y-3 text-sm text-[#666]">
+
+                    <li><a href="{{ route('orders.index') }}" class="hover:text-black">Đơn hàng</a></li>
+
+                    <li><a href="{{ route('wishlist.index') }}" class="hover:text-black">Yêu thích</a></li>
+
+                    <li><a href="{{ route('cart.index') }}" class="hover:text-black">Giỏ hàng</a></li>
+
+                    <li><a href="{{ route('account.show') }}" class="hover:text-black">Tài khoản</a></li>
+
+                </ul>
+
+            </div>
+
+            {{-- Contact --}}
+            <div>
+
+                <h3 class="font-semibold">
+                    Liên hệ
+                </h3>
+
+                <div class="mt-5 space-y-3 text-sm text-[#666]">
+                    <p>Thông tin hỗ trợ và hướng dẫn mua sắm được cập nhật trong khu vực tin tức.</p>
+                    <a href="{{ route('posts.index') }}" class="font-semibold text-black hover:text-[#666]">Xem hướng dẫn</a>
+                </div>
+
+            </div>
+
+        </div>
+
+        {{-- Newsletter --}}
+
+        <div class="mt-12 rounded-3xl bg-[#f7f6f3] p-8">
+
+            <div class="flex flex-col items-start justify-between gap-5 lg:flex-row lg:items-center">
+
+                <div>
+
+                    <h3 class="text-xl font-semibold">
+                        Đăng ký nhận ưu đãi
+                    </h3>
+
+                    <p class="mt-2 text-sm text-[#666]">
+                        Nhận thông tin về sản phẩm mới và chương trình khuyến mãi.
+                    </p>
+
+                </div>
+
+                <p class="w-full max-w-xl text-sm leading-6 text-[#666] lg:text-right">
+                    Theo dõi các kênh chính thức của NovaPhone để cập nhật sản phẩm và chương trình mới.
+                </p>
+
+            </div>
+
+        </div>
+
+        {{-- Bottom --}}
+
+        <div class="mt-10 flex flex-col gap-3 border-t border-[#ececec] pt-6 text-sm text-[#777] md:flex-row md:items-center md:justify-between">
+
+            <p>
+                © {{ date('Y') }} NovaPhone. All rights reserved.
+            </p>
+
+            <div class="flex flex-wrap gap-5">
+
+                <span>Chính sách bảo mật</span>
+
+                <span>Điều khoản sử dụng</span>
+
+                <span>Chính sách đổi trả</span>
+
+                <span>Vận chuyển</span>
+
+            </div>
+
+        </div>
+
+    </div>
+</footer>
+
+<div class="fixed bottom-5 right-5 z-50">
+    <button type="button" data-nova-chat-toggle aria-controls="nova-ai-chat" aria-expanded="false" class="group inline-flex items-center gap-2 rounded-full bg-[#111827] px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_35px_rgba(17,24,39,.28)] transition-transform duration-300 hover:-translate-y-0.5 hover:bg-black focus:outline-none focus:ring-4 focus:ring-[#0a84ff]/20">
+        <span class="grid size-5 place-items-center rounded-full bg-[#0a84ff]">
+            <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M8 15h8m2 4-3.2-2.4a3 3 0 0 1-1.8.6H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v6a4 4 0 0 1-3 3.87V19Z"/></svg>
+        </span>
+        <span>Nova AI</span>
+    </button>
+
+    <section id="nova-ai-chat" data-nova-chat-panel class="absolute bottom-0 right-0 hidden w-[min(420px,calc(100vw-2.5rem))] overflow-hidden rounded-[26px] border border-[#e5e3df] bg-white shadow-[0_24px_70px_rgba(0,0,0,.18)]" role="dialog" aria-labelledby="nova-ai-chat-title">
+        <header class="flex items-start justify-between gap-4 border-b border-[#eeece8] px-5 py-4">
+            <div class="flex min-w-0 items-center gap-3">
+                <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#eef6ff] text-[#0a84ff]">
+                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M3 12h2m14 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"/></svg>
+                </span>
+                <div class="min-w-0">
+                    <h2 id="nova-ai-chat-title" class="text-sm font-bold text-[#171717]">Nova AI</h2>
+                    <p class="mt-0.5 text-xs text-[#777]">Tư vấn sản phẩm từ NovaPhone</p>
+                </div>
+            </div>
+            <button type="button" data-nova-chat-close class="grid size-8 place-items-center rounded-full text-[#777] transition-colors duration-300 hover:bg-[#f5f4f1] hover:text-black" aria-label="Đóng chat">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/></svg>
+            </button>
+        </header>
+
+        <div data-nova-chat-messages class="flex max-h-[min(500px,calc(100vh-15rem))] min-h-64 flex-col gap-3 overflow-y-auto bg-[#fbfaf8] px-4 py-5" aria-live="polite" aria-relevant="additions">
+            <div data-nova-chat-empty class="rounded-2xl border border-dashed border-[#e3dfd9] bg-white px-4 py-5 text-center">
+                <p class="text-sm font-semibold text-[#222]">Bạn cần hỗ trợ gì?</p>
+                <p class="mt-1 text-xs leading-5 text-[#777]">Hỏi Nova AI về sản phẩm, thông số hoặc cách mua hàng.</p>
+            </div>
+        </div>
+
+        <form data-nova-chat-form data-chat-api-url="{{ route('api.chatbot') }}" data-product-api-template="{{ route('api.products.show', ['product' => '__nova_product_slug__']) }}" data-cart-add-url="{{ route('cart.store') }}" data-buy-now-url="{{ route('cart.buy-now') }}" class="border-t border-[#eeece8] bg-white p-3">
+            <p data-nova-chat-error class="mb-2 hidden text-xs text-red-600" role="alert"></p>
+            <div class="flex items-end gap-2 rounded-2xl border border-[#e5e1db] bg-[#fbfaf8] p-1.5 focus-within:border-[#0a84ff]">
+                <label class="sr-only" for="nova-chat-input">Nhập câu hỏi cho Nova AI</label>
+                <input id="nova-chat-input" data-nova-chat-input name="message" type="text" maxlength="1000" autocomplete="off" required placeholder="Nhập câu hỏi của bạn..." class="min-w-0 flex-1 bg-transparent px-2.5 py-2 text-sm text-[#222] outline-none placeholder:text-[#9a9a9a]">
+                <button type="submit" data-nova-chat-send class="grid size-9 shrink-0 place-items-center rounded-xl bg-black text-white transition-colors duration-300 hover:bg-[#222] disabled:cursor-not-allowed disabled:opacity-50" aria-label="Gửi câu hỏi">
+                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m22 2-7 20-4-9-9-4 20-7Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 2 11 13"/></svg>
+                </button>
+            </div>
+        </form>
+    </section>
+</div>
 </body>
 </html>

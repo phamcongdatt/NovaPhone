@@ -1,172 +1,175 @@
 @extends('layouts.app')
 
-@section('title', 'Danh sách sản phẩm | NovaPhone')
+@section('title', 'Sản phẩm - NovaPhone')
 
 @php
-    $money = fn ($value) => number_format((float) $value, 0, ',', '.').'đ';
+    $selectedBrand = $filters['brand'] ?? '';
+    $selectedSearch = $filters['search'] ?? '';
+    $selectedPrice = $filters['price'] ?? '';
+    $selectedSort = $filters['sort'] ?? 'latest';
 @endphp
 
 @section('content')
-<div class="bg-night text-gray-100 pb-12 min-h-screen">
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        
-        <h1 class="text-3xl font-black text-white mb-8">
-            @if(request('search'))
-                Kết quả tìm kiếm cho: "{{ request('search') }}"
-            @else
-                Điện thoại di động
-            @endif
-        </h1>
+<div class="space-y-4">
+    {{-- Breadcrumb --}}
+    <div class="flex items-center gap-2 text-sm text-[#8b8b8b]">
+        <a href="{{ route('home') }}" class="hover:text-black">Trang chủ</a>
+        <span>/</span>
+        <span class="text-black">Sản phẩm</span>
+    </div>
 
-        <div class="flex flex-col lg:flex-row gap-8">
-            {{-- Sidebar Filter --}}
-            <aside class="w-full lg:w-64 shrink-0 space-y-6">
-                <form action="{{ route('products.index') }}" method="GET" id="filter-form" class="space-y-6">
-                    @if(request('search'))
-                        <input type="hidden" name="search" value="{{ request('search') }}">
+    {{-- Header --}}
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 sm:p-6 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <div class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-[#171717] sm:text-3xl">Danh sách sản phẩm</h1>
+                <p class="mt-1 text-sm text-[#8b8b8b]">Khám phá bộ sưu tập đầy đủ của chúng tôi</p>
+            </div>
+            <span class="text-sm font-semibold text-[#8b8b8b]">{{ $products->total() }} sản phẩm</span>
+        </div>
+
+        {{-- Filters --}}
+        <form method="GET" class="space-y-4">
+            {{-- Search & Quick Filters --}}
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ $selectedSearch }}"
+                    placeholder="Tìm kiếm sản phẩm..."
+                    class="col-span-1 rounded-[16px] border border-[#e8e4de] bg-white px-4 py-2.5 text-sm outline-none transition focus:border-black sm:col-span-2 lg:col-span-2"
+                >
+
+                <select name="brand" class="rounded-[16px] border border-[#e8e4de] bg-white px-4 py-2.5 text-sm outline-none transition focus:border-black">
+                    <option value="">Tất cả thương hiệu</option>
+                    @foreach ($brands as $brand)
+                        <option value="{{ $brand->id }}" @selected((string) $selectedBrand === (string) $brand->id)>
+                            {{ $brand->name }}
+                        </option>
+                    @endforeach
+                </select>
+
+                <select name="price" class="rounded-[16px] border border-[#e8e4de] bg-white px-4 py-2.5 text-sm outline-none transition focus:border-black">
+                    <option value="">Mọi mức giá</option>
+                    <option value="under-5m" @selected($selectedPrice === 'under-5m')>Dưới 5 triệu</option>
+                    <option value="5m-10m" @selected($selectedPrice === '5m-10m')>5 - 10 triệu</option>
+                    <option value="10m-20m" @selected($selectedPrice === '10m-20m')>10 - 20 triệu</option>
+                    <option value="above-20m" @selected($selectedPrice === 'above-20m')>Trên 20 triệu</option>
+                </select>
+
+                <select name="sort" class="rounded-[16px] border border-[#e8e4de] bg-white px-4 py-2.5 text-sm outline-none transition focus:border-black">
+                    <option value="latest" @selected($selectedSort === 'latest')>Mới nhất</option>
+                    <option value="price_asc" @selected($selectedSort === 'price_asc')>Giá tăng dần</option>
+                    <option value="price_desc" @selected($selectedSort === 'price_desc')>Giá giảm dần</option>
+                </select>
+
+                <button type="submit" class="rounded-[16px] bg-black px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#222]">
+                    Tìm kiếm
+                </button>
+            </div>
+
+            {{-- Active Filters Tags --}}
+            @if ($selectedSearch || $selectedBrand || $selectedPrice || $selectedSort !== 'latest')
+                <div class="flex flex-wrap gap-2">
+                    @if ($selectedSearch)
+                        <span class="inline-flex items-center gap-2 rounded-full bg-[#f0eeea] px-3 py-1.5 text-xs font-semibold text-[#111]">
+                            {{ $selectedSearch }}
+                            <a href="{{ route('products.index', array_merge($filters, ['search' => ''])) }}" class="hover:text-red-600">X</a>
+                        </span>
                     @endif
-                    
-                    {{-- Lọc Hãng --}}
-                    <div class="rounded-xl border border-white/5 bg-night-soft p-5 shadow-lg shadow-black/20">
-                        <h3 class="font-bold text-white mb-4">Thương hiệu</h3>
-                        <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
-                            @foreach($brands as $brand)
-                                <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" name="brand" value="{{ $brand->id }}" 
-                                           class="text-brand-500 focus:ring-brand-500 focus:ring-offset-night-soft bg-night border-white/20"
-                                           {{ request('brand') == $brand->id ? 'checked' : '' }}
-                                           onchange="document.getElementById('filter-form').submit()">
-                                    <span class="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{{ $brand->name }}</span>
-                                </label>
-                            @endforeach
-                            <label class="flex items-center gap-3 cursor-pointer group mt-2 pt-2 border-t border-white/10">
-                                <input type="radio" name="brand" value="" 
-                                       class="text-brand-500 focus:ring-brand-500 focus:ring-offset-night-soft bg-night border-white/20"
-                                       {{ !request('brand') ? 'checked' : '' }}
-                                       onchange="document.getElementById('filter-form').submit()">
-                                <span class="text-sm font-medium text-brand-400">Tất cả hãng</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    {{-- Lọc Giá --}}
-                    <div class="rounded-xl border border-white/5 bg-night-soft p-5 shadow-lg shadow-black/20">
-                        <h3 class="font-bold text-white mb-4">Mức giá</h3>
-                        <div class="space-y-2">
-                            @php
-                                $priceRanges = [
-                                    '' => 'Tất cả mức giá',
-                                    'under-5m' => 'Dưới 5 triệu',
-                                    '5m-10m' => 'Từ 5 - 10 triệu',
-                                    '10m-20m' => 'Từ 10 - 20 triệu',
-                                    'above-20m' => 'Trên 20 triệu',
-                                ];
-                            @endphp
-                            @foreach($priceRanges as $value => $label)
-                                <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" name="price" value="{{ $value }}" 
-                                           class="text-brand-500 focus:ring-brand-500 focus:ring-offset-night-soft bg-night border-white/20"
-                                           {{ request('price') == $value ? 'checked' : '' }}
-                                           onchange="document.getElementById('filter-form').submit()">
-                                    <span class="text-sm text-gray-400 group-hover:text-gray-200 transition-colors {{ !$value ? 'font-medium text-brand-400' : '' }}">{{ $label }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                </form>
-            </aside>
-
-            {{-- Main Content --}}
-            <div class="flex-1">
-                <div class="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/5 bg-night-soft p-4 shadow-lg shadow-black/20">
-                    <p class="text-sm text-gray-400">Tìm thấy <strong class="text-white">{{ $products->total() }}</strong> sản phẩm</p>
-                    <div class="flex items-center gap-3">
-                        <label for="sort" class="text-sm text-gray-400">Sắp xếp:</label>
-                        <select form="filter-form" name="sort" id="sort" onchange="document.getElementById('filter-form').submit()" 
-                                class="rounded-lg border-white/10 bg-night px-3 py-1.5 text-sm text-gray-200 focus:border-brand-500 focus:ring-brand-500">
-                            <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Mới nhất</option>
-                            <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Giá: Thấp đến cao</option>
-                            <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Giá: Cao đến thấp</option>
-                        </select>
-                    </div>
+                    @if ($selectedBrand)
+                        <span class="inline-flex items-center gap-2 rounded-full bg-[#f0eeea] px-3 py-1.5 text-xs font-semibold text-[#111]">
+                            {{ $brands->find($selectedBrand)->name ?? 'Brand' }}
+                            <a href="{{ route('products.index', array_merge($filters, ['brand' => ''])) }}" class="hover:text-red-600">X</a>
+                        </span>
+                    @endif
+                    @if ($selectedPrice)
+                        <span class="inline-flex items-center gap-2 rounded-full bg-[#f0eeea] px-3 py-1.5 text-xs font-semibold text-[#111]">
+                            {{ ['under-5m' => 'Dưới 5 triệu', '5m-10m' => '5-10 triệu', '10m-20m' => '10-20 triệu', 'above-20m' => 'Trên 20 triệu'][$selectedPrice] ?? 'Mức giá' }}
+                            <a href="{{ route('products.index', array_merge($filters, ['price' => ''])) }}" class="hover:text-red-600">X</a>
+                        </span>
+                    @endif
+                    <a href="{{ route('products.index') }}" class="text-xs font-semibold text-blue-600 hover:text-blue-800">Xóa tất cả</a>
                 </div>
+            @endif
+        </form>
+    </section>
 
-                @if($products->isEmpty())
-                    <div class="rounded-2xl border border-white/5 bg-night-soft p-12 text-center shadow-lg shadow-black/20">
-                        <div class="mx-auto flex size-20 items-center justify-center rounded-full bg-white/5">
-                            <svg class="size-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                            </svg>
-                        </div>
-                        <h3 class="mt-4 text-lg font-bold text-white">Không tìm thấy sản phẩm</h3>
-                        <p class="mt-2 text-sm text-gray-400">Không có sản phẩm nào phù hợp với tiêu chí tìm kiếm của bạn. Hãy thử đổi bộ lọc khác.</p>
-                        <a href="{{ route('products.index') }}" class="mt-6 inline-flex items-center justify-center rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-500">Xóa bộ lọc</a>
-                    </div>
-                @else
-                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                        @foreach($products as $product)
+    {{-- Main Content --}}
+    <div class="grid gap-4 lg:grid-cols-[280px_1fr]">
+        {{-- Sidebar Brands --}}
+        <aside class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+            <h3 class="text-base font-bold text-[#171717]">Thương hiệu</h3>
+            <nav class="mt-4 space-y-2">
+                <a href="{{ route('products.index') }}" class="block rounded-[14px] px-3 py-2 text-sm font-medium text-[#111] transition hover:bg-[#f7f5f2]">
+                    Tất cả sản phẩm
+                </a>
+                @foreach ($brands as $brand)
+                    <a
+                        href="{{ route('products.index', ['brand' => $brand->id]) }}"
+                        class="flex items-center justify-between rounded-[14px] px-3 py-2 text-sm transition hover:bg-[#f7f5f2]"
+                    >
+                        <span class="font-medium text-[#111]">{{ $brand->name }}</span>
+                    </a>
+                @endforeach
+            </nav>
+        </aside>
+
+        {{-- Products Grid --}}
+        <section class="space-y-4">
+            <div class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+                @if ($products->isNotEmpty())
+                    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                        @foreach ($products as $product)
                             @php
-                                $thumb = $product->images->firstWhere('is_primary')?->image_url ?? $product->thumbnail;
-                                $isCompared = in_array($product->id, $compareProductIds ?? [], true);
+                                $discount = null;
+                                if ($product->sale_price && $product->sale_price < $product->price) {
+                                    $discount = round((1 - ($product->sale_price / $product->price)) * 100);
+                                }
                             @endphp
-                            <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-night-card p-4 transition-all hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/10">
-                                <div class="absolute left-3 top-3 z-10 flex flex-col gap-1.5">
-                                    @if ($product->activeFlashSaleItem !== null)
-                                        <span class="rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-2 py-1 text-center text-[10px] font-bold text-white shadow-sm flex items-center gap-1 w-max">
-                                            <svg class="size-3" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2.05v9.45h5.5l-9.5 10.5v-9.5H3.5l9.5-10.45z"/></svg>
-                                            Flash Sale
-                                        </span>
-                                    @endif
-                                    @if ($product->sale_price && $product->sale_price < $product->price)
-                                        <span class="rounded-lg bg-red-600 px-2 py-1 text-center text-[11px] font-bold text-white shadow-sm w-max">
-                                            -{{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%
-                                        </span>
-                                    @endif
-                                </div>
-
-                                <div class="absolute right-3 top-3 z-20">
-                                    <button type="button"
-                                            data-compare-toggle="{{ $product->id }}"
-                                            data-compared="{{ $isCompared ? 'true' : 'false' }}"
-                                            aria-label="{{ $isCompared ? 'Xóa khỏi so sánh' : 'Thêm vào so sánh' }}"
-                                            class="flex size-8 items-center justify-center rounded-full bg-night-soft/60 text-white backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-night-soft">
-                                        <svg class="size-4 transition-colors duration-300 {{ $isCompared ? 'text-brand-300' : 'text-white hover:text-brand-300' }}" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/>
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                <a href="{{ route('products.show', $product->slug) }}" class="relative aspect-square overflow-hidden rounded-xl bg-white/5 p-4 flex items-center justify-center">
-                                    @if($thumb)
-                                        <img src="{{ str_starts_with($thumb, 'http') ? $thumb : (str_starts_with($thumb, 'images/') ? asset($thumb) : asset('storage/' . $thumb)) }}" alt="{{ $product->name }}" loading="lazy" class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110">
-                                    @else
-                                        <img src="{{ asset('images/placeholder.svg') }}" alt="{{ $product->name }}" loading="lazy" class="h-full w-full object-contain">
-                                    @endif
-                                </a>
-
-                                <div class="mt-4 flex flex-1 flex-col">
-                                    <a href="{{ route('products.show', $product->slug) }}" class="text-xs font-medium text-brand-400 mb-1">{{ $product->brand->name ?? 'Điện thoại' }}</a>
-                                    <h3 class="line-clamp-2 text-sm font-bold text-gray-100 group-hover:text-brand-300 flex-1">
-                                        <a href="{{ route('products.show', $product->slug) }}">{{ $product->name }}</a>
-                                    </h3>
-                                    <div class="mt-3 flex flex-wrap items-baseline gap-2">
-                                        <span class="text-lg font-black text-brand-400">{{ $money($product->effective_price) }}</span>
-                                        @if ($product->sale_price && $product->sale_price < $product->price)
-                                            <span class="text-xs text-gray-500 line-through">{{ $money($product->price) }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
+                            <x-product-card
+                                :id="$product->id"
+                                :name="$product->name"
+                                :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail))) : asset('images/placeholder.svg')"
+                                :price="$product->sale_price ?? $product->price"
+                                :oldPrice="$product->sale_price && $product->sale_price < $product->price ? $product->price : null"
+                                :discount="$discount"
+                                :rating="isset($product->rating_average) && $product->rating_average ? round($product->rating_average, 1) : null"
+                                :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                                :href="route('products.show', $product)"
+                            />
                         @endforeach
                     </div>
 
-                    <div class="mt-10">
-                        {{ $products->links() }}
+                    {{-- Pagination --}}
+                    @if (method_exists($products, 'links'))
+                        <div class="mt-6 flex justify-center">
+                            {{ $products->links('pagination::tailwind') }}
+                        </div>
+                    @endif
+                @else
+                    <div class="rounded-2xl border-2 border-dashed border-[#e5e1db] py-12 text-center">
+                        <p class="mt-3 text-sm text-[#8b8b8b]">Không tìm thấy sản phẩm phù hợp</p>
+                        <p class="mt-1 text-xs text-[#b0b0b0]">Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                        <a href="{{ route('products.index') }}" class="mt-4 inline-block rounded-full bg-black px-5 py-2 text-xs font-semibold text-white hover:bg-[#222]">
+                            Xem tất cả sản phẩm
+                        </a>
                     </div>
                 @endif
             </div>
-        </div>
-
+        </section>
     </div>
 </div>
+
+<style>
+    .pagination a, .pagination span {
+        @apply px-3 py-2 text-xs font-medium rounded-lg border border-[#ece8e2] transition;
+    }
+    .pagination a:hover {
+        @apply border-black bg-[#f7f5f2];
+    }
+    .pagination .active span {
+        @apply border-black bg-black text-white;
+    }
+</style>
 @endsection

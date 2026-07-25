@@ -144,7 +144,7 @@
         <div class="rounded-2xl border border-blue-400/10 bg-[#081321] p-5 shadow-lg shadow-black/20 xl:col-span-3">
             <div class="mb-4 flex items-center justify-between">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">ĐƠN HÀNG GẦN ĐÂY</span>
-                <a href="{{ route('admin.dashboard' ?? '#') }}" class="text-[11px] font-semibold text-blue-400 hover:text-blue-300">Xem tất cả <svg class="inline-block size-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></a>
+                <a href="{{ route('admin.orders.index') }}" class="text-[11px] font-semibold text-blue-400 hover:text-blue-300">Xem tất cả <svg class="inline-block size-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg></a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full whitespace-nowrap text-left text-xs text-gray-300">
@@ -160,7 +160,7 @@
                     <tbody class="divide-y divide-white/5">
                         @foreach($recentOrders as $order)
                         <tr class="transition hover:bg-white/[0.02]">
-                            <td class="py-3 font-medium text-gray-400">#NP{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</td>
+                            <td class="py-3 font-medium text-gray-400">#{{ $order->order_code }}</td>
                             <td class="py-3">
                                 <div class="flex items-center gap-2">
                                     <div class="size-5 overflow-hidden rounded-full bg-white/10 flex items-center justify-center font-bold text-[9px] text-white">

@@ -1,221 +1,149 @@
 @extends('layouts.app')
 
-@section('title', 'So sánh sản phẩm | NovaPhone')
-
-@php
-    $money = fn ($value) => number_format((float) $value, 0, ',', '.').'đ';
-
-    $firstPayload = $payload[array_key_first($payload)] ?? [];
-    $performanceRows = collect($firstPayload['performance_specs'] ?? [])
-        ->map(function (array $specification) use ($payload) {
-            $values = collect($payload)->mapWithKeys(function (array $item, int $productId) use ($specification) {
-                $spec = collect($item['performance_specs'] ?? [])
-                    ->firstWhere('key', $specification['key']);
-
-                return [$productId => $spec['value'] ?? null];
-            });
-
-            $filledValues = $values->filter(fn ($value) => filled($value));
-            $canHighlight = ($specification['higher_is_better'] ?? false)
-                && $filledValues->count() >= 2
-                && $filledValues->every(fn ($value) => is_numeric($value));
-
-            return [
-                ...$specification,
-                'values' => $values,
-                'best_value' => $canHighlight ? $filledValues->map(fn ($value) => (float) $value)->max() : null,
-            ];
-        })
-        ->values();
-@endphp
+@section('title', 'So sánh sản phẩm - NovaPhone')
 
 @section('content')
-<div class="min-h-screen bg-night pb-14 text-gray-100">
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
-            <div>
-                <p class="text-sm font-semibold text-brand-400">NovaPhone</p>
-                <h1 class="mt-1 text-3xl font-black text-white sm:text-4xl">So sánh sản phẩm</h1>
-                <p class="mt-2 text-sm text-gray-400">Đối chiếu tối đa 4 điện thoại để chọn sản phẩm phù hợp nhất.</p>
+    @php
+        $comparisonRows = [
+            ['key' => 'brand', 'label' => 'Thương hiệu'],
+            ['key' => 'category', 'label' => 'Danh mục'],
+            ['key' => 'effective_price', 'label' => 'Giá bán'],
+            ['key' => 'rating_average', 'label' => 'Đánh giá'],
+            ['key' => 'storage_options', 'label' => 'Dung lượng'],
+            ['key' => 'color_options', 'label' => 'Màu sắc'],
+            ['key' => 'available_quantity', 'label' => 'Tồn kho'],
+        ];
+        $performanceSpecs = $products->isNotEmpty()
+            ? ($payload[$products->first()->id]['performance_specs'] ?? [])
+            : [];
+    @endphp
+
+    <div class="space-y-5">
+        <nav class="flex flex-wrap items-center gap-2 text-xs text-[#7a7a7a]" aria-label="Breadcrumb">
+            <a href="{{ route('products.index') }}" class="transition hover:text-black">Sản phẩm</a>
+            <span aria-hidden="true">/</span>
+            <span class="font-semibold text-[#222]">So sánh sản phẩm</span>
+        </nav>
+
+        <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)] sm:p-7">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#8b8b8b]">So sánh</p>
+                    <h1 class="mt-2 text-2xl font-bold tracking-tight text-[#171717]">So sánh sản phẩm</h1>
+                    <p class="mt-2 text-sm text-[#777]">
+                        @if ($products->isNotEmpty())
+                            Đang so sánh {{ $products->count() }} sản phẩm bạn đã chọn.
+                        @else
+                            Chọn sản phẩm để đối chiếu thông số và giá bán.
+                        @endif
+                    </p>
+                </div>
+                @if ($products->isNotEmpty())
+                    <button type="button" data-compare-clear data-clear-url="{{ route('compare.clear') }}" class="inline-flex w-fit items-center justify-center rounded-full border border-[#e8e4de] bg-white px-4 py-2.5 text-sm font-semibold text-[#333] transition-colors duration-300 hover:border-red-300 hover:bg-red-50 hover:text-red-600">Xóa tất cả</button>
+                @endif
             </div>
 
             @if ($products->isNotEmpty())
-                <button type="button" data-compare-clear
-                        class="rounded-xl border border-red-400/30 px-4 py-2.5 text-sm font-bold text-red-300 transition hover:bg-red-500/10">
-                    Xóa tất cả
-                </button>
-            @endif
-        </div>
-
-        @if ($products->isEmpty())
-            <section class="rounded-2xl border border-white/5 bg-night-soft px-6 py-16 text-center shadow-xl shadow-black/20">
-                <div class="mx-auto flex size-20 items-center justify-center rounded-full bg-brand-600/10 text-brand-300">
-                    <svg class="size-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/></svg>
-                </div>
-                <h2 class="mt-5 text-xl font-extrabold text-white">Chưa có sản phẩm để so sánh</h2>
-                <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-400">Thêm điện thoại từ trang danh sách hoặc trang chi tiết sản phẩm, sau đó quay lại đây để xem đối chiếu.</p>
-                <a href="{{ route('products.index') }}" class="mt-7 inline-flex rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-500">Khám phá sản phẩm</a>
-            </section>
-        @else
-            <section class="overflow-hidden rounded-2xl border border-white/5 bg-night-soft shadow-xl shadow-black/20">
-                <div class="overflow-x-auto">
-                    <table class="min-w-[760px] w-full border-collapse" data-compare-table>
+                <div class="mt-7 overflow-x-auto rounded-[22px] border border-[#ece8e2] [scrollbar-width:thin]">
+                    <table class="min-w-[900px] w-full border-separate border-spacing-0 text-left text-sm">
                         <thead>
-                            <tr class="border-b border-white/10">
-                                <th class="sticky left-0 z-20 w-40 min-w-40 bg-night-soft px-5 py-5 text-left text-sm font-bold text-gray-400 sm:w-52"></th>
+                            <tr class="bg-[#fbfaf8]">
+                                <th scope="col" class="sticky left-0 z-20 w-44 border-b border-r border-[#ece8e2] bg-[#fbfaf8] px-4 py-5 align-bottom text-xs font-semibold uppercase tracking-[0.08em] text-[#777]">Thông số</th>
                                 @foreach ($products as $product)
-                                    @php($item = $payload[$product->id])
-                                    <th class="min-w-56 px-4 py-5 align-top text-center" data-compare-column="{{ $product->id }}">
-                                        <div class="relative mx-auto max-w-48">
-                                            <button type="button" data-compare-remove="{{ $product->id }}" aria-label="Xóa {{ $item['name'] }} khỏi so sánh"
-                                                    class="absolute -right-2 -top-2 z-10 flex size-7 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition hover:bg-red-400">
-                                                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12M18 6 6 18"/></svg>
-                                            </button>
-                                            <a href="{{ route('products.show', $item['slug']) }}" class="block overflow-hidden rounded-xl bg-white/5 p-3">
-                                                <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="mx-auto aspect-square w-full object-contain">
+                                    @php
+                                        $thumbnail = $product->thumbnail;
+                                        $thumbnailUrl = ! $thumbnail
+                                            ? asset('images/placeholder.svg')
+                                            : (str_starts_with($thumbnail, 'http')
+                                                ? $thumbnail
+                                                : (str_starts_with($thumbnail, 'images/') || str_starts_with($thumbnail, 'storage/')
+                                                    ? asset($thumbnail)
+                                                    : asset('storage/' . $thumbnail)));
+                                        $productPayload = $payload[$product->id] ?? [];
+                                    @endphp
+                                    <th scope="col" class="min-w-[220px] border-b border-[#ece8e2] px-4 py-4 align-top last:border-r-0">
+                                        <div class="relative">
+                                            <button type="button" data-compare-remove data-remove-url="{{ route('compare.remove', $product->id) }}" class="absolute right-0 top-0 grid size-7 place-items-center rounded-full border border-[#e8e4de] bg-white text-sm text-[#777] transition-colors duration-300 hover:border-red-200 hover:bg-red-50 hover:text-red-600" aria-label="Xóa {{ $product->name }} khỏi so sánh">×</button>
+                                            <a href="{{ route('products.show', $product) }}" class="flex h-28 items-center justify-center pr-8">
+                                                <img src="{{ $thumbnailUrl }}" alt="{{ $product->name }}" loading="lazy" decoding="async" class="max-h-24 max-w-full object-contain transition-transform duration-300 hover:scale-105">
                                             </a>
-                                            <a href="{{ route('products.show', $item['slug']) }}" class="mt-3 line-clamp-2 block text-sm font-bold leading-snug text-white transition hover:text-brand-300">{{ $item['name'] }}</a>
+                                            <a href="{{ route('products.show', $product) }}" class="mt-3 block line-clamp-2 text-sm font-semibold leading-5 text-[#171717] transition-colors duration-300 hover:text-[#1677d2]">{{ $product->name }}</a>
+                                            <p class="mt-2 text-base font-bold text-[#171717]">{{ number_format($productPayload['effective_price'] ?? $product->effective_price, 0, ',', '.') }}₫</p>
+                                            @if (!empty($productPayload['discount_percent']))
+                                                <p class="mt-1 text-xs font-semibold text-[#d14b4b]">Giảm {{ $productPayload['discount_percent'] }}%</p>
+                                            @endif
+                                            <a href="{{ route('products.show', $product) }}" class="mt-4 inline-flex rounded-full border border-[#e8e4de] bg-white px-3 py-1.5 text-xs font-semibold text-[#222] transition-colors duration-300 hover:border-black hover:bg-[#faf9f7]">Xem sản phẩm</a>
                                         </div>
                                     </th>
                                 @endforeach
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr class="border-b border-white/10">
-                                <th class="sticky left-0 z-10 bg-night-soft px-5 py-4 text-left text-sm font-semibold text-gray-400">Giá bán</th>
-                                @foreach ($products as $product)
-                                    @php($item = $payload[$product->id])
-                                    <td class="px-4 py-4 text-center" data-compare-column="{{ $product->id }}">
-                                        <p class="text-lg font-black text-brand-400">{{ $money($item['effective_price']) }}</p>
-                                        @if ($item['sale_price'])
-                                            <p class="mt-1 text-xs text-gray-500 line-through">{{ $money($item['price']) }}</p>
-                                        @endif
-                                    </td>
-                                @endforeach
+                        <tbody class="divide-y divide-[#ece8e2]">
+                            <tr>
+                                <th colspan="{{ $products->count() + 1 }}" class="sticky left-0 z-10 bg-white px-4 py-3 text-xs font-bold uppercase tracking-[0.1em] text-[#777]">Thông tin chung</th>
                             </tr>
-                            <tr class="border-b border-white/10">
-                                <th class="sticky left-0 z-10 bg-night-soft px-5 py-4 text-left text-sm font-semibold text-gray-400">Đánh giá</th>
-                                @foreach ($products as $product)
-                                    @php($item = $payload[$product->id])
-                                    <td class="px-4 py-4 text-center text-sm" data-compare-column="{{ $product->id }}">
-                                        <span class="font-bold text-amber-400">★ {{ $item['rating_average'] ?? 'Chưa có' }}</span>
-                                        @if ($item['rating_count'])
-                                            <span class="text-gray-500">({{ $item['rating_count'] }})</span>
-                                        @endif
-                                    </td>
-                                @endforeach
-                            </tr>
-                            <tr class="border-b border-white/10">
-                                <th class="sticky left-0 z-10 bg-night-soft px-5 py-4 text-left text-sm font-semibold text-gray-400">Tình trạng kho</th>
-                                @foreach ($products as $product)
-                                    @php($item = $payload[$product->id])
-                                    <td class="px-4 py-4 text-center text-sm font-semibold {{ $item['available_quantity'] > 0 ? 'text-emerald-400' : 'text-red-400' }}" data-compare-column="{{ $product->id }}">
-                                        {{ $item['available_quantity'] > 0 ? 'Còn hàng ('.$item['available_quantity'].')' : 'Hết hàng' }}
-                                    </td>
-                                @endforeach
-                            </tr>
-                            @foreach ($performanceRows as $row)
-                                <tr class="border-b border-white/10">
-                                    <th class="sticky left-0 z-10 bg-night-soft px-5 py-4 text-left text-sm font-semibold text-gray-400">
-                                        {{ $row['label'] }}
-                                        @if (($row['higher_is_better'] ?? false) && isset($row['best_value']))
-                                            <svg class="inline-block ml-1 size-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 18.75 7.5-7.5 7.5 7.5"/></svg>
-                                        @endif
-                                    </th>
+                            @foreach ($comparisonRows as $row)
+                                <tr>
+                                    <th scope="row" class="sticky left-0 z-10 border-r border-[#ece8e2] bg-white px-4 py-3.5 font-medium text-[#666]">{{ $row['label'] }}</th>
                                     @foreach ($products as $product)
-                                        @php($item = $payload[$product->id])
-                                        @php($value = $row['values'][$product->id] ?? null)
-                                        @php($isBest = isset($row['best_value']) && is_numeric($value) && (float) $value === $row['best_value'])
-                                        <td class="px-4 py-4 text-center text-sm" data-compare-column="{{ $product->id }}">
-                                            @if (! filled($value))
-                                                <span class="text-gray-600 italic">Chưa có dữ liệu</span>
-                                            @else
-                                                <span class="{{ $isBest ? 'font-black text-emerald-400' : 'text-gray-200' }}">
-                                                    @if (is_numeric($value) && ($row['higher_is_better'] ?? false))
-                                                        {{ number_format((float) $value, 0, ',', '.') }}{{ $row['unit'] ?? '' }}
-                                                    @else
-                                                        {{ $value }}
-                                                    @endif
-                                                </span>
-                                                @if ($isBest)
-                                                    <span class="ml-1 inline-block rounded bg-emerald-400/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400">Tốt nhất</span>
+                                        @php
+                                            $value = $payload[$product->id][$row['key']] ?? null;
+                                        @endphp
+                                        <td class="px-4 py-3.5 font-semibold text-[#222]">
+                                            @if ($row['key'] === 'effective_price')
+                                                {{ $value !== null ? number_format($value, 0, ',', '.') . '₫' : 'Chưa cập nhật' }}
+                                            @elseif ($row['key'] === 'rating_average')
+                                                @if ($value !== null)
+                                                    <span class="inline-flex items-center gap-1.5 text-[#222]"><span class="text-[#f59e0b]">★</span>{{ number_format($value, 1) }}/5 <span class="font-normal text-[#888]">({{ $payload[$product->id]['rating_count'] ?? 0 }})</span></span>
+                                                @else
+                                                    <span class="font-normal text-[#888]">Chưa có đánh giá</span>
                                                 @endif
+                                            @elseif (in_array($row['key'], ['storage_options', 'color_options'], true))
+                                                {{ !empty($value) ? implode(', ', $value) : 'Chưa cập nhật' }}
+                                            @elseif ($row['key'] === 'available_quantity')
+                                                {{ $value !== null ? $value : 'Chưa cập nhật' }}
+                                            @else
+                                                {{ $value ?: 'Chưa cập nhật' }}
                                             @endif
                                         </td>
                                     @endforeach
                                 </tr>
-@endforeach
-                            <tr>
-                                <th class="sticky left-0 z-10 bg-night-soft px-5 py-4 text-left text-sm font-semibold text-gray-400">Thao tác</th>
-                                @foreach ($products as $product)
-                                    @php($item = $payload[$product->id])
-                                    <td class="px-4 py-4 text-center" data-compare-column="{{ $product->id }}">
-                                        <a href="{{ route('products.show', $item['slug']) }}" class="inline-flex rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-500">Xem sản phẩm</a>
-                                    </td>
+                            @endforeach
+
+                            @if ($performanceSpecs)
+                                <tr>
+                                    <th colspan="{{ $products->count() + 1 }}" class="sticky left-0 z-10 bg-[#fbfaf8] px-4 py-3 text-xs font-bold uppercase tracking-[0.1em] text-[#777]">Thông số kỹ thuật</th>
+                                </tr>
+                                @foreach ($performanceSpecs as $specification)
+                                    <tr>
+                                        <th scope="row" class="sticky left-0 z-10 border-r border-[#ece8e2] bg-white px-4 py-3.5 font-medium text-[#666]">{{ $specification['label'] }}</th>
+                                        @foreach ($products as $product)
+                                            @php
+                                                $comparisonSpec = collect($payload[$product->id]['performance_specs'] ?? [])->firstWhere('key', $specification['key']);
+                                            @endphp
+                                            <td class="px-4 py-3.5 font-semibold text-[#222]">
+                                                @if ($comparisonSpec && ($comparisonSpec['value'] ?? null) !== null)
+                                                    {{ $comparisonSpec['value'] }}{{ $comparisonSpec['unit'] ?? '' }}
+                                                @else
+                                                    <span class="font-normal text-[#999]">Chưa cập nhật</span>
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                    </tr>
                                 @endforeach
-                            </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
-            </section>
-
-            @if ($products->count() < 2)
-                <div class="mt-5 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-                    Hãy thêm ít nhất một sản phẩm nữa để có thể đối chiếu các thông số.
+                <p class="mt-3 text-xs text-[#8b8b8b]">Kéo ngang để xem đầy đủ khi màn hình nhỏ.</p>
+            @else
+                <div class="mt-7 rounded-[22px] border border-dashed border-[#dfdad2] bg-[#fbfaf8] px-5 py-14 text-center">
+                    <svg class="mx-auto size-10 text-[#a6a09a]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75H5.5A1.75 1.75 0 0 0 3.75 5.5v13A1.75 1.75 0 0 0 5.5 20.25h2.75m7.5-16.5h2.75A1.75 1.75 0 0 1 20.25 5.5v13a1.75 1.75 0 0 1-1.75 1.75h-2.75M8.25 8.25h7.5m-7.5 7.5h7.5M12 5.25v13.5"/></svg>
+                    <h2 class="mt-4 text-lg font-bold text-[#171717]">Chưa có sản phẩm để so sánh</h2>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-[#777]">Thêm sản phẩm từ danh sách hoặc trang chi tiết sản phẩm để bắt đầu so sánh.</p>
+                    <a href="{{ route('products.index') }}" class="mt-6 inline-flex rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-[#222]">Khám phá sản phẩm</a>
                 </div>
             @endif
-        @endif
+        </section>
     </div>
-</div>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-        const updateBadge = (count) => {
-            const badge = document.getElementById('compare-count-badge');
-            if (!badge) return;
-
-            badge.textContent = count;
-            badge.classList.toggle('hidden', count === 0);
-            badge.classList.toggle('flex', count > 0);
-        };
-
-        const request = async (url) => {
-            const response = await fetch(url, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json',
-                },
-            });
-            const data = await response.json();
-            if (!response.ok || !data.success) throw new Error(data.message || 'Không thể cập nhật danh sách so sánh.');
-            return data;
-        };
-
-        document.addEventListener('click', async (event) => {
-            const remove = event.target.closest('[data-compare-remove]');
-            const clear = event.target.closest('[data-compare-clear]');
-            if (!remove && !clear) return;
-
-            const target = remove || clear;
-            target.disabled = true;
-
-            try {
-                const url = remove
-                    ? `{{ url('/compare') }}/${remove.dataset.compareRemove}`
-                    : '{{ route('compare.clear') }}';
-                const data = await request(url);
-                updateBadge(data.count);
-                window.location.reload();
-            } catch (error) {
-                target.disabled = false;
-                window.alert(error.message || 'Không thể cập nhật danh sách so sánh.');
-            }
-        });
-    });
-</script>
-@endpush
