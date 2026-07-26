@@ -1,96 +1,44 @@
 @extends('layouts.app')
 
-@section('title', 'Đặt hàng thành công | NovaPhone')
+@section('title', 'Đặt hàng thành công - NovaPhone')
 
 @section('content')
-@php
-    $money = fn ($value) => number_format((float) $value, 0, ',', '.').'đ';
-    $methodName = match ($order->payment_method) {
-        'cod' => 'Thanh toán khi nhận hàng (COD)',
-        'momo' => 'Ví điện tử MoMo',
-        'vnpay' => 'Ví điện tử VNPAY',
-        default => $order->payment_method
-    };
-    $paymentStatusName = $order->payment_status === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán';
-@endphp
+<div class="space-y-3">
+    <div class="flex">
+        <span class="rounded-full border border-[#e8e4de] bg-white px-3 py-1 text-[11px] font-semibold text-[#444] shadow-sm">Đặt hàng thành công</span>
+    </div>
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-10 text-center shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <div class="mx-auto flex size-20 items-center justify-center rounded-full border-4 border-[#dff2df] text-2xl font-bold text-[#30a24a]">✓</div>
+        <h1 class="mt-5 text-2xl font-bold">Đặt hàng thành công!</h1>
+        <p class="mt-2 text-sm text-[#7f7f7f]">Cảm ơn bạn đã mua hàng tại NovaPhone. Mã đơn hàng của bạn là <span class="font-semibold">#{{ $order->order_code }}</span>.</p>
 
-<div class="hero-glow flex min-h-[calc(100vh-68px-340px)] items-center justify-center px-4 py-16 sm:px-6">
-    <div class="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-night-soft/60 p-8 shadow-2xl shadow-black/50 backdrop-blur-2xl text-center">
-        
-        {{-- Checkmark Icon --}}
-        <div class="mx-auto flex size-20 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 mb-6 animate-bounce">
-            <svg class="size-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-        </div>
-
-        <h1 class="text-3xl font-black text-white tracking-tight">Đặt hàng thành công!</h1>
-        <p class="mt-2 text-sm text-gray-400">Cảm ơn bạn đã tin tưởng mua sắm tại NovaPhone. Mã đơn hàng của bạn là:</p>
-        <span class="inline-block mt-3 rounded-full bg-brand-600/20 border border-brand-500/30 px-6 py-2 text-lg font-black text-brand-300 font-mono">{{ $order->order_code }}</span>
-
-        {{-- Chi tiết đơn hàng --}}
-        <div class="mt-8 rounded-2xl border border-white/5 bg-white/[0.02] p-6 text-left space-y-4">
-            <h2 class="text-base font-bold text-white border-b border-white/10 pb-3">Chi tiết thông tin đơn hàng</h2>
-            
-            <div class="grid gap-4 sm:grid-cols-2 text-sm">
-                <div>
-                    <span class="block text-xs text-gray-500">Khách hàng nhận hàng</span>
-                    <span class="font-bold text-white mt-1 block">{{ $order->shipping_full_name }}</span>
-                    <span class="text-xs text-gray-400">{{ $order->shipping_phone }}</span>
-                </div>
-                <div>
-                    <span class="block text-xs text-gray-500">Hình thức thanh toán</span>
-                    <span class="font-bold text-white mt-1 block">{{ $methodName }}</span>
-                    <span class="text-xs font-semibold {{ $order->payment_status === 'paid' ? 'text-emerald-400' : 'text-amber-400' }}">{{ $paymentStatusName }}</span>
-                </div>
+        <div class="mt-6 space-y-4 max-w-sm mx-auto">
+            <div class="rounded-[16px] border border-[#ece8e2] bg-[#fbfaf8] p-4 text-left space-y-2">
+                <p class="text-xs text-[#8b8b8b]">Tổng tiền</p>
+                <p class="text-2xl font-bold text-[#111]">{{ number_format($order->total_amount, 0, ',', '.') }}đ</p>
+                <p class="text-xs text-[#8b8b8b]">Thời gian: {{ $order->created_at->format('d/m/Y H:i') }}</p>
             </div>
 
-            <div class="text-sm">
-                <span class="block text-xs text-gray-500">Địa chỉ giao hàng</span>
-                <span class="text-gray-300 mt-1 block leading-relaxed">
-                    {{ $order->shipping_address }}, {{ $order->shipping_ward }}, {{ $order->shipping_district }}, {{ $order->shipping_province }}
-                </span>
-            </div>
-
-            <div class="flex justify-between items-baseline border-t border-white/10 pt-4 text-sm">
-                <span class="font-bold text-white">Tổng cộng đã thanh toán</span>
-                <span class="text-xl font-black text-brand-400">{{ $money($order->total_amount) }}</span>
+            <div class="rounded-[16px] border border-[#ece8e2] bg-[#fbfaf8] p-4 text-left">
+                <p class="text-xs text-[#8b8b8b]">Phương thức thanh toán</p>
+                @php
+                    $paymentMethodMap = [
+                        'cod' => 'Thanh toán khi nhận hàng (COD)',
+                        'vnpay' => 'Thẻ tín dụng / VNPay',
+                    ];
+                @endphp
+                <p class="mt-1 font-semibold text-[#111]">{{ $paymentMethodMap[$order->payment_method] ?? $order->payment_method }}</p>
             </div>
         </div>
 
-        {{-- Lời khuyên --}}
-        <div class="mt-6 rounded-xl border border-white/5 bg-white/[0.01] p-4 text-xs text-gray-400 leading-relaxed text-left">
-            @if ($order->payment_method === 'cod')
-                <strong>Bước tiếp theo:</strong> NovaPhone sẽ gọi điện thoại xác nhận đơn hàng của bạn trong vòng 15 phút. Vui lòng chuẩn bị sẵn số tiền thanh toán khi nhân viên giao hàng liên hệ.
-            @else
-                <strong>Bước tiếp theo:</strong> Đơn hàng đã được thanh toán trực tuyến thành công. Hệ thống đang tiến hành đóng gói và giao đi trong thời gian sớm nhất.
-            @endif
-        </div>
-
-        {{-- Buttons --}}
-        <div class="mt-8 flex flex-col sm:flex-row gap-3">
-            @if ($order->status === 'pending' && $order->payment_method === 'vnpay' && $order->payment_status === 'pending')
-                <a
-                    href="{{ route('checkout.vnpay.create', $order) }}"
-                    class="flex-1 flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-3.5 text-sm font-bold text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5"
-                >
-                    Tiếp tục thanh toán
-                </a>
-            @endif
-            <a
-                href="{{ route('orders.show', $order) }}"
-                class="flex-1 flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition hover:-translate-y-0.5"
-            >
-                Theo dõi đơn hàng
+        <div class="mt-6 flex justify-center gap-3">
+            <a href="{{ route('orders.show', $order) }}" class="rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#222]">
+                Xem chi tiết đơn hàng
             </a>
-            <a
-                href="{{ route('home') }}"
-                class="flex-1 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 py-3.5 text-sm font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
-            >
+            <a href="{{ route('home') }}" class="rounded-full border border-[#e8e4de] px-6 py-3 text-sm font-semibold text-[#111] transition hover:bg-[#fbfaf8]">
                 Tiếp tục mua sắm
             </a>
         </div>
-
-    </div>
+    </section>
 </div>
 @endsection

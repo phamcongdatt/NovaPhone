@@ -1,68 +1,70 @@
 @extends('layouts.app')
-
-@section('title', 'Sản phẩm yêu thích — NovaPhone')
+@section('title', 'Sản phẩm yêu thích - NovaPhone')
 
 @section('content')
-<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
-    {{-- Breadcrumb --}}
-    <nav class="mb-6 flex items-center text-sm font-medium text-gray-500">
-        <a href="{{ route('home') }}" class="hover:text-brand-400 transition-colors">Trang chủ</a>
-        <svg class="mx-2 h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <span class="text-gray-300">Sản phẩm yêu thích</span>
-    </nav>
-
-    <div class="mb-8 flex items-end justify-between">
-        <div>
-            <h1 class="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">Sản phẩm yêu thích</h1>
-            <p class="mt-2 text-sm text-gray-400">Danh sách các sản phẩm bạn đang quan tâm.</p>
-        </div>
-        <div class="hidden sm:block">
-            <span class="rounded-full bg-white/5 px-4 py-1.5 text-sm font-semibold text-gray-300 border border-white/10">
-                Tổng cộng: <span class="text-brand-400" id="wishlist-total-count">{{ $wishlists->count() }}</span> sản phẩm
-            </span>
-        </div>
+<div class="space-y-3">
+    <div class="flex">
+        <span class="rounded-full border border-[#e8e4de] bg-white px-3 py-1 text-[11px] font-semibold text-[#444] shadow-sm">Sản phẩm yêu thích</span>
     </div>
-
-    @if ($wishlists->isEmpty())
-        <div class="flex flex-col items-center justify-center rounded-3xl border border-white/5 bg-night-soft py-24 px-4 text-center">
-            <div class="mb-6 flex size-24 items-center justify-center rounded-full bg-white/5 text-gray-500">
-                <svg class="size-12" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.49-2.1-4.5-4.69-4.5-1.94 0-3.6 1.13-4.31 2.73a4.72 4.72 0 0 0-4.31-2.73C5.1 3.75 3 5.76 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                </svg>
-            </div>
-            <h2 class="text-lg font-bold text-white sm:text-xl">Danh sách yêu thích trống</h2>
-            <p class="mt-2 mb-6 max-w-sm text-sm text-gray-400">Bạn chưa lưu bất kỳ sản phẩm nào. Hãy khám phá và lưu lại những sản phẩm bạn thích nhé!</p>
-            <a href="{{ route('home') }}#san-pham" class="rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 hover:bg-brand-500 hover:-translate-y-0.5">
-                Tiếp tục mua sắm
-            </a>
-        </div>
-    @else
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            @foreach ($wishlists as $wishlist)
-                @php
-                    $product = $wishlist->product;
-                    $discount = null;
-                    if ($product->sale_price && $product->sale_price < $product->price) {
-                        $discount = (int) round((($product->price - $product->sale_price) / $product->price) * 100);
-                    }
-                @endphp
-                
-                <div class="wishlist-item relative">
-                    <x-product-card
-                        :id="$product->id"
-                        :name="$product->name"
-                        :image="$product->thumbnail ?: asset('images/placeholder.svg')"
-                        :price="$product->effective_price"
-                        :old-price="$product->sale_price ? $product->price : null"
-                        :discount="$discount"
-                        :rating="$product->rating_average ? round($product->rating_average, 1) : null"
-                        :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
-                        :is-flash-sale="$product->activeFlashSaleItem !== null"
-                        :href="route('products.show', $product)"
-                    />
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <h1 class="text-2xl font-bold">Sản phẩm yêu thích ({{ count($wishlists) }})</h1>
+        <div class="mt-5 space-y-3">
+            @forelse($wishlists as $wishlist)
+                <div class="flex items-center gap-4 rounded-[22px] border border-[#ece8e2] p-4 transition hover:shadow-md">
+                    <span class="text-red-500 text-lg">♥</span>
+                    <img src="{{ $wishlist->product->thumbnail ? (str_starts_with($wishlist->product->thumbnail, 'images/') ? asset($wishlist->product->thumbnail) : asset('storage/' . $wishlist->product->thumbnail)) : asset('images/placeholder.svg') }}" alt="{{ $wishlist->product->name }}" class="size-16 rounded-xl object-cover bg-[#faf9f7]" loading="lazy" decoding="async">
+                    <div class="min-w-0 flex-1">
+                        <a href="{{ route('products.show', $wishlist->product) }}" class="text-sm font-semibold hover:text-blue-600">
+                            {{ $wishlist->product->name }}
+                        </a>
+                        <div class="mt-1 text-sm font-bold">{{ number_format($wishlist->product->sale_price ?? $wishlist->product->price ?? 0, 0, ',', '.') }}đ</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <form method="POST" action="{{ route('cart.buy-now') }}" class="inline">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $wishlist->product->id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="rounded-full border border-[#e8e4de] px-4 py-2 text-sm font-semibold transition hover:bg-black hover:text-white">
+                                Mua ngay
+                            </button>
+                        </form>
+                        <button class="text-red-500 hover:text-red-700 transition remove-wishlist-btn" data-product-id="{{ $wishlist->product->id }}" title="Xóa">
+                            ✕
+                        </button>
+                    </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="text-center py-12">
+                    <p class="text-[#8b8b8b] mb-4">Chưa có sản phẩm yêu thích nào</p>
+                    <a href="{{ route('products.index') }}" class="inline-block rounded-lg bg-black px-6 py-2 text-sm font-semibold text-white transition hover:bg-[#222]">
+                        Tiếp tục mua sắm
+                    </a>
+                </div>
+            @endforelse
         </div>
-    @endif
+    </section>
 </div>
+
+<script>
+    document.querySelectorAll('.remove-wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            fetch('{{ route("wishlist.toggle") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'removed') {
+                    this.closest('.flex').remove();
+                    location.reload();
+                }
+            });
+        });
+    });
+</script>
 @endsection

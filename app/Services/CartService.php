@@ -105,6 +105,8 @@ class CartService
     {
         $product = Product::findOrFail($productId);
         $variant = $variantId ? ProductVariant::findOrFail($variantId) : null;
+        $variant = $this->resolveVariant($product, $variant);
+        $resolvedVariantId = $variant?->id;
 
         $price = $product->effective_price;
         if ($variant) {
@@ -124,7 +126,7 @@ class CartService
 
             $cartItem = CartItem::where('cart_id', $cart->id)
                 ->where('product_id', $productId)
-                ->where('variant_id', $variantId)
+                ->where('variant_id', $resolvedVariantId)
                 ->first();
 
             if ($cartItem) {
@@ -146,7 +148,7 @@ class CartService
                 $cartItem = CartItem::create([
                     'cart_id'    => $cart->id,
                     'product_id' => $productId,
-                    'variant_id' => $variantId,
+                    'variant_id' => $resolvedVariantId,
                     'quantity'   => $quantity,
                     'price'      => $price,
                 ]);
@@ -156,7 +158,7 @@ class CartService
         }
 
         $sessionCart = session()->get('cart', []);
-        $key = $this->generateSessionKey($productId, $variantId);
+        $key = $this->generateSessionKey($productId, $resolvedVariantId);
 
         if (isset($sessionCart[$key])) {
             $newQty = $sessionCart[$key]['quantity'] + $quantity;
@@ -173,7 +175,7 @@ class CartService
             }
             $sessionCart[$key] = [
                 'product_id' => $productId,
-                'variant_id' => $variantId,
+                'variant_id' => $resolvedVariantId,
                 'quantity'   => $quantity,
                 'price'      => $price,
             ];
@@ -376,13 +378,37 @@ class CartService
      */
     public function getAvailableStock(Product $product, ?ProductVariant $variant): int
     {
+        $variant = $this->resolveVariant($product, $variant);
+
         if ($variant) {
             $inventory = $variant->inventory;
         } else {
             $inventory = $product->inventory;
         }
 
+        if (! $inventory) {
+            return (int) $product->variants()
+                ->where('is_active', true)
+                ->with('inventory')
+                ->get()
+                ->sum(fn (ProductVariant $item) => $item->inventory?->available_quantity ?? 0);
+        }
+
         return $inventory ? $inventory->available_quantity : 0;
+    }
+
+    /**
+     * Nếu không chỉ định biến thể, lấy biến thể active đầu tiên có sẵn.
+     */
+    public function resolveVariant(Product $product, ?ProductVariant $variant): ?ProductVariant
+    {
+        if ($variant) {
+            return $variant;
+        }
+
+        return $product->relationLoaded('variants')
+            ? $product->variants->firstWhere('is_active', true)
+            : $product->variants()->where('is_active', true)->orderBy('id')->first();
     }
 
     /**

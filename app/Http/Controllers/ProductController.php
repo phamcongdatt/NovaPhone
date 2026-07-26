@@ -64,6 +64,31 @@ class ProductController extends Controller
         ]);
     }
 
+    public function show(Product $product): View
+    {
+        $product->load([
+            'brand',
+            'category',
+            'images',
+            'variants',
+            'reviews' => fn($q) => $q->where('is_visible', true)->latest(),
+            'activeFlashSaleItem.flashSale'
+        ]);
+
+        $relatedProducts = Product::where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('is_active', true)
+            ->with(['brand', 'activeFlashSaleItem.flashSale'])
+            ->withAvg(['reviews as rating_average' => fn($q) => $q->where('is_visible', true)], 'rating')
+            ->limit(4)
+            ->get();
+
+        return view('products.show', [
+            'product' => $product,
+            'relatedProducts' => $relatedProducts,
+        ]);
+    }
+
     public function quickSearch(Request $request)
     {
         $term = $request->input('q', '');

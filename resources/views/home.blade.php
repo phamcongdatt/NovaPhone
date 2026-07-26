@@ -1,583 +1,271 @@
 @extends('layouts.app')
 
-@section('title', 'NovaPhone — Điện thoại chính hãng, công nghệ mới nhất trong tầm tay')
+@section('title', 'Trang chủ - NovaPhone')
 
-@php
-    // Dữ liệu tĩnh mô phỏng (sẽ thay bằng dữ liệu từ Controller/API khi làm Backend)
-    $productImages = [
-        'iPhone 15 Pro Max 256GB' => 'iphone-15-pro-max-256gb.jpg',
-        'Samsung Galaxy S24 Ultra 256GB' => 'samsung-galaxy-s24-ultra-256gb.webp',
-        'Xiaomi 14T Pro 512GB' => 'xiaomi-14t-pro-512gb.jpg',
-        'OPPO Find X7 Ultra 256GB' => 'oppo-find-x7-ultra.webp',
-        'Vivo X100 Pro 256GB' => 'vivo-x100-pro.webp',
-        'Realme GT 6 512GB' => 'realme-gt-6-512gb.webp',
-        'Samsung Galaxy S24 Ultra' => 'samsung-galaxy-s24-ultra.jpg',
-        'iPhone 15 128GB' => 'iphone-15-128gb.webp',
-        'Xiaomi Redmi Note 13 Pro' => 'xiaomi-redmi-note-13-pro.webp',
-        'iPhone 16 128GB' => 'iphone-16-128gb.webp',
-        'Samsung Galaxy Z Flip6' => 'samsung-galaxy-z-flip6.webp',
-        'Xiaomi 14 Ultra' => 'xiaomi-14-ultra.webp',
-        'OPPO Reno12 Pro' => 'oppo-reno12-pro.webp',
-        'iPhone 17 Pro Max' => 'iphone-17-pro-max.jpg',
-    ];
-    $productImage = fn ($name) => asset('images/products/'.($productImages[$name] ?? 'iphone-15-pro-max-256gb.jpg'));
-
-    $flashSale = [
-        ['name' => 'iPhone 15 Pro Max 256GB', 'image' => $productImage('iPhone 15 Pro Max 256GB'), 'price' => 28990000, 'oldPrice' => 34990000, 'discount' => 17, 'sold' => '128', 'soldPercent' => 72],
-        ['name' => 'Samsung Galaxy S24 Ultra 256GB', 'image' => $productImage('Samsung Galaxy S24 Ultra 256GB'), 'price' => 25990000, 'oldPrice' => 31990000, 'discount' => 19, 'sold' => '96', 'soldPercent' => 58],
-        ['name' => 'Xiaomi 14T Pro 512GB', 'image' => $productImage('Xiaomi 14T Pro 512GB'), 'price' => 14990000, 'oldPrice' => 18990000, 'discount' => 21, 'sold' => '215', 'soldPercent' => 85],
-        ['name' => 'OPPO Find X7 Ultra 256GB', 'image' => $productImage('OPPO Find X7 Ultra 256GB'), 'price' => 16990000, 'oldPrice' => 21990000, 'discount' => 23, 'sold' => '54', 'soldPercent' => 40],
-        ['name' => 'Vivo X100 Pro 256GB', 'image' => $productImage('Vivo X100 Pro 256GB'), 'price' => 17990000, 'oldPrice' => 21990000, 'discount' => 18, 'sold' => '64', 'soldPercent' => 47],
-        ['name' => 'Realme GT 6 512GB', 'image' => $productImage('Realme GT 6 512GB'), 'price' => 11990000, 'oldPrice' => 14990000, 'discount' => 20, 'sold' => '47', 'soldPercent' => 35],
-    ];
-
-    $newArrival = [
-        ['name' => 'iPhone 16 128GB', 'image' => $productImage('iPhone 16 128GB'), 'price' => 22990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'Samsung Galaxy Z Flip6', 'image' => $productImage('Samsung Galaxy Z Flip6'), 'price' => 26990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'Xiaomi 14 Ultra', 'image' => $productImage('Xiaomi 14 Ultra'), 'price' => 24990000, 'rating' => 5.0, 'badge' => 'Mới'],
-        ['name' => 'OPPO Reno12 Pro', 'image' => $productImage('OPPO Reno12 Pro'), 'price' => 12990000, 'rating' => 5.0, 'badge' => 'Mới'],
-    ];
-
-    $brands = [
-        ['name' => 'iPhone', 'count' => '120+ sản phẩm'],
-        ['name' => 'Samsung', 'count' => '80+ sản phẩm'],
-        ['name' => 'Xiaomi', 'count' => '98+ sản phẩm'],
-        ['name' => 'OPPO', 'count' => '60+ sản phẩm'],
-        ['name' => 'Vivo', 'count' => '85+ sản phẩm'],
-        ['name' => 'Realme', 'count' => '45+ sản phẩm'],
-        ['name' => 'Honor', 'count' => '30+ sản phẩm'],
-        ['name' => 'Google', 'count' => '15+ sản phẩm'],
-    ];
-
-    $services = [
-        ['title' => 'Miễn phí giao hàng', 'desc' => 'Toàn quốc cho đơn từ 500k', 'icon' => 'M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.9 17.9 0 0 0-3.213-9.193 2.06 2.06 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12'],
-        ['title' => 'Thu cũ đổi mới', 'desc' => 'Trợ giá đến 5 triệu đồng', 'icon' => 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'],
-        ['title' => 'Trả góp 0%', 'desc' => 'Duyệt nhanh trong 5 phút', 'icon' => 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z'],
-        ['title' => 'Bảo hành chính hãng', 'desc' => '12 – 24 tháng chính hãng', 'icon' => 'M9 12.75 11.25 15 15 9.75m-3-7.036A11.96 11.96 0 0 1 3.6 6c-.34 1.01-.6 2.08-.6 3.22 0 5.59 3.82 10.29 9 11.62 5.18-1.33 9-6.03 9-11.62 0-1.14-.26-2.21-.6-3.22a11.96 11.96 0 0 1-8.4-3.29Z'],
-    ];
-
-    $tradeinSteps = [
-        ['step' => 1, 'title' => 'Chọn máy cũ', 'desc' => 'Chọn thương hiệu & tình trạng'],
-        ['step' => 2, 'title' => 'Định giá online', 'desc' => 'Nhận giá thu ngay lập tức'],
-        ['step' => 3, 'title' => 'Lên đời dễ dàng', 'desc' => 'Bù tiền nhận máy mới'],
-    ];
-
-
-    $detailHref = fn ($name) => route('products.show', \Illuminate\Support\Str::slug($name));
-@endphp
+@push('head')
+    @if ($banners->isNotEmpty() && $banners->first()->image)
+        <link rel="preload" as="image" href="{{ str_starts_with($banners->first()->image, 'http') ? $banners->first()->image : (str_starts_with($banners->first()->image, 'images/') ? asset($banners->first()->image) : asset('storage/' . $banners->first()->image)) }}" fetchpriority="high">
+    @endif
+@endpush
 
 @section('content')
-
-{{-- ===================== 1. Hero Banner ===================== --}}
-<section class="relative overflow-hidden" data-hero-slider>
-    <div class="hero-glow absolute inset-0"></div>
-    <div class="absolute inset-0 opacity-[0.05]" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 28px 28px;"></div>
-
-    @forelse($banners as $index => $banner)
-        <div class="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:py-20 banner-slide {{ $index === 0 ? 'active' : 'hidden' }}" data-index="{{ $index }}">
-            <div class="reveal revealed text-center lg:text-left">
-                @if($banner->badge)
-                <span class="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold tracking-wide text-brand-300 backdrop-blur">
-                    <span class="size-1.5 animate-pulse rounded-full bg-brand-400"></span>
-                    {{ $banner->badge }}
-                </span>
-                @endif
-
-                <h1 data-hero-title class="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-                    {!! $banner->title !!}
-                </h1>
-                
-                @if($banner->description)
-                <p data-hero-subtitle class="mt-4 text-lg font-medium text-gray-300">{{ $banner->description }}</p>
-                @endif
-
-                {{-- Chips tính năng nổi bật --}}
-                @if($banner->highlights && count($banner->highlights) > 0)
-                <div data-hero-chips class="mt-6 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start">
-                    @foreach ($banner->highlights as $chip)
-                        <span class="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-gray-300 backdrop-blur">{{ $chip }}</span>
-                    @endforeach
-                </div>
-                @endif
-
-                <div class="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-                    @if($banner->buy_url)
-                    <a href="{{ $banner->buy_url }}"
-                       data-hero-buy
-                       class="rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-3.5 text-sm font-bold text-gray-900 shadow-lg shadow-amber-500/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/35 active:translate-y-0">
-                        Mua ngay
-                    </a>
-                    @endif
-                    @if($banner->detail_url)
-                    <a href="{{ $banner->detail_url }}"
-                       data-hero-detail
-                       class="rounded-2xl border border-white/15 bg-white/5 px-8 py-3.5 text-sm font-bold text-white backdrop-blur transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-white/10">
-                        Xem chi tiết
-                    </a>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Ảnh sản phẩm hero --}}
-            <div class="relative hidden justify-center lg:flex">
-                <div class="absolute inset-0 m-auto h-72 w-[34rem] rounded-full bg-brand-600/25 blur-3xl"></div>
-                <img src="{{ asset($banner->image) }}"
-                     alt="Banner"
-                     loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
-                     data-hero-image
-                     class="float-slow relative aspect-[16/9] w-[36rem] rounded-[2rem] border border-white/10 object-cover shadow-2xl shadow-black/60">
-            </div>
-        </div>
-    @empty
-        <div class="relative mx-auto flex min-h-[400px] max-w-7xl items-center justify-center px-4 py-14 sm:px-6 lg:py-20">
-            <p class="text-gray-400">Chưa có banner nào.</p>
-        </div>
-    @endforelse
-
-    @if($banners->count() > 1)
-    {{-- Điều hướng slider --}}
-    <button type="button" data-hero-prev aria-label="Banner trước" class="absolute left-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex z-10">
-        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-    </button>
-    <button type="button" data-hero-next aria-label="Banner sau" class="absolute right-3 top-1/2 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur transition-all duration-200 ease-in-out hover:bg-white/15 lg:flex z-10">
-        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-    </button>
-    {{-- Chấm chuyển slide --}}
-    <div class="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2 z-10">
-        @foreach($banners as $index => $banner)
-            <button type="button" data-hero-dot="{{ $index }}" aria-label="Chuyển đến banner {{ $index + 1 }}" class="{{ $index === 0 ? 'h-1.5 w-6 bg-brand-500' : 'size-1.5 bg-white/25' }} rounded-full transition-all duration-200"></button>
-        @endforeach
+<div class="space-y-4">
+    {{-- Breadcrumb --}}
+    <div class="flex">
+        <span class="rounded-full border border-[#e8e4de] bg-white px-3 py-1 text-[11px] font-semibold text-[#444] shadow-sm">Trang chủ</span>
     </div>
-    @endif
-</section>
 
-{{-- ===================== 2. Thương hiệu ===================== --}}
-<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-    <div class="reveal-stagger grid grid-cols-3 gap-3 rounded-3xl border border-white/5 bg-night-soft p-4 sm:grid-cols-5 lg:grid-cols-9">
-        @foreach ($brands as $brand)
-            <a href="#" class="group flex flex-col items-center gap-2 rounded-2xl p-4 text-center transition-all duration-200 ease-in-out hover:-translate-y-1 hover:bg-white/5">
-                <span class="flex size-11 items-center justify-center rounded-full bg-white/5 text-sm font-extrabold text-gray-300 transition-all duration-200 ease-in-out group-hover:bg-brand-600 group-hover:text-white">
-                    {{ mb_substr($brand['name'], 0, 1) }}
-                </span>
-                <span>
-                    <span class="block text-xs font-bold text-white">{{ $brand['name'] }}</span>
-                    <span class="mt-0.5 block text-[10px] text-gray-500">{{ $brand['count'] }}</span>
-                </span>
-            </a>
-        @endforeach
-        <a href="#" class="group flex flex-col items-center justify-center gap-2 rounded-2xl p-4 text-center transition-all duration-200 ease-in-out hover:-translate-y-1 hover:bg-white/5">
-            <span class="flex size-11 items-center justify-center rounded-full border border-dashed border-white/20 text-gray-400 transition-all duration-200 ease-in-out group-hover:border-brand-500 group-hover:text-brand-400">
-                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-            </span>
-            <span class="block text-xs font-bold text-gray-400 group-hover:text-white">Xem tất cả</span>
-        </a>
-    </div>
-</section>
-
-{{-- ===================== 3. Cam kết dịch vụ ===================== --}}
-<section class="mx-auto max-w-7xl px-4 pb-4 sm:px-6">
-    <div class="reveal-stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
-        @foreach ($services as $sv)
-            <div class="flex items-center gap-3.5 rounded-2xl border border-white/5 bg-night-soft p-4 transition-all duration-200 ease-in-out hover:border-brand-500/30">
-                <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-600/15 text-brand-400">
-                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $sv['icon'] }}"/></svg>
-                </span>
-                <span>
-                    <span class="block text-sm font-bold text-white">{{ $sv['title'] }}</span>
-                    <span class="mt-0.5 block text-xs text-gray-500">{{ $sv['desc'] }}</span>
-                </span>
-            </div>
-        @endforeach
-    </div>
-</section>
-
-{{-- ===================== 4. Flash Sale ===================== --}}
-@if(isset($activeFlashSale))
-<section id="flash-sale" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-10 sm:px-6">
-    <div class="reveal rounded-3xl border border-white/5 bg-night-soft p-5 sm:p-7">
-        {{-- Tiêu đề + đếm ngược --}}
-        <div class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div class="flex items-center gap-3">
-                <span class="flex size-10 items-center justify-center rounded-xl bg-amber-400/15 text-amber-400">
-                    <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2 4.09 12.69a.6.6 0 0 0 .46.99H11l-1.27 7.4a.6.6 0 0 0 1.07.47l8.91-10.68a.6.6 0 0 0-.46-.99H13l1.27-7.4A.6.6 0 0 0 13.2 2H13Z"/></svg>
-                </span>
-                <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">{{ $activeFlashSale->name ?? 'Flash Sale' }}</h2>
-            </div>
-
-            <div class="flex items-center gap-4">
-                {{-- Countdown --}}
-                <div class="flex items-center gap-1.5" data-countdown="{{ $activeFlashSale->end_time->format('Y-m-d\TH:i:s') }}" role="timer" aria-label="Thời gian còn lại của Flash Sale">
-                    <span class="mr-1 text-xs text-gray-500">Kết thúc sau:</span>
-                    @foreach ([['gio', 'Giờ'], ['phut', 'Phút'], ['giay', 'Giây']] as $i => [$key, $label])
-                        @if ($i > 0)
-                            <span class="pb-4 text-sm font-bold text-white/40">:</span>
-                        @endif
-                        <div class="flex flex-col items-center">
-                            <span data-cd="{{ $key }}" class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-sm font-extrabold tabular-nums text-white">00</span>
-                            <span class="mt-1 text-[9px] font-medium uppercase tracking-wider text-gray-500">{{ $label }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-        {{-- Lưới sản phẩm sale --}}
-        <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            @foreach ($activeFlashSale->items as $item)
-                @if($item->product)
+    {{-- Hero banners --}}
+    @if ($banners->isNotEmpty())
+        <section class="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-white" data-hero-slider aria-roledescription="carousel">
+            <div class="flex transform-gpu transition-transform duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none" data-hero-track>
+                @foreach ($banners as $index => $banner)
                     @php
-                        $product = $item->product;
-                        $soldPercent = $item->quantity > 0 ? min(100, round(($item->sold / $item->quantity) * 100)) : 0;
+                        $bannerImage = $banner->image
+                            ? (str_starts_with($banner->image, 'http') ? $banner->image : (str_starts_with($banner->image, 'images/') ? asset($banner->image) : asset('storage/' . $banner->image)))
+                            : asset('images/placeholder.svg');
                     @endphp
-                    <x-product-card
-                        :id="$product->id"
-                        :name="$product->name" 
-                        :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')" 
-                        :price="$product->price * (1 - $item->discount_percent / 100)" 
-                        :old-price="$product->price"
-                        :discount="$item->discount_percent" 
-                        :sold="$item->sold" 
-                        :sold-percent="$soldPercent"
-                        :is-flash-sale="true"
-                        :href="route('products.show', $product)"
-                    />
-                @endif
+                    <article class="w-full shrink-0" data-hero-slide aria-hidden="{{ $index === 0 ? 'false' : 'true' }}">
+                        <div class="grid min-h-[360px] gap-0 lg:min-h-[460px] lg:grid-cols-[1.1fr_.9fr]">
+                            <div class="p-7 sm:p-10 lg:py-16 lg:pl-[9vw] lg:pr-14">
+                                @if ($banner->badge)
+                                    <p class="text-sm font-semibold text-[#9a9a9a]">{{ $banner->badge }}</p>
+                                @endif
+                                <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-[#171717] sm:text-5xl">{{ $banner->title }}</h1>
+                                @if ($banner->description)
+                                    <p class="mt-4 max-w-md text-sm leading-6 text-[#7b7b7b]">{{ $banner->description }}</p>
+                                @endif
+                                @if ($banner->highlights)
+                                    <div class="mt-4 flex flex-wrap gap-2">
+                                        @foreach ($banner->highlights as $highlight)
+                                            <span class="rounded-full bg-[#f5f4f1] px-3 py-1 text-xs text-[#555]">{{ $highlight }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <div class="mt-7 flex flex-wrap items-center gap-3">
+                                    <a href="{{ $banner->buy_url ?: route('products.index') }}" class="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition-colors duration-300 hover:bg-[#222]">Mua ngay</a>
+                                    @if ($banner->detail_url)
+                                        <a href="{{ $banner->detail_url }}" class="rounded-full border border-[#e6e2dc] bg-white px-5 py-3 text-sm font-semibold text-[#161616] transition-colors duration-300 hover:bg-[#faf9f7]">Tìm hiểu thêm</a>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex min-h-64 items-center justify-center bg-gradient-to-br from-[#f8f7f4] to-white p-4 sm:p-8">
+                                <img src="{{ $bannerImage }}" alt="{{ $banner->title }}" loading="{{ $index === 0 ? 'eager' : 'lazy' }}" fetchpriority="{{ $index === 0 ? 'high' : 'low' }}" decoding="async" class="max-h-[360px] w-full object-contain lg:max-h-[440px]" data-hero-image>
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+            @if ($banners->count() > 1)
+                <div class="absolute bottom-4 right-5 flex items-center gap-2">
+                    <button type="button" data-hero-prev aria-label="Banner trước" class="grid size-8 place-items-center rounded-full border border-[#e8e4de] bg-white/90 text-sm transition-transform duration-300 hover:scale-105">‹</button>
+                    @foreach ($banners as $index => $banner)
+                        <button type="button" data-hero-dot="{{ $index }}" aria-label="Chuyển đến banner {{ $index + 1 }}" aria-current="{{ $index === 0 ? 'true' : 'false' }}" class="size-2 rounded-full transition-all duration-300 {{ $index === 0 ? 'scale-125 bg-black' : 'bg-[#d8d4cd]' }}"></button>
+                    @endforeach
+                    <button type="button" data-hero-next aria-label="Banner tiếp theo" class="grid size-8 place-items-center rounded-full border border-[#e8e4de] bg-white/90 text-sm transition-transform duration-300 hover:scale-105">›</button>
+                </div>
+            @endif
+        </section>
+    @endif
+
+    {{-- Flash Sale --}}
+    @if ($activeFlashSale)
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-[#171717]">Flash Sale</h2>
+                <p class="text-[12px] text-[#7f7f7f]">Ưu đãi giới hạn thời gian</p>
+            </div>
+            <div class="rounded-full bg-[#f5f4f1] px-3 py-1 text-[11px] font-semibold text-[#4a4a4a]" id="flash-sale-timer">00 : 00 : 00 : 00</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+            @forelse ($activeFlashSale->items->take(5) as $item)
+                @php
+                    $product = $item->product;
+                    $discount = $item->discount_percent;
+                @endphp
+                <x-product-card
+                    :id="$product->id"
+                    :name="$product->name"
+                    :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail))) : asset('images/placeholder.svg')"
+                    :price="$product->effective_price"
+                    :oldPrice="$product->price"
+                    :discount="$discount"
+                    :href="route('products.show', $product)"
+                />
+            @empty
+                <p class="col-span-full text-center text-gray-500">Không có sản phẩm trong flash sale</p>
+            @endforelse
+        </div>
+    </section>
+    @endif
+
+    {{-- Best Sellers --}}
+    @if ($bestSellerProducts->isNotEmpty())
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-[#171717]">Sản phẩm bán chạy</h2>
+                <p class="text-[12px] text-[#7f7f7f]">Các sản phẩm được yêu thích nhất</p>
+            </div>
+            <a href="{{ route('products.index') }}" class="text-xs font-semibold text-[#111] hover:text-[#666]">Xem tất cả</a>
+        </div>
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            @foreach ($bestSellerProducts as $product)
+                <x-product-card
+                    :id="$product->id"
+                    :name="$product->name"
+                    :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail))) : asset('images/placeholder.svg')"
+                    :price="$product->effective_price"
+                    :oldPrice="$product->sale_price && $product->sale_price < $product->price ? $product->price : null"
+                    :href="route('products.show', $product)"
+                />
             @endforeach
         </div>
-    </div>
-</section>
-@endif
-
-{{-- ===================== 5. Điện thoại / Lọc theo giá, thương hiệu, tính năng ===================== --}}
-<section id="san-pham" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
-    <div class="reveal mb-6">
-        <div class="mb-5">
-            <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">Điện thoại</h2>
-            <p class="mt-1 text-sm text-gray-500">Lọc nhanh sản phẩm theo giá, thương hiệu và tính năng bạn cần.</p>
-        </div>
-
-        <form method="GET" action="{{ route('home') }}#san-pham"
-              class="rounded-2xl border border-white/5 bg-night-soft p-4 shadow-xl shadow-black/20">
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-12">
-                <div class="flex flex-col gap-1.5 xl:col-span-2">
-                    <label for="search-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Từ khóa</label>
-                    <input id="search-filter" name="q" type="search" value="{{ $selectedSearchQuery }}"
-                           placeholder="Tên, SKU..."
-                           class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                </div>
-
-                <div class="flex flex-col gap-1.5 xl:col-span-2">
-                    <label for="price-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Khoảng giá</label>
-                    <select id="price-filter" name="price"
-                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                        <option value="">Tất cả mức giá</option>
-                        @foreach ($priceRanges as $value => $label)
-                            <option value="{{ $value }}" @selected($selectedPriceRange === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex flex-col gap-1.5 xl:col-span-2">
-                    <label for="category-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Danh mục</label>
-                    <select id="category-filter" name="category"
-                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                        <option value="">Tất cả danh mục</option>
-                        @foreach ($filterCategories as $category)
-                            <option value="{{ $category->slug }}" @selected($selectedCategorySlug === $category->slug)>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex flex-col gap-1.5 xl:col-span-2">
-                    <label for="brand-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Thương hiệu</label>
-                    <select id="brand-filter" name="brand"
-                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                        <option value="">Tất cả thương hiệu</option>
-                        @foreach ($filterBrands as $brand)
-                            <option value="{{ $brand->slug }}" @selected($selectedBrandSlug === $brand->slug)>
-                                {{ $brand->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex flex-col gap-1.5 xl:col-span-2">
-                    <label for="sort-filter" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sắp xếp</label>
-                    <select id="sort-filter" name="sort"
-                            class="h-12 rounded-xl border border-white/10 bg-night-card px-4 text-sm font-semibold text-white outline-none transition-all duration-200 ease-in-out focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                        @foreach ($sortOptions as $value => $label)
-                            <option value="{{ $value }}" @selected($selectedSort === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex items-end gap-2 xl:col-span-2">
-                    <button type="submit"
-                            class="h-12 flex-1 rounded-xl bg-brand-600 px-3 text-sm font-bold text-white shadow-lg shadow-brand-600/20 transition-all duration-200 ease-in-out hover:bg-brand-500">
-                        Lọc
-                    </button>
-                    @if ($selectedSearchQuery || $selectedPriceRange || $selectedBrandSlug || $selectedCategorySlug || $selectedFeatures)
-                        <a href="{{ route('home') }}#san-pham"
-                           class="flex h-12 items-center justify-center rounded-xl border border-white/10 px-3 text-center text-sm font-bold text-gray-300 transition-all duration-200 ease-in-out hover:bg-white/5 hover:text-white">
-                            Xóa
-                        </a>
-                    @endif
-                </div>
-            </div>
-
-            <fieldset class="mt-4">
-                <legend class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Tính năng</legend>
-                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                    @foreach ($featureFilters as $value => $label)
-                        <label class="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-night-card px-3 text-sm font-semibold text-gray-300 transition-colors duration-200 hover:border-brand-500/50 hover:text-white">
-                            <input type="checkbox" name="features[]" value="{{ $value }}" @checked(in_array($value, $selectedFeatures, true))
-                                   class="size-4 rounded border-white/20 bg-white/5 text-brand-600 focus:ring-brand-500">
-                            <span>{{ $label }}</span>
-                        </label>
-                    @endforeach
-                </div>
-            </fieldset>
-        </form>
-    </div>
-
-    <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-        @forelse ($catalogProducts as $product)
-            @php
-                $discount = null;
-                if ($product->sale_price && $product->sale_price < $product->price) {
-                    $discount = (int) round((($product->price - $product->sale_price) / $product->price) * 100);
-                }
-            @endphp
-            <x-product-card
-                :id="$product->id"
-                :name="$product->name"
-                :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')"
-                :price="$product->effective_price"
-                :old-price="$product->sale_price ? $product->price : null"
-                :discount="$discount"
-                :rating="$product->rating_average ? round($product->rating_average, 1) : null"
-                :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
-                :is-flash-sale="$product->activeFlashSaleItem !== null"
-                :href="route('products.show', $product)"
-            />
-        @empty
-            <div class="col-span-full rounded-2xl border border-white/5 bg-night-soft p-8 text-center">
-                <p class="text-sm font-semibold text-white">Chưa có sản phẩm phù hợp.</p>
-                <p class="mt-1 text-xs text-gray-500">Thử tìm từ khóa khác hoặc chọn lại bộ lọc để xem thêm điện thoại.</p>
-            </div>
-        @endforelse
-    </div>
-
-    @if ($catalogProducts->hasPages())
-        <div class="mt-8">
-            {{ $catalogProducts->links() }}
-        </div>
+    </section>
     @endif
-</section>
 
-{{-- ===================== 5. Best Seller + New Arrival ===================== --}}
-<section class="mx-auto max-w-7xl scroll-mt-24 px-4 py-6 sm:px-6">
-    <div class="grid gap-10 lg:grid-cols-2 lg:gap-8">
-        {{-- Best Seller (dữ liệu thật từ OrderItem → sold_count) --}}
-        <div class="reveal">
-            <div class="mb-5 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="flex size-9 items-center justify-center rounded-xl text-amber-400 bg-amber-400/15">
-                        <svg class="size-4.5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2 4.09 12.69a.6.6 0 0 0 .46.99H11l-1.27 7.4a.6.6 0 0 0 1.07.47l8.91-10.68a.6.6 0 0 0-.46-.99H13l1.27-7.4A.6.6 0 0 0 13.2 2H13Z"/></svg>
-                    </span>
-                    <h2 class="text-lg font-extrabold tracking-tight text-white sm:text-xl">Bán Chạy</h2>
-                </div>
-                <a href="{{ route('home', ['sort' => 'best-selling']) }}#san-pham"
-                   class="inline-flex items-center gap-1 text-xs font-semibold text-brand-400 transition-colors duration-200 hover:text-brand-300">
-                    Xem tất cả
-                    <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-                </a>
-            </div>
-            <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-                @forelse ($bestSellerProducts as $product)
-                    @php
-                        $discount = null;
-                        if ($product->sale_price && $product->sale_price < $product->price) {
-                            $discount = (int) round((($product->price - $product->sale_price) / $product->price) * 100);
-                        }
-                    @endphp
-                    <x-product-card
-                        :id="$product->id"
-                        :name="$product->name"
-                        :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg')"
-                        :price="$product->effective_price"
-                        :old-price="$product->sale_price ? $product->price : null"
-                        :discount="$discount"
-                        :rating="$product->rating_average ? round($product->rating_average, 1) : null"
-                        :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
-                        :is-flash-sale="$product->activeFlashSaleItem !== null"
-                        :href="route('products.show', $product)"
-                    />
-                @empty
-                    <div class="col-span-full rounded-2xl border border-white/5 bg-night-soft p-6 text-center">
-                        <p class="text-sm text-gray-400">Chưa có sản phẩm bán chạy.</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-
-        {{-- New Arrival (tạm thời vẫn dùng dữ liệu tĩnh) --}}
-        <div class="reveal">
-            <div class="mb-5 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="flex size-9 items-center justify-center rounded-xl text-violet-400 bg-violet-400/15">
-                        <svg class="size-4.5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.48 3.5c.2-.6 1.04-.6 1.24 0l1.65 5.06a.65.65 0 0 0 .62.45h5.32c.63 0 .9.81.38 1.18l-4.3 3.13a.65.65 0 0 0-.24.73l1.64 5.06c.2.6-.49 1.1-1 .73l-4.3-3.13a.65.65 0 0 0-.77 0l-4.3 3.13c-.51.37-1.2-.13-1-.73l1.64-5.06a.65.65 0 0 0-.24-.73l-4.3-3.13c-.51-.37-.25-1.18.38-1.18h5.32a.65.65 0 0 0 .62-.45l1.65-5.06Z"/></svg>
-                    </span>
-                    <h2 class="text-lg font-extrabold tracking-tight text-white sm:text-xl">Sản Phẩm Mới</h2>
-                </div>
-                <a href="{{ route('home', ['sort' => 'newest']) }}#san-pham"
-                   class="inline-flex items-center gap-1 text-xs font-semibold text-brand-400 transition-colors duration-200 hover:text-brand-300">
-                    Xem tất cả
-                    <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-                </a>
-            </div>
-            <div class="reveal-stagger grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-                @foreach ($newArrival as $p)
-                    <x-product-card
-                        :name="$p['name']" :image="$p['image']" :price="$p['price']"
-                        :rating="$p['rating']" :sold="$p['sold'] ?? null" :badge="$p['badge'] ?? null"
-                        :href="$detailHref($p['name'])"
-                    />
-                @endforeach
-            </div>
-        </div>
-    </div>
-</section>
-
-{{-- ===================== 6. Thu cũ đổi mới ===================== --}}
-<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-    <div class="reveal relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-r from-brand-950 via-night-soft to-night-soft">
-        <div class="hero-glow absolute inset-0 opacity-60"></div>
-        <div class="relative grid items-center gap-8 p-6 sm:p-10 lg:grid-cols-[1fr_1.4fr_auto]">
-            {{-- Cột trái: thông điệp --}}
+    {{-- Featured Products --}}
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <div class="mb-4 flex items-center justify-between">
             <div>
-                <span class="mb-3 inline-block rounded-full border border-brand-500/30 bg-brand-600/15 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-brand-300">
-                    Thu cũ đổi mới
-                </span>
-                <h2 class="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">Lên đời flagship</h2>
-                <p class="mt-1.5 text-sm text-gray-400">
-                    Trợ giá đến <span class="font-extrabold text-amber-400">5.000.000₫</span>
-                </p>
-                <a href="#" class="mt-5 inline-block rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-3 text-sm font-bold text-gray-900 shadow-lg shadow-amber-500/25 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/35">
-                    Định giá máy ngay
-                </a>
+                <h2 class="text-lg font-bold text-[#171717]">Thương hiệu nổi bật</h2>
+                <p class="text-[12px] text-[#7f7f7f]">Khám phá sản phẩm theo thương hiệu</p>
             </div>
-
-            {{-- Cột giữa: 3 bước --}}
-            <div class="grid gap-4 sm:grid-cols-3">
-                @foreach ($tradeinSteps as $step)
-                    <div class="flex items-start gap-3 sm:flex-col sm:gap-2.5">
-                        <span class="flex size-9 shrink-0 items-center justify-center rounded-full border border-brand-500/40 bg-brand-600/15 text-sm font-extrabold text-brand-300">{{ $step['step'] }}</span>
-                        <span>
-                            <span class="block text-sm font-bold text-white">{{ $step['title'] }}</span>
-                            <span class="mt-0.5 block text-xs text-gray-500">{{ $step['desc'] }}</span>
-                        </span>
+            <a href="{{ route('products.index') }}" class="text-xs font-semibold text-[#111] hover:text-[#666]">Xem tất cả</a>
+        </div>
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            @forelse ($filterBrands->take(4) as $brand)
+                <a href="{{ route('products.index', ['brand' => $brand->id]) }}" class="group rounded-[22px] border border-[#ece8e2] bg-[#fbfaf8] p-4 text-center transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-0.5 hover:border-[#ddd] hover:shadow-md">
+                    <div class="mx-auto flex h-14 w-28 items-center justify-center rounded-2xl bg-white px-3 shadow-sm transition-transform duration-300 ease-out group-hover:scale-[1.03]">
+                        @if ($brand->logo)
+                            <img src="{{ asset($brand->logo) }}" alt="" aria-hidden="true" loading="lazy" decoding="async" class="max-h-7 max-w-full object-contain">
+                        @else
+                            <span class="text-sm font-bold text-[#171717]">{{ mb_substr($brand->name, 0, 1) }}</span>
+                        @endif
                     </div>
-                @endforeach
-            </div>
-
-            {{-- Cột phải: hình minh hoạ --}}
-            <div class="hidden xl:block">
-                <img src="{{ asset('images/placeholder.svg') }}"
-                     alt="Thu cũ đổi mới tại NovaPhone"
-                     loading="lazy"
-                     class="w-64 rounded-2xl border border-white/10 shadow-xl shadow-black/40">
-            </div>
+                    <div class="mt-3 text-sm font-semibold text-[#171717] group-hover:text-black">{{ $brand->name }}</div>
+                    <div class="mt-1 text-[11px] text-[#8b8b8b]">{{ $brand->products_count }} sản phẩm</div>
+                </a>
+            @empty
+                <p class="col-span-full text-center text-gray-500">Không có thương hiệu nào</p>
+            @endforelse
         </div>
-    </div>
-</section>
+    </section>
 
-{{-- ===================== 7. Tech Journal ===================== --}}
-<section id="tech-journal" class="mx-auto max-w-7xl scroll-mt-24 px-4 py-10 sm:px-6">
-    <div class="reveal mb-6 flex items-end justify-between">
-        <h2 class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">Tin Tức Công Nghệ</h2>
-        <a href="{{ route('posts.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-400 transition-colors duration-200 hover:text-brand-300">
-            Xem tất cả
-            <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-        </a>
-    </div>
-
-    <div class="reveal-stagger grid grid-cols-2 gap-4 lg:grid-cols-4">
-        @foreach ($latestPosts as $article)
-            <a href="{{ route('posts.show', $article->slug) }}"
-               class="group overflow-hidden rounded-2xl border border-white/5 bg-night-card transition-all duration-200 ease-in-out hover:-translate-y-1.5 hover:border-brand-500/40 hover:shadow-xl hover:shadow-black/50">
-                <div class="skeleton overflow-hidden">
-                    <img src="{{ $article->thumbnail ? (str_starts_with($article->thumbnail, 'images/') ? asset($article->thumbnail) : asset('storage/' . $article->thumbnail)) : asset('images/placeholder.svg') }}" alt="{{ $article->title }}" loading="lazy" data-skeleton
-                         class="aspect-[8/5] w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105">
-                </div>
-                <div class="p-4">
-                    <h3 class="line-clamp-2 text-sm font-bold leading-snug text-gray-100 transition-colors duration-200 group-hover:text-brand-400">
-                        {{ $article->title }}
-                    </h3>
-                    <p class="mt-2 text-[11px] text-gray-500">{{ $article->published_at ? $article->published_at->format('d/m/Y') : '-' }}</p>
-                </div>
-            </a>
-        @endforeach
-    </div>
-</section>
-
-{{-- ===================== 8. Đăng ký nhận tin ===================== --}}
-<section class="mx-auto max-w-7xl px-4 pb-14 pt-4 sm:px-6">
-    <div class="reveal relative overflow-hidden rounded-3xl border border-brand-500/20 bg-gradient-to-r from-brand-950 to-night-soft px-6 py-8 sm:px-10">
-        <div class="hero-glow absolute inset-0 opacity-50"></div>
-        <div class="relative flex flex-col items-center justify-between gap-6 lg:flex-row">
-            <div class="flex items-center gap-4">
-                <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brand-600/20 text-brand-400">
-                    <svg class="size-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.24a2.25 2.25 0 0 1-1.07 1.92l-7.5 4.61a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.92v-.24"/></svg>
-                </span>
-                <div class="text-center lg:text-left">
-                    <h2 class="text-lg font-extrabold tracking-tight text-white sm:text-xl">Đăng ký nhận tin khuyến mãi</h2>
-                    <p class="mt-1 text-xs text-gray-400">Nhận ngay ưu đãi độc quyền từ NovaPhone</p>
-                </div>
+    {{-- Latest Posts --}}
+    @if ($latestPosts->isNotEmpty())
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-[#171717]">Bài viết mới nhất</h2>
+                <p class="text-[12px] text-[#7f7f7f]">Tin tức và mẹo sử dụng</p>
             </div>
-            <form class="flex w-full max-w-md gap-2" onsubmit="return false">
-                <input type="email" required placeholder="Nhập email của bạn"
-                       class="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-all duration-200 ease-in-out placeholder:text-gray-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25">
-                <button type="submit"
-                        class="shrink-0 rounded-xl bg-brand-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-brand-600/30 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-brand-500 active:translate-y-0">
-                    Đăng ký
-                </button>
-            </form>
+            <a href="{{ route('posts.index') }}" class="text-xs font-semibold text-[#111] hover:text-[#666]">Xem tất cả</a>
         </div>
-    </div>
-</section>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+            @foreach ($latestPosts as $post)
+                <article class="group overflow-hidden rounded-[16px] border border-[#ece8e2] transition-all hover:shadow-lg">
+                    @if ($post->thumbnail)
+                        <div class="h-40 overflow-hidden bg-gray-200">
+                            <img src="{{ str_starts_with($post->thumbnail, 'http') ? $post->thumbnail : (str_starts_with($post->thumbnail, 'images/') ? asset($post->thumbnail) : asset('storage/' . $post->thumbnail)) }}" alt="{{ $post->title }}" loading="lazy" decoding="async" class="size-full object-cover group-hover:scale-105 transition-transform">
+                        </div>
+                    @endif
+                    <div class="p-4">
+                        <p class="text-[11px] text-[#999]">{{ $post->published_at?->format('d/m/Y') }}</p>
+                        <h3 class="mt-2 line-clamp-2 font-semibold text-[#171717] group-hover:text-black">{{ $post->title }}</h3>
+                        <p class="mt-2 line-clamp-2 text-[12px] text-[#7f7f7f]">{{ $post->summary ?: \Illuminate\Support\Str::limit($post->content, 100) }}</p>
+                         <a href="{{ route('posts.show', $post->slug) }}" class="mt-3 inline-block text-xs font-semibold text-[#111] hover:text-[#666]">Đọc thêm</a>
+                    </div>
+                </article>
+            @endforeach
+        </div>
+    </section>
+    @endif
 
-@endsection
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-[#171717]">Tất cả sản phẩm</h2>
+                <p class="text-[12px] text-[#7f7f7f]">Lấy trực tiếp từ cơ sở dữ liệu và có thể tìm kiếm</p>
+            </div>
+            <a href="{{ route('products.index') }}" class="text-xs font-semibold text-[#111] hover:text-[#666]">Xem tất cả</a>
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            @forelse ($catalogProducts as $product)
+                @php
+                    $discount = $product->sale_price && $product->sale_price < $product->price ? (int) round((($product->price - $product->sale_price) / $product->price) * 100) : null;
+                @endphp
+                <x-product-card
+                    :id="$product->id"
+                    :name="$product->name"
+                    :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail))) : asset('images/placeholder.svg')"
+                    :price="$product->effective_price"
+                    :old-price="$product->sale_price ? $product->price : null"
+                    :discount="$discount"
+                    :rating="$product->rating_average ? round($product->rating_average, 1) : null"
+                    :sold="$product->sold_count ? number_format($product->sold_count, 0, ',', '.') : null"
+                    :is-flash-sale="$product->activeFlashSaleItem !== null"
+                    :href="route('products.show', $product)"
+                />
+            @empty
+                <div class="col-span-full rounded-2xl border border-dashed border-[#e6e2dc] p-10 text-center text-sm text-[#8b8b8b]">Chưa có sản phẩm.</div>
+            @endforelse
+        </div>
+        @if ($catalogProducts->hasPages())
+            <div class="mt-6">
+                {{ $catalogProducts->links() }}
+            </div>
+        @endif
+    </section>
+</div>
 
-@push('scripts')
 <script>
-    // ===== Đồng hồ đếm ngược Flash Sale (đếm về 0h ngày hôm sau) =====
-    (function () {
-        const box = document.querySelector('[data-countdown]');
-        if (!box) return;
+    // Flash Sale Timer
+    function updateFlashSaleTimer() {
+        const timerElement = document.getElementById('flash-sale-timer');
+        if (!timerElement) return false;
 
-        const el = {
-            gio: box.querySelector('[data-cd="gio"]'),
-            phut: box.querySelector('[data-cd="phut"]'),
-            giay: box.querySelector('[data-cd="giay"]'),
-        };
-        const pad = (n) => String(n).padStart(2, '0');
+        const endTime = new Date('{{ $activeFlashSale?->end_time }}').getTime();
+        const now = new Date().getTime();
+        const distance = endTime - now;
 
-        function tick() {
-            const now = new Date();
-            const endStr = box.getAttribute('data-countdown');
-            const end = endStr ? new Date(endStr) : new Date(now.setHours(24, 0, 0, 0));
-
-            let diff = Math.max(0, Math.floor((end - new Date()) / 1000));
-            el.gio.textContent = pad(Math.floor(diff / 3600));
-            el.phut.textContent = pad(Math.floor((diff % 3600) / 60));
-            el.giay.textContent = pad(diff % 60);
+        if (distance <= 0) {
+            timerElement.textContent = '00 : 00 : 00 : 00';
+            return false;
         }
 
-        tick();
-        setInterval(tick, 1000);
-    })();
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        timerElement.textContent =
+            `${String(hours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')} : ${String(days).padStart(2, '0')}`;
+        return true;
+    }
+
+    @if ($activeFlashSale)
+        let flashSaleTimerId;
+
+        const stopFlashSaleTimer = () => window.clearInterval(flashSaleTimerId);
+        const startFlashSaleTimer = () => {
+            stopFlashSaleTimer();
+            if (!updateFlashSaleTimer()) return;
+            flashSaleTimerId = window.setInterval(() => {
+                if (!updateFlashSaleTimer()) stopFlashSaleTimer();
+            }, 1000);
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopFlashSaleTimer();
+            } else {
+                startFlashSaleTimer();
+            }
+        });
+
+        startFlashSaleTimer();
+    @endif
 </script>
-@endpush
+@endsection

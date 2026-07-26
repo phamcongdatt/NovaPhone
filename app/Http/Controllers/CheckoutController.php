@@ -138,19 +138,21 @@ class CheckoutController extends Controller
         $disableCod = $total > $codMaxAmount;
         $defaultPaymentMethod = $disableCod ? 'vnpay' : 'cod';
 
-        // Lấy danh sách mã giảm giá hợp lệ cho user hiện tại
+        // Chỉ lấy các mã đã được khách lưu trong ví ưu đãi và còn có thể áp dụng.
         $now = now();
-        $availableCoupons = \App\Models\Coupon::with(['eligibleUsers'])
-            ->where('is_active', true)
+        $walletCoupons = $user->savedCoupons()
+            ->with(['eligibleUsers'])
+            ->where('coupons.is_active', true)
             ->where(function ($query) use ($now) {
-                $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+                $query->whereNull('coupons.starts_at')->orWhere('coupons.starts_at', '<=', $now);
             })
             ->where(function ($query) use ($now) {
-                $query->whereNull('expires_at')->orWhere('expires_at', '>=', $now);
+                $query->whereNull('coupons.expires_at')->orWhere('coupons.expires_at', '>=', $now);
             })
             ->where(function ($query) {
-                $query->whereNull('usage_limit')->orWhereColumn('used_count', '<', 'usage_limit');
+                $query->whereNull('coupons.usage_limit')->orWhereColumn('coupons.used_count', '<', 'coupons.usage_limit');
             })
+            ->orderByPivot('created_at', 'desc')
             ->get()
             ->filter(function ($coupon) use ($user) {
                 if ($coupon->per_user_limit !== null) {
@@ -168,7 +170,7 @@ class CheckoutController extends Controller
         return response()
             ->view('checkout.index', compact(
                 'items', 'total', 'defaultAddress', 'disableCod', 'defaultPaymentMethod',
-                'codMaxAmount', 'discountAmount', 'appliedCouponsData', 'availableCoupons', 'isBuyNow',
+                'codMaxAmount', 'discountAmount', 'appliedCouponsData', 'walletCoupons', 'isBuyNow',
                 'pendingPaymentOrder'
             ))
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
@@ -419,17 +421,30 @@ class CheckoutController extends Controller
             OrderCreated::dispatch($order);
 
             // Điều hướng theo phương thức thanh toán
-            if ($order->payment_method === 'cod') {
-                return redirect()->route('checkout.success', $order)
-                    ->with('success', 'Đặt hàng thành công!');
+            switch ($order->payment_method) {
+                case 'cod':
+                    // Thanh toán khi nhận hàng: hoàn tất ngay
+                    return redirect()->route('checkout.success', $order)
+                        ->with('success', 'Đặt hàng thành công!');
+
+                case 'bank':
+                    // Chuyển khoản ngân hàng: hiển thị thông tin ngân hàng
+                    return redirect()->route('checkout.success', $order)
+                        ->with('success', 'Đơn hàng đã được tạo. Vui lòng chuyển khoản theo thông tin được gửi trong email.');
+
+                case 'vnpay':
+                case 'ewallet':
+                    // VNPay/E-wallet: ghi nhớ đơn này để nếu user back lại trang /checkout trước khi
+                    // hoàn tất thanh toán, ta vẫn nhận diện được và mời tiếp tục thanh toán.
+                    session()->put('pending_payment_order_id', $order->id);
+
+                    // Chuyển sang cổng thanh toán thật
+                    return redirect()->route('checkout.vnpay.create', $order);
+
+                default:
+                    return redirect()->route('checkout.success', $order)
+                        ->with('success', 'Đặt hàng thành công!');
             }
-
-            // VNPay: ghi nhớ đơn này để nếu user back lại trang /checkout trước khi
-            // hoàn tất thanh toán, ta vẫn nhận diện được và mời tiếp tục thanh toán.
-            session()->put('pending_payment_order_id', $order->id);
-
-            // VNPay: chuyển thẳng sang cổng thanh toán thật
-            return redirect()->route('checkout.vnpay.create', $order);
 
         } catch (Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();

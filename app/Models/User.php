@@ -93,6 +93,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Wishlist::class);
     }
 
+    public function wishlistItems(): HasMany
+    {
+        return $this->wishlists();
+    }
+
     public function savedCoupons(): BelongsToMany
     {
         return $this->belongsToMany(Coupon::class, 'coupon_user')->withTimestamps();

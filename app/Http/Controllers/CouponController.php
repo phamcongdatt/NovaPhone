@@ -50,7 +50,7 @@ class CouponController extends Controller
         }
 
         $user = Auth::user();
-        
+
         // Kiểm tra xem đã lưu chưa
         if ($user->savedCoupons()->where('coupon_id', $coupon->id)->exists()) {
             return response()->json(['success' => false, 'message' => 'Bạn đã lưu mã này rồi.']);
@@ -59,5 +59,44 @@ class CouponController extends Controller
         $user->savedCoupons()->attach($coupon->id);
 
         return response()->json(['success' => true, 'message' => 'Đã lưu mã giảm giá thành công!']);
+    }
+
+    /**
+     * Áp dụng mã giảm giá (AJAX).
+     */
+    public function apply(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string',
+        ]);
+
+        $coupon = Coupon::where('code', $request->code)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$coupon) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá không tồn tại hoặc đã hết hiệu lực.'], 400);
+        }
+
+        // Kiểm tra ngày hiệu lực
+        $now = now();
+        if ($coupon->starts_at && $coupon->starts_at > $now) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá chưa có hiệu lực.'], 400);
+        }
+        if ($coupon->expires_at && $coupon->expires_at < $now) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá đã hết hạn.'], 400);
+        }
+
+        // Kiểm tra giới hạn sử dụng
+        if ($coupon->usage_limit && $coupon->used_count >= $coupon->usage_limit) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá đã hết lượt sử dụng.'], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Áp dụng mã thành công!',
+            'discount' => $coupon->discount_value,
+            'discount_type' => $coupon->discount_type,
+        ]);
     }
 }

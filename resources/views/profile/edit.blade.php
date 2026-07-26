@@ -1,86 +1,72 @@
 @extends('layouts.app')
-
 @section('title', 'Cập nhật hồ sơ - NovaPhone')
 
 @section('content')
-<section class="bg-night py-10 sm:py-14">
-    <div class="mx-auto max-w-3xl px-4 sm:px-6">
-        <div class="mb-8 flex items-center justify-between">
-            <div>
-                <a href="{{ route('account.show') }}" class="mb-2 inline-flex items-center text-sm font-semibold text-brand-400 hover:text-brand-300">
-                    <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                    </svg>
-                    Quay lại
-                </a>
-                <h1 class="text-3xl font-extrabold tracking-tight text-white">Cập nhật hồ sơ</h1>
-            </div>
-        </div>
-
-        <div class="rounded-2xl border border-white/10 bg-night-soft p-5 shadow-2xl shadow-black/30 sm:p-8">
-            <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="space-y-6">
-                @csrf
-                @method('PUT')
-
-                <!-- Avatar -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-300">Ảnh đại diện</label>
-                    <div class="mt-4 flex items-center gap-5">
-                        <div class="relative size-24 shrink-0 overflow-hidden rounded-full border-2 border-brand-500/30 bg-night">
-                            @if($user->avatar)
-                                <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : (str_starts_with($user->avatar, 'images/') ? asset($user->avatar) : asset('storage/' . $user->avatar)) }}" alt="{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}" class="h-full w-full object-cover text-center font-bold text-gray-500" onerror="this.onerror=null; this.outerHTML='<div class=\'flex h-full w-full items-center justify-center bg-brand-600 text-3xl font-extrabold text-white\'>{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</div>';">
-                            @else
-                                <div class="flex h-full w-full items-center justify-center bg-brand-600 text-3xl font-extrabold text-white">
-                                    {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
-                                </div>
-                            @endif
-                        </div>
-                        <div>
-                            <input type="file" name="avatar" id="avatar" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:rounded-full file:border-0 file:bg-brand-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-400 hover:file:bg-brand-500/20">
-                            <p class="mt-2 text-xs text-gray-500">Định dạng JPEG, PNG, JPG. Tối đa 2MB.</p>
-                            @error('avatar')
-                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Name -->
-                <div>
-                    <label for="name" class="block text-sm font-bold text-gray-300">Họ tên <span class="text-red-400">*</span></label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required
-                           class="mt-2 block w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 sm:text-sm">
-                    @error('name')
-                        <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Email (Readonly) -->
-                <div>
-                    <label for="email" class="block text-sm font-bold text-gray-300">Email</label>
-                    <input type="email" id="email" value="{{ $user->email }}" disabled
-                           class="mt-2 block w-full rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-gray-400 opacity-70 sm:text-sm cursor-not-allowed">
-                    <p class="mt-1 text-xs text-gray-500">Email không thể thay đổi để đảm bảo bảo mật.</p>
-                </div>
-
-                <!-- Phone -->
-                <div>
-                    <label for="phone" class="block text-sm font-bold text-gray-300">Số điện thoại</label>
-                    <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}"
-                           class="mt-2 block w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 sm:text-sm"
-                           placeholder="Nhập số điện thoại của bạn">
-                    @error('phone')
-                        <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="pt-4">
-                    <button type="submit" class="w-full rounded-xl bg-brand-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-600/30 transition-all duration-200 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-night sm:w-auto">
-                        Lưu thay đổi
-                    </button>
-                </div>
-            </form>
-        </div>
+<div class="space-y-3">
+    <div class="flex">
+        <span class="rounded-full border border-[#e8e4de] bg-white px-3 py-1 text-[11px] font-semibold text-[#444] shadow-sm">Cập nhật hồ sơ</span>
     </div>
-</section>
+
+    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 sm:p-6 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+        @if (session('status'))
+            <div class="mb-4 rounded-[16px] border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        <h1 class="text-2xl font-bold">Cập nhật hồ sơ</h1>
+        <p class="mt-1 text-sm text-[#8b8b8b]">Cập nhật thông tin cá nhân của bạn</p>
+
+        <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="mt-6 space-y-4">
+            @csrf
+            @method('PUT')
+
+            {{-- Avatar --}}
+            <div>
+                <label class="text-sm font-semibold text-[#171717]">Ảnh đại diện</label>
+                <div class="mt-3 flex items-end gap-4">
+                    <div class="size-20 rounded-[16px] border border-[#ece8e2] bg-[#fbfaf8] overflow-hidden">
+                        @if ($user->avatar)
+                            <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset($user->avatar) }}" class="size-full object-cover">
+                        @else
+                            <div class="size-full flex items-center justify-center text-2xl">👤</div>
+                        @endif
+                    </div>
+                    <input type="file" name="avatar" accept="image/*" class="flex-1 rounded-[12px] border border-[#e8e4de] bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black">
+                </div>
+                @error('avatar') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Name --}}
+            <div>
+                <label class="text-sm font-semibold text-[#171717]">Họ và tên</label>
+                <input type="text" name="name" value="{{ old('name', $user->name) }}" class="mt-2 w-full rounded-[12px] border border-[#e8e4de] bg-[#fbfaf8] px-4 py-3 text-sm outline-none transition focus:border-black @error('name') border-red-500 @enderror">
+                @error('name') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Email is managed by the authentication flow and is not writable by this endpoint. --}}
+            <div>
+                <label class="text-sm font-semibold text-[#171717]">Email</label>
+                <div class="mt-2 rounded-[12px] border border-[#e8e4de] bg-[#f3f1ed] px-4 py-3 text-sm text-[#666]">{{ $user->email }}</div>
+            </div>
+
+            {{-- Phone --}}
+            <div>
+                <label class="text-sm font-semibold text-[#171717]">Số điện thoại</label>
+                <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="(tùy chọn)" class="mt-2 w-full rounded-[12px] border border-[#e8e4de] bg-[#fbfaf8] px-4 py-3 text-sm outline-none transition focus:border-black @error('phone') border-red-500 @enderror">
+                @error('phone') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Submit --}}
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#222]">
+                    Lưu thay đổi
+                </button>
+                <a href="{{ route('account.show') }}" class="rounded-full border border-[#e8e4de] px-6 py-3 text-sm font-semibold text-[#111] transition hover:bg-[#fbfaf8]">
+                    Hủy
+                </a>
+            </div>
+        </form>
+    </section>
+</div>
 @endsection

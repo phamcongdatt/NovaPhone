@@ -65,6 +65,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/login',                  [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login',                 [AuthController::class, 'login']);
 
+    // Google OAuth Routes
+    Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('google.login');
+    Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+
     // Social Authentication Routes
     Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirectToProvider'])->name('auth.social.redirect');
     Route::get('/auth/{provider}/callback', [AuthController::class, 'handleProviderCallback'])->name('auth.social.callback');
@@ -75,10 +79,6 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
-
-    // Google OAuth Routes
-    Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('google.login');
-    Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 });
 
 
@@ -93,9 +93,19 @@ Route::middleware('auth')->group(function () {
 });
 
 // ---------- Account ----------
-Route::get('/account', [AccountController::class, 'show'])
-    ->middleware('auth')
-    ->name('account.show');
+Route::middleware('auth')->group(function () {
+    Route::get('/account', [AccountController::class, 'show'])->name('account.show');
+    Route::get('/account/addresses', [AccountController::class, 'addresses'])->name('account.addresses');
+});
+
+// ---------- Address Routes ----------
+Route::middleware('auth')->group(function () {
+    Route::post('/addresses', [\App\Http\Controllers\AddressController::class, 'store'])->name('address.store');
+    Route::get('/addresses/{address}', [\App\Http\Controllers\AddressController::class, 'show'])->name('address.show');
+    Route::put('/addresses/{address}', [\App\Http\Controllers\AddressController::class, 'update'])->name('address.update');
+    Route::delete('/addresses/{address}', [\App\Http\Controllers\AddressController::class, 'destroy'])->name('address.destroy');
+    Route::post('/addresses/{address}/set-default', [\App\Http\Controllers\AddressController::class, 'setDefault'])->name('address.set-default');
+});
 
 // ---------- Wishlist Routes ----------
 Route::middleware('auth')->group(function () {
@@ -112,6 +122,7 @@ Route::middleware('auth')->group(function () {
 // ---------- Coupons ----------
 Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index');
 Route::post('/coupons/{coupon}/save', [CouponController::class, 'save'])->name('coupons.save');
+Route::post('/coupons/apply', [CouponController::class, 'apply'])->name('coupons.apply');
 
 // ---------- Cart Routes ----------
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

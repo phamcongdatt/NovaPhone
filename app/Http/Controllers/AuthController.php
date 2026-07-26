@@ -222,6 +222,7 @@ class AuthController extends Controller
             }
 
             Auth::login($user);
+            request()->session()->regenerate();
 
             if ($user->isAdmin()) {
                 return redirect()->route('admin.dashboard');
@@ -229,7 +230,9 @@ class AuthController extends Controller
 
             return redirect()->intended(route('home'));
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            report($e);
+
             return redirect('/login')->withErrors(['email' => 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.']);
         }
     }

@@ -18,8 +18,10 @@
             cb
         });
     </script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
-    @vite(['resources/css/app.css', 'resources/css/admin.css', 'resources/js/app.js'])
+    @if (request()->routeIs('admin.products.create', 'admin.products.edit'))
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    @endif
+    @vite(['resources/css/admin.css', 'resources/js/app.js'])
 </head>
 
 <body class="min-h-screen overflow-x-hidden bg-[#050b14] font-sans text-gray-100 antialiased selection:bg-brand-500/30">
@@ -36,9 +38,11 @@
     <aside id="admin-sidebar"
         class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-blue-400/10 bg-[#07111e]/95 shadow-2xl shadow-black/40 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0">
         <div class="flex h-[76px] shrink-0 items-center justify-between border-b border-white/[0.06] px-5">
-            <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center" aria-label="NovaPhone Admin">
-                <img src="{{ asset('images/brand/nova-phone-logo.webp') }}" alt="NovaPhone"
-                    class="h-12 w-auto max-w-[178px] object-contain">
+            <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-2.5" aria-label="NovaPhone Admin">
+                <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-[0_0_18px_rgba(10,132,255,.22)]">
+                    <img src="{{ asset('images/brand/novaphone-mark-v2.png') }}" alt="" aria-hidden="true" width="28" height="28" class="size-7 object-contain">
+                </span>
+                <span class="min-w-0 text-base font-semibold tracking-[-0.04em] text-white">Nova<span class="text-[#37a1ff]">Phone</span></span>
             </a>
             <button id="admin-sidebar-close" type="button"
                 class="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white lg:hidden"

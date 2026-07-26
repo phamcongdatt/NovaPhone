@@ -1,311 +1,263 @@
 @extends('layouts.app')
 
-@section('title', 'Chi tiết đơn hàng ' . $order->order_code . ' | NovaPhone')
+@section('title', 'Chi tiết đơn hàng - NovaPhone')
 
 @section('content')
-@php
-    $money = fn ($value) => number_format((float) $value, 0, ',', '.').'đ';
-    
-    $statusSteps = [
-        ['status' => 'pending', 'label' => 'Đã đặt', 'desc' => 'Đơn hàng đã được tiếp nhận'],
-        ['status' => 'confirmed', 'label' => 'Đã xác nhận', 'desc' => 'Đơn hàng đang được xác nhận'],
-        ['status' => 'shipping', 'label' => 'Đang giao', 'desc' => 'Đơn hàng đang được giao tới bạn'],
-        ['status' => 'delivered', 'label' => 'Đã giao', 'desc' => 'Đơn hàng đã được giao'],
-        ['status' => 'received', 'label' => 'Hoàn thành', 'desc' => 'Bạn đã xác nhận nhận hàng'],
-    ];
+    @php
+        $statusMeta = [
+            'pending' => ['label' => 'Chờ xác nhận', 'class' => 'border-amber-200 bg-amber-50 text-amber-800'],
+            'confirmed' => ['label' => 'Đã xác nhận', 'class' => 'border-blue-200 bg-blue-50 text-blue-800'],
+            'processing' => ['label' => 'Đang xử lý', 'class' => 'border-blue-200 bg-blue-50 text-blue-800'],
+            'shipping' => ['label' => 'Đang giao hàng', 'class' => 'border-cyan-200 bg-cyan-50 text-cyan-800'],
+            'delivered' => ['label' => 'Đã giao hàng', 'class' => 'border-emerald-200 bg-emerald-50 text-emerald-800'],
+            'received' => ['label' => 'Đã nhận hàng', 'class' => 'border-emerald-200 bg-emerald-50 text-emerald-800'],
+            'cancelled' => ['label' => 'Đã hủy', 'class' => 'border-red-200 bg-red-50 text-red-700'],
+        ];
+        $status = $statusMeta[$order->status] ?? ['label' => ucfirst($order->status), 'class' => 'border-stone-200 bg-stone-50 text-stone-700'];
+        $progressStep = match ($order->status) {
+            'pending' => 0,
+            'confirmed' => 1,
+            'processing' => 2,
+            'shipping' => 3,
+            'delivered', 'received' => 4,
+            default => null,
+        };
+        $paymentMethods = [
+            'cod' => 'Thanh toán khi nhận hàng (COD)',
+            'bank' => 'Chuyển khoản ngân hàng',
+            'vnpay' => 'VNPay',
+            'ewallet' => 'Ví điện tử',
+        ];
+        $paymentStatuses = [
+            'paid' => 'Đã thanh toán',
+            'pending' => 'Chờ thanh toán',
+            'failed' => 'Thanh toán thất bại',
+            'refunded' => 'Đã hoàn tiền',
+        ];
+        $progressStages = [
+            ['label' => 'Đặt hàng'],
+            ['label' => 'Xác nhận'],
+            ['label' => 'Đang xử lý'],
+            ['label' => 'Đang giao'],
+            ['label' => 'Hoàn tất'],
+        ];
+    @endphp
 
-    $currentStep = match ($order->status) {
-        'pending' => 0,
-        'confirmed', 'processing' => 1,
-        'shipping' => 2,
-        'delivered' => 3,
-        'received' => 4,
-        'cancelled' => -1,
-        default => 0
-    };
-
-    $methodName = match ($order->payment_method) {
-        'cod' => 'Thanh toán COD (Khi nhận hàng)',
-        'momo' => 'Ví điện tử MoMo',
-        'vnpay' => 'Cổng VNPAY',
-        default => $order->payment_method
-    };
-@endphp
-
-<div class="bg-night text-gray-100 min-h-[calc(100vh-68px-340px)] py-8">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6">
-        
-        {{-- Breadcrumb --}}
-        <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-            <a href="{{ route('home') }}" class="transition-colors hover:text-brand-400">Trang chủ</a>
-            <span>/</span>
-            <a href="{{ route('orders.index') }}" class="transition-colors hover:text-brand-400">Đơn hàng của tôi</a>
-            <span>/</span>
-            <span class="font-medium text-gray-300">{{ $order->order_code }}</span>
+    <div class="space-y-5">
+        <nav class="flex flex-wrap items-center gap-2 text-xs text-[#7a7a7a]" aria-label="Breadcrumb">
+            <a href="{{ route('orders.index') }}" class="transition hover:text-black">Đơn hàng của tôi</a>
+            <span aria-hidden="true">/</span>
+            <span class="font-semibold text-[#222]">#{{ $order->order_code }}</span>
         </nav>
 
-        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
-            <div>
-                <h1 class="text-3xl font-black text-white tracking-tight">Chi tiết đơn hàng</h1>
-                <p class="text-sm text-gray-500 mt-1">Đặt ngày {{ $order->created_at->format('H:i d/m/Y') }}</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                @if ($order->status === 'pending' && $order->payment_method === 'vnpay' && $order->payment_status === 'pending')
-                    <a
-                        href="{{ route('checkout.vnpay.create', $order) }}"
-                        class="rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2.5 text-sm font-bold text-gray-950 shadow-lg shadow-amber-500/20 transition hover:-translate-y-0.5"
-                    >
-                        Tiếp tục thanh toán
-                    </a>
-                @endif
-
-                @if ($order->status === 'pending')
-                    <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
-                        @csrf
-                        <button type="submit" class="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm font-bold text-red-300 transition hover:bg-red-500/20 hover:text-red-100">
-                            Hủy đơn
-                        </button>
-                    </form>
-                @endif
-
-                @if ($order->status === 'delivered')
-                    <form method="POST" action="{{ route('orders.confirm-received', $order) }}" onsubmit="return confirm('Xác nhận bạn đã nhận được hàng?');">
-                        @csrf
-                        <button type="submit" class="rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-500 px-4 py-2.5 text-sm font-bold text-gray-950 shadow-lg shadow-emerald-500/20 transition hover:-translate-y-0.5">
-                            Xác nhận đã nhận hàng
-                        </button>
-                    </form>
-                @endif
-
-                <a href="{{ route('orders.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-brand-400 hover:text-brand-300 transition-colors">
-                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                    </svg>
-                    Quay lại danh sách
-                </a>
-            </div>
-        </div>
-
-        {{-- Sơ đồ Timeline hành trình đơn hàng --}}
-        <div class="rounded-3xl border border-white/5 bg-night-soft p-6 sm:p-8 shadow-xl shadow-black/30 mb-8">
-            @if ($order->status === 'cancelled')
-                <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 flex items-start gap-4">
-                    <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
-                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
+        <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)] sm:p-7">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#8b8b8b]">Chi tiết đơn hàng</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-3">
+                        <h1 class="text-2xl font-bold tracking-tight text-[#171717]">#{{ $order->order_code }}</h1>
+                        <span class="rounded-full border px-3 py-1 text-xs font-semibold {{ $status['class'] }}">{{ $status['label'] }}</span>
                     </div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-white text-base">Đơn hàng đã bị hủy</h3>
-                        <div class="space-y-1.5 mt-2">
-                            <p class="text-sm text-red-400">
-                                <span class="font-semibold">Lý do hủy:</span> {{ $order->cancelled_reason ?: 'Không có lý do chi tiết.' }}
-                            </p>
-                            @if ($order->cancelledBy)
-                                <p class="text-sm text-red-400">
-                                    <span class="font-semibold">Được hủy bởi:</span> {{ $order->cancelledBy->name }}
-                                </p>
+                    <p class="mt-2 text-sm text-[#777]">Đặt lúc {{ $order->created_at?->format('d/m/Y · H:i') }}</p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('orders.index') }}" class="rounded-full border border-[#e8e4de] bg-white px-4 py-2.5 text-sm font-semibold text-[#222] transition-colors duration-300 hover:border-black hover:bg-[#faf9f7]">Quay lại đơn hàng</a>
+                    @if ($order->status === 'pending')
+                        <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
+                            @csrf
+                            <button type="submit" class="rounded-full border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors duration-300 hover:bg-red-50">Hủy đơn hàng</button>
+                        </form>
+                    @elseif ($order->status === 'delivered')
+                        <form method="POST" action="{{ route('orders.confirm-received', $order) }}">
+                            @csrf
+                            <button type="submit" class="rounded-full bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-[#222]">Xác nhận đã nhận</button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+        </section>
+
+        <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div class="space-y-5">
+                <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)] sm:p-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-[#171717]">Tiến độ đơn hàng</h2>
+                            <p class="mt-1 text-sm text-[#7f7f7f]">Trạng thái được cập nhật theo đơn hàng của bạn.</p>
+                        </div>
+                    </div>
+
+                    @if ($order->status === 'cancelled')
+                        <div class="mt-5 rounded-[18px] border border-red-100 bg-red-50 p-4 text-sm text-red-800">
+                            <p class="font-semibold">Đơn hàng đã được hủy.</p>
+                            @if ($order->cancelled_reason)
+                                <p class="mt-1 leading-6">{{ $order->cancelled_reason }}</p>
                             @endif
-                            @if ($order->statusHistories()->where('status', 'cancelled')->first())
+                        </div>
+                    @else
+                        <ol class="mt-6 grid gap-4 sm:grid-cols-5">
+                            @foreach ($progressStages as $index => $stage)
                                 @php
-                                    $cancelledAt = $order->statusHistories()->where('status', 'cancelled')->first()?->created_at;
+                                    $completed = $progressStep !== null && $index < $progressStep;
+                                    $current = $progressStep === $index;
+                                    $active = $completed || $current;
                                 @endphp
-                                @if ($cancelledAt)
-                                    <p class="text-sm text-red-400">
-                                        <span class="font-semibold">Thời gian hủy:</span> {{ $cancelledAt->format('H:i d/m/Y') }}
-                                    </p>
-                                @endif
+                                <li class="relative min-w-0 sm:pb-0">
+                                    @if (!$loop->last)
+                                        <span class="absolute left-8 right-[-1rem] top-4 hidden h-px bg-[#e8e4de] sm:block {{ $completed ? 'bg-[#23a052]' : '' }}"></span>
+                                    @endif
+                                    <div class="relative flex items-center gap-3 sm:flex-col sm:items-start sm:gap-2">
+                                        <span class="grid size-8 shrink-0 place-items-center rounded-full border text-xs font-bold {{ $active ? 'border-[#23a052] bg-[#23a052] text-white' : 'border-[#e2ddd6] bg-white text-[#a3a3a3]' }}">
+                                            @if ($completed)
+                                                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/></svg>
+                                            @else
+                                                {{ $index + 1 }}
+                                            @endif
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-semibold {{ $active ? 'text-[#171717]' : 'text-[#999]' }}">{{ $stage['label'] }}</p>
+                                            @if ($current)
+                                                <p class="mt-0.5 text-xs text-[#23a052]">Hiện tại</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ol>
+                        <div class="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-[#f0ede8] pt-4 text-xs text-[#777]">
+                            <span>Ngày đặt: {{ $order->created_at?->format('d/m/Y H:i') }}</span>
+                            @if ($order->user_received_at)
+                                <span>Đã xác nhận nhận hàng: {{ \Illuminate\Support\Carbon::parse($order->user_received_at)->format('d/m/Y H:i') }}</span>
                             @endif
                         </div>
-                    </div>
-                </div>
-            @else
-                <div class="relative">
-                    {{-- Đường thẳng nối --}}
-                    <div class="absolute top-5 left-8 right-8 h-1 bg-white/10 hidden md:block z-0">
-                        <div class="h-full bg-gradient-to-r from-brand-600 to-cyan-500 transition-all duration-500" style="width: {{ ($currentStep / 4) * 100 }}%"></div>
+                    @endif
+                </section>
+
+                <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)] sm:p-6">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-[#171717]">Sản phẩm trong đơn</h2>
+                            <p class="mt-1 text-sm text-[#7f7f7f]">{{ $order->items->sum('quantity') }} sản phẩm</p>
+                        </div>
                     </div>
 
-                    {{-- Các bước timeline --}}
-                    <div class="grid gap-6 md:grid-cols-5 relative z-10">
-                        @foreach ($statusSteps as $index => $step)
+                    <div class="mt-5 divide-y divide-[#eeeae4]">
+                        @forelse ($order->items as $item)
                             @php
-                                $isCompleted = $index <= $currentStep;
-                                $isActive = $index === $currentStep;
+                                $thumbnail = $item->product_thumbnail;
+                                $thumbnailUrl = ! $thumbnail
+                                    ? asset('images/placeholder.svg')
+                                    : (str_starts_with($thumbnail, 'http')
+                                        ? $thumbnail
+                                        : (str_starts_with($thumbnail, 'images/') || str_starts_with($thumbnail, 'storage/')
+                                            ? asset($thumbnail)
+                                            : asset('storage/' . $thumbnail)));
                             @endphp
-                            <div class="flex md:flex-col items-center md:text-center gap-4 md:gap-3">
-                                
-                                {{-- Nút chấm tròn --}}
-                                <div class="flex size-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 {{ 
-                                    $isCompleted 
-                                        ? 'bg-brand-600 text-white border-brand-500 shadow-lg shadow-brand-600/30' 
-                                        : 'bg-night border-white/10 text-gray-500' 
-                                }}">
-                                    @if ($isCompleted && !$isActive)
-                                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                        </svg>
-                                    @else
-                                        <span class="text-xs font-bold">{{ $index + 1 }}</span>
-                                    @endif
-                                </div>
-
-                                {{-- Text --}}
-                                <div>
-                                    <h4 class="font-bold text-sm transition {{ $isCompleted ? 'text-white' : 'text-gray-500' }}">{{ $step['label'] }}</h4>
-                                    <p class="text-xs text-gray-500 mt-0.5 md:max-w-[160px] md:mx-auto">{{ $step['desc'] }}</p>
-                                </div>
-
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        {{-- Bố cục chính --}}
-        <div class="grid gap-8 lg:grid-cols-3">
-            
-            {{-- Danh sách sản phẩm --}}
-            <div class="lg:col-span-2 space-y-6">
-                
-                {{-- Chi tiết sản phẩm --}}
-                <div class="rounded-3xl border border-white/5 bg-night-soft p-6 shadow-xl shadow-black/30">
-                    <h2 class="text-lg font-extrabold text-white mb-4">Sản phẩm trong đơn hàng</h2>
-                    
-                    <div class="divide-y divide-white/10">
-                        @foreach ($order->items as $item)
-                            @php
-                                $thumbnail = $item->product_thumbnail ?: asset('images/placeholder.svg');
-                            @endphp
-                            <div class="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-                                
-                                {{-- Thumbnail --}}
-                                <div class="size-16 shrink-0 overflow-hidden rounded-xl bg-night-card p-1.5 border border-white/5">
-                                    <img src="{{ $thumbnail }}" alt="{{ $item->product_name }}" class="size-full object-contain">
-                                </div>
-
-                                {{-- Details --}}
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="font-bold text-white truncate text-sm">
-                                        @if ($item->product)
-                                            <a href="{{ route('products.show', $item->product->slug) }}" class="hover:text-brand-400 transition-colors">
-                                                {{ $item->product_name }}
-                                            </a>
-                                        @else
-                                            {{ $item->product_name }}
+                            <article class="flex flex-col gap-4 py-5 first:pt-0 sm:flex-row sm:items-center">
+                                <div class="flex min-w-0 flex-1 items-center gap-4">
+                                    <div class="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#eee9e2] bg-[#faf9f7] p-1">
+                                        <img src="{{ $thumbnailUrl }}" alt="{{ $item->product_name }}" loading="lazy" decoding="async" class="size-full object-contain">
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h3 class="line-clamp-2 text-sm font-semibold text-[#171717]">{{ $item->product_name }}</h3>
+                                        @if ($item->variant_name)
+                                            <p class="mt-1 text-xs text-[#777]">{{ $item->variant_name }}</p>
                                         @endif
-                                    </h3>
-                                    @if ($item->variant_name)
-                                        <p class="text-xs text-brand-300 font-semibold mt-1">Mẫu mã: {{ $item->variant_name }}</p>
+                                        <p class="mt-2 text-sm text-[#555]">{{ number_format($item->price, 0, ',', '.') }}₫ × {{ $item->quantity }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between gap-4 sm:block sm:w-40 sm:text-right">
+                                    <p class="text-sm font-bold text-[#171717]">{{ number_format($item->subtotal, 0, ',', '.') }}₫</p>
+                                    @if ($item->product)
+                                        <a href="{{ route('products.show', $item->product) }}" class="mt-2 inline-flex text-xs font-semibold text-[#1677d2] transition hover:text-[#095ca8]">Xem sản phẩm</a>
                                     @endif
-                                    <p class="text-xs text-gray-500 mt-1 block sm:hidden">
-                                        {{ $item->quantity }} x {{ $money($item->price) }}
-                                    </p>
-                                </div>
-
-                                {{-- Price / Qty --}}
-                                <div class="text-right hidden sm:block">
-                                    <p class="text-sm font-semibold text-gray-400">{{ $money($item->price) }}</p>
-                                    <p class="text-xs text-gray-500 mt-0.5">Số lượng: x{{ $item->quantity }}</p>
-                                </div>
-
-                                {{-- Subtotal / Review --}}
-                                <div class="shrink-0 text-right min-w-[110px]">
-                                    <p class="text-sm font-bold text-white">{{ $money($item->subtotal) }}</p>
-                                    @if ($order->status === 'delivered' && $order->payment_status === 'paid' && $item->product)
+                                    @if ($item->product && $order->status === 'delivered' && $order->payment_status === 'paid')
                                         @if ($order->reviews->contains('product_id', $item->product_id))
-                                            <span class="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300">
-                                                <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
-                                                </svg>
-                                                Đã đánh giá
-                                            </span>
+                                            <p class="mt-2 text-xs font-semibold text-[#23a052]">Đã đánh giá</p>
                                         @else
-                                            <a href="{{ route('products.show', $item->product->slug) }}?order={{ $order->id }}#reviews"
-                                               class="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs font-bold text-amber-300 transition hover:border-amber-400/40 hover:bg-amber-400/15 hover:text-amber-200">
-                                                <svg class="size-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                                                    <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29a1 1 0 0 0 .95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03a1 1 0 0 0-.36 1.12l1.07 3.29c.3.92-.76 1.69-1.54 1.12l-2.8-2.03a1 1 0 0 0-1.18 0l-2.8 2.03c-.78.57-1.84-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36 1.12L3 8.72c-.78-.57-.38-1.8.59-1.8h3.46a1 1 0 0 0 .95-.7l1.07-3.29Z"/>
-                                                </svg>
-                                                Đánh giá sản phẩm
-                                            </a>
+                                            <a href="{{ route('products.show', ['product' => $item->product, 'order' => $order->id]) }}#reviews" class="mt-2 inline-flex text-xs font-semibold text-[#1677d2] transition hover:text-[#095ca8]">Đánh giá sản phẩm</a>
                                         @endif
                                     @endif
                                 </div>
-
-                            </div>
-                        @endforeach
+                            </article>
+                        @empty
+                            <p class="py-8 text-center text-sm text-[#8b8b8b]">Đơn hàng chưa có sản phẩm.</p>
+                        @endforelse
                     </div>
-                </div>
+                </section>
 
+                @if ($order->note)
+                    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)] sm:p-6">
+                        <h2 class="text-lg font-bold text-[#171717]">Ghi chú đơn hàng</h2>
+                        <p class="mt-3 whitespace-pre-line text-sm leading-6 text-[#666]">{{ $order->note }}</p>
+                    </section>
+                @endif
             </div>
 
-            {{-- Thông tin khách nhận hàng & Hoá đơn --}}
-            <div class="space-y-6">
-                
-                {{-- Thông tin nhận hàng --}}
-                <div class="rounded-3xl border border-white/5 bg-night-soft p-6 shadow-xl shadow-black/30 text-sm">
-                    <h2 class="text-base font-extrabold text-white mb-4 border-b border-white/10 pb-3">Thông tin nhận hàng</h2>
-                    
-                    <div class="space-y-3">
-                        <div>
-                            <span class="text-xs text-gray-500 block">Họ và tên người nhận</span>
-                            <span class="font-bold text-white mt-0.5 block">{{ $order->shipping_full_name }}</span>
-                        </div>
-                        <div>
-                            <span class="text-xs text-gray-500 block">Số điện thoại liên hệ</span>
-                            <span class="font-bold text-white mt-0.5 block">{{ $order->shipping_phone }}</span>
-                        </div>
-                        <div>
-                            <span class="text-xs text-gray-500 block">Địa chỉ nhận hàng</span>
-                            <span class="text-gray-300 mt-0.5 block leading-relaxed">
-                                {{ $order->shipping_address }}, {{ $order->shipping_ward }}, {{ $order->shipping_district }}, {{ $order->shipping_province }}
-                            </span>
-                        </div>
-                        @if ($order->note)
-                            <div>
-                                <span class="text-xs text-gray-500 block">Ghi chú</span>
-                                <span class="text-gray-400 mt-0.5 block leading-relaxed italic">"{{ $order->note }}"</span>
-                            </div>
+            <aside class="space-y-5 xl:sticky xl:top-5 xl:self-start">
+                <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+                    <h2 class="text-base font-bold text-[#171717]">Địa chỉ giao hàng</h2>
+                    <div class="mt-4 rounded-[18px] bg-[#fbfaf8] p-4 text-sm leading-6 text-[#5f5f5f]">
+                        <p class="font-semibold text-[#171717]">{{ $order->shipping_full_name }}</p>
+                        @if ($order->shipping_phone)
+                            <p class="mt-1">{{ $order->shipping_phone }}</p>
+                        @endif
+                        <p class="mt-2">{{ $order->shipping_address }}</p>
+                        @if ($order->shipping_ward)
+                            <p>{{ $order->shipping_ward }}</p>
+                        @endif
+                        @if ($order->shipping_district || $order->shipping_province)
+                            <p>{{ collect([$order->shipping_district, $order->shipping_province])->filter()->join(', ') }}</p>
                         @endif
                     </div>
-                </div>
+                </section>
 
-                {{-- Hóa đơn thanh toán --}}
-                <div class="rounded-3xl border border-white/5 bg-night-soft p-6 shadow-xl shadow-black/30 text-sm">
-                    <h2 class="text-base font-extrabold text-white mb-4 border-b border-white/10 pb-3">Hoá đơn thanh toán</h2>
-                    
-                    <div class="space-y-3 border-b border-white/10 pb-3 mb-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Hình thức</span>
-                            <span class="font-semibold text-white">{{ $methodName }}</span>
+                <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+                    <h2 class="text-base font-bold text-[#171717]">Thanh toán</h2>
+                    <dl class="mt-4 space-y-3 text-sm">
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="text-[#777]">Phương thức</dt>
+                            <dd class="max-w-[190px] text-right font-semibold text-[#222]">{{ $paymentMethods[$order->payment_method] ?? ucfirst($order->payment_method) }}</dd>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Trạng thái</span>
-                            <span class="font-semibold {{ $order->payment_status === 'paid' ? 'text-emerald-400' : 'text-amber-400' }}">
-                                {{ $order->payment_status === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán' }}
-                            </span>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="text-[#777]">Trạng thái</dt>
+                            <dd class="text-right font-semibold {{ $order->payment_status === 'paid' ? 'text-[#23a052]' : 'text-[#222]' }}">{{ $paymentStatuses[$order->payment_status] ?? ucfirst($order->payment_status) }}</dd>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Tiền hàng</span>
-                            <span class="font-semibold text-white">{{ $money($order->subtotal) }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Phí giao hàng</span>
-                            <span class="font-semibold text-emerald-400">Miễn phí</span>
-                        </div>
-                    </div>
+                    </dl>
+                </section>
 
-                    <div class="flex justify-between items-baseline pt-1">
-                        <span class="font-bold text-white">Tổng tiền</span>
-                        <span class="text-lg font-black text-brand-400">{{ $money($order->total_amount) }}</span>
-                    </div>
-                </div>
-
-            </div>
-
+                <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+                    <h2 class="text-base font-bold text-[#171717]">Tóm tắt thanh toán</h2>
+                    <dl class="mt-4 space-y-3 text-sm">
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-[#777]">Tạm tính</dt>
+                            <dd class="font-semibold text-[#222]">{{ number_format($order->subtotal, 0, ',', '.') }}₫</dd>
+                        </div>
+                        @if ($order->coupon_code)
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-[#777]">Mã giảm giá</dt>
+                                <dd class="font-semibold text-[#222]">{{ $order->coupon_code }}</dd>
+                            </div>
+                        @endif
+                        @if ($order->discount_amount > 0)
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-[#777]">Giảm giá</dt>
+                                <dd class="font-semibold text-[#d14b4b]">-{{ number_format($order->discount_amount, 0, ',', '.') }}₫</dd>
+                            </div>
+                        @endif
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-[#777]">Phí vận chuyển</dt>
+                            <dd class="font-semibold text-[#222]">{{ $order->shipping_fee > 0 ? number_format($order->shipping_fee, 0, ',', '.') . '₫' : 'Miễn phí' }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4 border-t border-[#eeeae4] pt-4 text-base">
+                            <dt class="font-bold text-[#171717]">Tổng tiền</dt>
+                            <dd class="font-bold text-[#171717]">{{ number_format($order->total_amount, 0, ',', '.') }}₫</dd>
+                        </div>
+                    </dl>
+                </section>
+            </aside>
         </div>
-
     </div>
-</div>
 @endsection
