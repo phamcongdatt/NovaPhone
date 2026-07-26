@@ -88,4 +88,29 @@
         @endif
     </section>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.Echo) {
+            window.Echo.private(`user.{{ auth()->id() }}`)
+                .listen('OrderStatusUpdated', (e) => {
+                    fetch(window.location.href)
+                        .then(res => res.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const currentMain = document.querySelector('main[data-page-enter]');
+                            const newMain = doc.querySelector('main[data-page-enter]');
+                            if (currentMain && newMain) {
+                                currentMain.innerHTML = newMain.innerHTML;
+                            } else {
+                                window.location.reload();
+                            }
+                        });
+                });
+        }
+    });
+</script>
+@endpush
 @endsection

@@ -260,4 +260,32 @@
             </aside>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Echo) {
+                window.Echo.private(`user.{{ auth()->id() }}`)
+                    .listen('OrderStatusUpdated', (e) => {
+                        if (e.orderId == {{ $order->id }}) {
+                            fetch(window.location.href)
+                                .then(res => res.text())
+                                .then(html => {
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(html, 'text/html');
+                                    const currentMain = document.querySelector('main[data-page-enter]');
+                                    const newMain = doc.querySelector('main[data-page-enter]');
+                                    if (currentMain && newMain) {
+                                        currentMain.innerHTML = newMain.innerHTML;
+                                        // Optional: re-attach event listeners if needed
+                                    } else {
+                                        window.location.reload();
+                                    }
+                                });
+                        }
+                    });
+            }
+        });
+    </script>
+    @endpush
 @endsection

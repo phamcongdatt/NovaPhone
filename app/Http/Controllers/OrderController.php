@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Events\OrderStatusUpdated;
 use App\Services\OrderCancellationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,7 +63,10 @@ class OrderController extends Controller
             session()->forget('pending_payment_order_id');
         }
 
+        broadcast(new OrderStatusUpdated($order));
+
         return back()->with('success', 'Đơn hàng đã được hủy thành công.');
+
     }
 
     /**
@@ -108,6 +112,9 @@ class OrderController extends Controller
             'created_by' => Auth::id(),
         ]);
 
+        broadcast(new OrderStatusUpdated($order));
+
         return back()->with('success', 'Đơn hàng đã được xác nhận là đã nhận.');
+
     }
 }

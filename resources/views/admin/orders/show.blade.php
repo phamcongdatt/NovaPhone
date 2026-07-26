@@ -217,4 +217,21 @@
     </div>
 </div>
 
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.Echo) {
+            window.Echo.private(`admin.orders`)
+                .listen('OrderStatusUpdated', (e) => {
+                    if (e.orderId == {{ $order->id }}) {
+                        const confirmReload = confirm(`Đơn hàng #${e.orderId} vừa được khách hàng cập nhật. Bạn có muốn tải lại trang để xem thay đổi mới nhất?`);
+                        if (confirmReload) {
+                            window.location.reload();
+                        }
+                    }
+                });
+        }
+    });
+</script>
+@endpush
 @endsection
