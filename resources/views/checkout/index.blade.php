@@ -53,14 +53,6 @@
         <form id="checkoutForm" method="POST" action="{{ route('checkout.place-order') }}" class="grid gap-6 lg:grid-cols-[1fr_420px]">
             @csrf
 
-            {{-- Hidden fields for shipping address --}}
-            <input type="hidden" id="shipping_full_name" name="shipping_full_name" value="{{ old('shipping_full_name', $defaultAddress?->full_name) }}">
-            <input type="hidden" id="shipping_phone" name="shipping_phone" value="{{ old('shipping_phone', $defaultAddress?->phone) }}">
-            <input type="hidden" id="shipping_address" name="shipping_address" value="{{ old('shipping_address', $defaultAddress?->address) }}">
-            <input type="hidden" id="shipping_ward" name="shipping_ward" value="{{ old('shipping_ward', $defaultAddress?->ward) }}">
-            <input type="hidden" id="shipping_district" name="shipping_district" value="{{ old('shipping_district', $defaultAddress?->district) }}">
-            <input type="hidden" id="shipping_province" name="shipping_province" value="{{ old('shipping_province', $defaultAddress?->province) }}">
-
             {{-- Left Column --}}
             <div class="space-y-6">
                 {{-- Shipping Address --}}
@@ -71,7 +63,9 @@
                                 <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-sm font-bold text-white">1</div>
                                 <h2 class="text-base font-bold text-[#111]">Địa chỉ giao hàng</h2>
                             </div>
-                            <a href="{{ route('account.addresses') }}" class="text-xs font-semibold text-blue-600 transition hover:text-blue-800">+ Quản lý</a>
+                            @if (Auth::check())
+                                <a href="{{ route('account.addresses') }}" class="text-xs font-semibold text-blue-600 transition hover:text-blue-800">+ Quản lý</a>
+                            @endif
                         </div>
                     </div>
 
@@ -99,9 +93,67 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 <p class="mt-3 text-sm text-[#8b8b8b]">Chưa có địa chỉ giao hàng</p>
-                                <a href="{{ route('account.addresses') }}" class="mt-4 inline-block rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#222]">Thêm địa chỉ ngay</a>
+                                @if (Auth::check())
+                                    <a href="{{ route('account.addresses') }}" class="mt-4 inline-block rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#222]">Thêm địa chỉ ngay</a>
+                                @else
+                                    <p class="mt-2 text-xs text-[#8b8b8b]">Bạn có thể nhập địa chỉ trực tiếp ở phần thông tin giao hàng bên dưới.</p>
+                                @endif
                             </div>
                         @endif
+
+                        <div class="rounded-2xl border border-[#e0e0e0] bg-white p-5 shadow-sm">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-semibold text-[#8b8b8b]">Tên người nhận</label>
+                                    <input type="text" name="shipping_full_name" id="shipping_full_name" value="{{ old('shipping_full_name', $defaultAddress?->full_name) }}" placeholder="Nhập tên người nhận" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_full_name') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                    @error('shipping_full_name')
+                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="text-xs font-semibold text-[#8b8b8b]">Số điện thoại</label>
+                                    <input type="tel" name="shipping_phone" id="shipping_phone" value="{{ old('shipping_phone', $defaultAddress?->phone) }}" placeholder="Nhập số điện thoại" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_phone') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                    @error('shipping_phone')
+                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label class="text-xs font-semibold text-[#8b8b8b]">Tỉnh/Thành phố</label>
+                                        <input type="text" name="shipping_province" id="shipping_province" value="{{ old('shipping_province', $defaultAddress?->province) }}" placeholder="Nhập tỉnh/thành phố" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_province') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                        @error('shipping_province')
+                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-semibold text-[#8b8b8b]">Quận/Huyện</label>
+                                        <input type="text" name="shipping_district" id="shipping_district" value="{{ old('shipping_district', $defaultAddress?->district) }}" placeholder="Nhập quận/huyện" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_district') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                        @error('shipping_district')
+                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label class="text-xs font-semibold text-[#8b8b8b]">Phường/Xã</label>
+                                        <input type="text" name="shipping_ward" id="shipping_ward" value="{{ old('shipping_ward', $defaultAddress?->ward) }}" placeholder="Nhập phường/xã" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_ward') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                        @error('shipping_ward')
+                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-semibold text-[#8b8b8b]">Địa chỉ chi tiết</label>
+                                        <input type="text" name="shipping_address" id="shipping_address" value="{{ old('shipping_address', $defaultAddress?->address) }}" placeholder="Nhập địa chỉ chi tiết" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_address') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                        @error('shipping_address')
+                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 

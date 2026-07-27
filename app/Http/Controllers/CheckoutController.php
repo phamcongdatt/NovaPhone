@@ -11,6 +11,7 @@ use App\Models\OrderItem;
 use App\Models\PaymentTransaction;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\User;
 use App\Services\CartService;
 use App\Services\CouponService;
 use App\Services\SoldCountService;
@@ -90,6 +91,7 @@ class CheckoutController extends Controller
      */
     public function index()
     {
+        /** @var User|null $user */
         $user = Auth::user();
 
         // Nếu trước đó user đã tạo đơn nhưng rời khỏi cổng thanh toán online
@@ -97,12 +99,18 @@ class CheckoutController extends Controller
         // thay vì cho đặt hàng mới đè lên.
         $pendingPaymentOrder = null;
         if ($pendingOrderId = session('pending_payment_order_id')) {
-            $pendingPaymentOrder = Order::where('id', $pendingOrderId)
-                ->where('user_id', $user->id)
+            $query = Order::where('id', $pendingOrderId)
                 ->where('status', 'pending')
                 ->where('payment_status', 'pending')
-                ->where('payment_method', 'vnpay')
-                ->first();
+                ->where('payment_method', 'vnpay');
+
+            if ($user) {
+                $query->where('user_id', $user->id);
+            } else {
+                $query->whereNull('user_id');
+            }
+
+            $pendingPaymentOrder = $query->first();
 
             if (! $pendingPaymentOrder) {
                 session()->forget('pending_payment_order_id');
@@ -131,39 +139,43 @@ class CheckoutController extends Controller
         }
 
         // Lấy địa chỉ mặc định của user nếu có
-        $defaultAddress = $user->addresses()->where('is_default', true)->first()
-            ?? $user->addresses()->first();
+        $defaultAddress = null;
+        $walletCoupons = collect();
+
+        if ($user) {
+            $defaultAddress = $user->addresses()->where('is_default', true)->first()
+                ?? $user->addresses()->first();
+
+            $now = now();
+            $walletCoupons = $user->savedCoupons()
+                ->with(['eligibleUsers'])
+                ->where('coupons.is_active', true)
+                ->where(function ($query) use ($now) {
+                    $query->whereNull('coupons.starts_at')->orWhere('coupons.starts_at', '<=', $now);
+                })
+                ->where(function ($query) use ($now) {
+                    $query->whereNull('coupons.expires_at')->orWhere('coupons.expires_at', '>=', $now);
+                })
+                ->where(function ($query) {
+                    $query->whereNull('coupons.usage_limit')->orWhereColumn('coupons.used_count', '<', 'coupons.usage_limit');
+                })
+                ->orderByPivot('created_at', 'desc')
+                ->get()
+                ->filter(function ($coupon) use ($user) {
+                    if ($coupon->per_user_limit !== null) {
+                        $userUsedCount = $user->orders()->where('coupon_id', $coupon->id)->where('status', '!=', 'cancelled')->count();
+                        if ($userUsedCount >= $coupon->per_user_limit) return false;
+                    }
+                    if ($coupon->eligibleUsers->isNotEmpty()) {
+                        if (!$coupon->eligibleUsers->contains('id', $user->id)) return false;
+                    }
+                    return true;
+                });
+        }
 
         $codMaxAmount = (float) config('shop.cod_max_amount');
         $disableCod = $total > $codMaxAmount;
         $defaultPaymentMethod = $disableCod ? 'vnpay' : 'cod';
-
-        // Chỉ lấy các mã đã được khách lưu trong ví ưu đãi và còn có thể áp dụng.
-        $now = now();
-        $walletCoupons = $user->savedCoupons()
-            ->with(['eligibleUsers'])
-            ->where('coupons.is_active', true)
-            ->where(function ($query) use ($now) {
-                $query->whereNull('coupons.starts_at')->orWhere('coupons.starts_at', '<=', $now);
-            })
-            ->where(function ($query) use ($now) {
-                $query->whereNull('coupons.expires_at')->orWhere('coupons.expires_at', '>=', $now);
-            })
-            ->where(function ($query) {
-                $query->whereNull('coupons.usage_limit')->orWhereColumn('coupons.used_count', '<', 'coupons.usage_limit');
-            })
-            ->orderByPivot('created_at', 'desc')
-            ->get()
-            ->filter(function ($coupon) use ($user) {
-                if ($coupon->per_user_limit !== null) {
-                    $userUsedCount = $user->orders()->where('coupon_id', $coupon->id)->where('status', '!=', 'cancelled')->count();
-                    if ($userUsedCount >= $coupon->per_user_limit) return false;
-                }
-                if ($coupon->eligibleUsers->isNotEmpty()) {
-                    if (!$coupon->eligibleUsers->contains('id', $user->id)) return false;
-                }
-                return true;
-            });
 
         // Bắt buộc trình duyệt phải gọi lại server (không phục hồi từ bfcache) khi user
         // bấm nút Back từ cổng thanh toán VNPay, để banner "Tiếp tục thanh toán" luôn cập nhật.
@@ -183,6 +195,7 @@ class CheckoutController extends Controller
 
         ['items' => $items, 'total' => $total] = $this->resolveCheckoutData();
 
+        /** @var User|null $user */
         $user = Auth::user();
         $codes = session()->get('applied_coupons', []);
         $newCode = strtoupper($request->code);
@@ -238,6 +251,9 @@ class CheckoutController extends Controller
      */
     public function store(CheckoutRequest $request)
     {
+        /** @var User|null $user */
+        $user = Auth::user();
+
         ['items' => $items, 'total' => $total, 'isBuyNow' => $isBuyNow] = $this->resolveCheckoutData();
 
         if (! $isBuyNow && $items->isEmpty()) {
@@ -252,7 +268,7 @@ class CheckoutController extends Controller
         }
 
         try {
-            $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow) {
+            $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow, $user) {
                 // 1. Kiểm tra tồn kho và Flash Sale của tất cả sản phẩm
 
                 foreach ($items as $item) {
@@ -312,7 +328,7 @@ class CheckoutController extends Controller
                 // 2. Tính lại mã giảm giá nếu có
                 if (session()->has('applied_coupons')) {
                     $codes = session()->get('applied_coupons');
-                    $result = $this->couponService->applyMultiple($codes, Auth::user(), $items, $total);
+                    $result = $this->couponService->applyMultiple($codes, $user, $items, $total);
                     if ($result['success']) {
                         $discountAmount = $result['discount_amount'];
                         $appliedCouponsList = $result['coupons'];
@@ -323,7 +339,7 @@ class CheckoutController extends Controller
 
                 // 3. Tạo bản ghi đơn hàng
                 $order = Order::create([
-                    'user_id' => Auth::id(),
+                    'user_id' => $user?->id,
                     'status' => 'pending',
                     'payment_method' => $request->payment_method,
                     'payment_status' => 'pending',
@@ -382,7 +398,7 @@ class CheckoutController extends Controller
                             'type'       => 'export',
                             'quantity'   => $item->quantity,
                             'note'       => 'Xuất kho tự động cho đơn hàng #' . $order->order_code,
-                            'user_id'    => Auth::id(),
+                            'user_id'    => $user?->id,
                         ]);
                     }
 
@@ -401,6 +417,10 @@ class CheckoutController extends Controller
                 $this->saveShippingAddress($request);
 
                 // 6. Xóa dữ liệu tạm thời
+                if (! $user) {
+                    session()->put('guest_checkout_order_id', $order->id);
+                }
+
                 if ($isBuyNow) {
                     // Luồng "Mua ngay": Chỉ xóa session, KHÔNG xóa giỏ hàng
                     session()->forget('buy_now_item');
@@ -456,7 +476,7 @@ class CheckoutController extends Controller
      */
     public function success(Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
+        if (! $this->canAccessOrder($order)) {
             abort(403);
         }
 
@@ -470,7 +490,7 @@ class CheckoutController extends Controller
      */
     public function vnpayCreate(Request $request, Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
+        if (! $this->canAccessOrder($order)) {
             abort(403);
         }
 
@@ -479,7 +499,7 @@ class CheckoutController extends Controller
         }
 
         if ($order->status !== 'pending') {
-            return redirect()->route('orders.show', $order)->with('error', 'Đơn hàng này không thể tiếp tục thanh toán.');
+            return redirect()->route('checkout.success', $order)->with('error', 'Đơn hàng này không thể tiếp tục thanh toán.');
         }
 
         // Ghi nhận một giao dịch chờ xử lý để đối soát
@@ -517,6 +537,7 @@ class CheckoutController extends Controller
         $amountMatched = (int) round($order->total_amount * 100) === (int) $request->query('vnp_Amount');
 
         // 2. Cập nhật nhật ký giao dịch
+        /** @var PaymentTransaction|null $transaction */
         $transaction = $order->payments()->where('gateway', 'vnpay')->latest()->first();
         if ($transaction) {
             $transaction->update([
@@ -563,7 +584,12 @@ class CheckoutController extends Controller
      */
     private function saveShippingAddress(CheckoutRequest $request)
     {
+        /** @var User|null $user */
         $user = Auth::user();
+
+        if (! $user) {
+            return;
+        }
 
         // Kiểm tra xem địa chỉ này đã tồn tại chưa
         $existingAddress = $user->addresses()
@@ -594,5 +620,16 @@ class CheckoutController extends Controller
             'province' => $request->shipping_province,
             'is_default' => $isDefault,
         ]);
+    }
+
+    private function canAccessOrder(Order $order): bool
+    {
+        $user = Auth::user();
+
+        if ($user && $order->user_id === $user->id) {
+            return true;
+        }
+
+        return session()->get('guest_checkout_order_id') == $order->id;
     }
 }
