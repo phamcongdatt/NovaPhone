@@ -133,13 +133,13 @@ Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 Route::post('/cart/set-selection', [CartController::class, 'setSelection'])->name('cart.set-selection');
 // ---------- Checkout Routes ----------
-Route::middleware('auth')->group(function () {
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-    Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
-    Route::post('/checkout/remove-coupon', [CheckoutController::class, 'removeCoupon'])->name('checkout.remove-coupon');
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
-    Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
+Route::post('/checkout/remove-coupon', [CheckoutController::class, 'removeCoupon'])->name('checkout.remove-coupon');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
+Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 
+Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/confirm-received', [OrderController::class, 'confirmReceived'])->name('orders.confirm-received');
 });
