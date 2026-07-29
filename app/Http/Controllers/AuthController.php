@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -116,6 +117,9 @@ class AuthController extends Controller
             'status' => 'active',
             'email_verified_at' => $isLocal ? now() : null, // Kích hoạt ngay trên local
         ]);
+
+        // Gửi email chào mừng qua queue, không làm chậm quá trình đăng ký.
+        $user->notify(new WelcomeNotification);
 
         // Chỉ gửi email xác thực nếu không ở local
         if (!$isLocal) {
@@ -404,6 +408,7 @@ class AuthController extends Controller
                         'password' => Hash::make(Str::random(24)),
                     ]);
 
+                    $user->notify(new WelcomeNotification);
                     event(new Registered($user));
                 }
             }
@@ -476,6 +481,7 @@ class AuthController extends Controller
                     'password' => Hash::make(Str::random(24)),
                 ]);
 
+                $user->notify(new WelcomeNotification);
                 event(new Registered($user));
             }
         }

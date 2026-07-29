@@ -72,6 +72,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DemoProductSeeder::class,
             PerformanceSpecSeeder::class,
+            RecoveryContentSeeder::class,
         ]);
     }
 }

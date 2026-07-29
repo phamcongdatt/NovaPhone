@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -74,6 +75,17 @@ class RegistrationTest extends TestCase
 
         $user = User::where('email', 'tranthib@example.com')->first();
         Notification::assertSentTo($user, VerifyEmail::class);
+    }
+
+    public function test_dang_ky_thanh_cong_gui_email_chao_mung(): void
+    {
+        Notification::fake();
+
+        $this->post('/register', $this->validData(['email' => 'welcome@example.com']));
+
+        $user = User::where('email', 'welcome@example.com')->first();
+
+        Notification::assertSentTo($user, WelcomeNotification::class);
     }
 
     public function test_validate_that_bai_khi_du_lieu_sai(): void
