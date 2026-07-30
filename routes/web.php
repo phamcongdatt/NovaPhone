@@ -146,6 +146,9 @@ Route::get('/guest/orders/{order}', [CheckoutController::class, 'guestShow'])
 Route::post('/guest/orders/{order}/cancel', [CheckoutController::class, 'guestCancel'])
     ->middleware('signed')
     ->name('guest.orders.cancel');
+Route::get('/guest/orders/{order}/payment', [CheckoutController::class, 'guestPay'])
+    ->middleware('signed')
+    ->name('guest.orders.pay');
 
 Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
@@ -193,7 +196,7 @@ Route::middleware(['auth', 'admin'])
         // Sản phẩm
         Route::patch('products/{product}/toggle-status', [AdminProductController::class, 'toggleStatus'])
             ->name('products.toggle-status');
-        Route::resource('products', AdminProductController::class);
+        Route::resource('products', AdminProductController::class)->except(['show']);
 
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
@@ -205,12 +208,10 @@ Route::middleware(['auth', 'admin'])
         Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
 
         // Flash Sale
-        Route::patch('flash-sales/{flashSale}/toggle-status', [FlashSaleController::class, 'toggleStatus'])
-->name('flash-sales.toggle-status');
-Route::resource('flash-sales', FlashSaleController::class);
+        Route::resource('flash-sales', FlashSaleController::class)->except(['show']);
 
         // Mã giảm giá (Coupons)
-        Route::resource('coupons', AdminCouponController::class);
+        Route::resource('coupons', AdminCouponController::class)->except(['show']);
 
 
         // Người dùng / Khách hàng (xem danh sách, chi tiết, khóa/mở khóa)

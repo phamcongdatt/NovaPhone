@@ -19,6 +19,11 @@ class GuestOrderAccessService
         return $this->signedUrl('guest.orders.cancel', $order);
     }
 
+    public function paymentUrl(Order $order): string
+    {
+        return $this->signedUrl('guest.orders.pay', $order);
+    }
+
     private function signedUrl(string $route, Order $order): string
     {
         return URL::temporarySignedRoute(

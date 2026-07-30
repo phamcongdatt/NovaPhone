@@ -34,6 +34,13 @@
             'failed' => 'Thanh toán thất bại',
             'refunded' => 'Đã hoàn tiền',
         ];
+        $isAwaitingPayment = $order->payment_method === 'vnpay'
+            && $order->status === 'pending'
+            && $order->payment_status === 'pending';
+        $paymentDeadline = $order->created_at?->copy()->addMinutes((int) config('shop.pending_order_timeout_minutes'));
+        $remainingPaymentSeconds = $isAwaitingPayment && $paymentDeadline
+            ? max(0, now()->diffInSeconds($paymentDeadline, false))
+            : 0;
         $progressStages = [
             ['label' => 'Đặt hàng'],
             ['label' => 'Xác nhận'],
@@ -63,6 +70,9 @@
 
                 <div class="flex flex-wrap gap-2">
                     <a href="{{ route('orders.index') }}" class="rounded-full border border-[#e8e4de] bg-white px-4 py-2.5 text-sm font-semibold text-[#222] transition-colors duration-300 hover:border-black hover:bg-[#faf9f7]">Quay lại đơn hàng</a>
+                    @if ($isAwaitingPayment)
+                        <a data-payment-continue href="{{ route('checkout.vnpay.create', $order) }}" class="rounded-full bg-[#0a84ff] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-[#006edb]">Tiếp tục thanh toán</a>
+                    @endif
                     @if ($order->status === 'pending')
                         <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
                             @csrf
@@ -216,6 +226,13 @@
 
                 <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
                     <h2 class="text-base font-bold text-[#171717]">Thanh toán</h2>
+                    @if ($isAwaitingPayment)
+                        <div data-payment-countdown data-payment-deadline="{{ $paymentDeadline?->timestamp }}" class="mt-4 rounded-[18px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                            <p class="font-semibold">Đơn hàng chưa thanh toán</p>
+                            <p class="mt-1 leading-6">Còn <strong data-payment-countdown-value>{{ gmdate('H:i:s', $remainingPaymentSeconds) }}</strong> để thanh toán. Đơn sẽ tự động hủy khi hết thời gian.</p>
+                            <p data-payment-countdown-expired class="mt-1 hidden font-semibold text-red-700">Đã hết thời gian thanh toán. Vui lòng tải lại trang.</p>
+                        </div>
+                    @endif
                     <dl class="mt-4 space-y-3 text-sm">
                         <div class="flex items-start justify-between gap-4">
                             <dt class="text-[#777]">Phương thức</dt>
@@ -261,3 +278,43 @@
         </div>
     </div>
 @endsection
+
+@if ($isAwaitingPayment)
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const countdown = document.querySelector('[data-payment-countdown]');
+                if (!countdown) return;
+
+                const value = countdown.querySelector('[data-payment-countdown-value]');
+                const expiredMessage = countdown.querySelector('[data-payment-countdown-expired]');
+                const continueButton = document.querySelector('[data-payment-continue]');
+                const deadline = Number(countdown.dataset.paymentDeadline || 0);
+
+                const render = () => {
+                    const remaining = Math.max(0, deadline - Math.floor(Date.now() / 1000));
+                    if (remaining > 0) {
+                        const hours = String(Math.floor(remaining / 3600)).padStart(2, '0');
+                        const minutes = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+                        const seconds = String(remaining % 60).padStart(2, '0');
+                        if (value) value.textContent = `${hours}:${minutes}:${seconds}`;
+                        return;
+                    }
+
+                    value?.classList.add('hidden');
+                    expiredMessage?.classList.remove('hidden');
+                    countdown.classList.remove('border-amber-200', 'bg-amber-50');
+                    countdown.classList.add('border-red-200', 'bg-red-50');
+                    if (continueButton?.dataset.paymentExpired === 'true') return;
+                    continueButton?.setAttribute('data-payment-expired', 'true');
+                    continueButton?.classList.add('pointer-events-none', 'opacity-50');
+                    continueButton?.setAttribute('aria-disabled', 'true');
+                    continueButton?.addEventListener('click', (event) => event.preventDefault(), { once: true });
+                };
+
+                render();
+                window.setInterval(render, 1000);
+            });
+        </script>
+    @endpush
+@endif

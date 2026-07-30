@@ -109,7 +109,12 @@ class ProductController extends Controller
 
         $mapped = $products->map(function ($product) {
             $thumb = $product->images->first()?->image_url ?? $product->thumbnail;
-            $thumbUrl = str_starts_with($thumb, 'http') ? $thumb : asset('storage/' . $thumb);
+            $thumbUrl = match (true) {
+                ! $thumb => asset('images/placeholder.svg'),
+                str_starts_with($thumb, 'http') => $thumb,
+                str_starts_with($thumb, 'images/') || str_starts_with($thumb, 'storage/') => asset($thumb),
+                default => asset('storage/' . ltrim($thumb, '/')),
+            };
             return [
                 'name' => $product->name,
                 'url' => route('products.show', $product->slug),

@@ -10,7 +10,7 @@ class ProductVariant extends Model
 {
     protected $fillable = [
         'product_id', 'name', 'storage', 'color',
-        'color_code', 'additional_price', 'sku', 'is_active',
+        'color_code', 'additional_price', 'sku', 'is_active', 'image',
     ];
 
     protected function casts(): array

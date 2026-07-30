@@ -1,19 +1,26 @@
 <?php
+require __DIR__ . '/vendor/autoload.php';
+$app = require __DIR__ . '/bootstrap/app.php';
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
+
 echo "\n===========================================\n";
 echo "   KIỂM TRA HỆ THỐNG NOVAPHONE\n";
 echo "===========================================\n\n";
 
 // 1. Check .env
 echo "1️⃣  KIỂM TRA .ENV CONFIGURATION\n";
-echo "   SESSION_DRIVER: " . env('SESSION_DRIVER') . " " . (env('SESSION_DRIVER') === 'database' ? '✅' : '❌') . "\n";
-echo "   CACHE_STORE: " . env('CACHE_STORE') . " " . (env('CACHE_STORE') === 'database' ? '✅' : '❌') . "\n";
-echo "   DATABASE: " . env('DB_DATABASE') . " ✅\n\n";
+$sessionDriver = config('session.driver');
+$cacheStore = config('cache.default');
+$databaseConnection = config('database.default');
+$databaseName = config("database.connections.{$databaseConnection}.database");
+echo "   SESSION_DRIVER: " . $sessionDriver . " " . ($sessionDriver === 'database' ? '✅' : '❌') . "\n";
+echo "   CACHE_STORE: " . $cacheStore . " " . ($cacheStore === 'database' ? '✅' : '❌') . "\n";
+echo "   DATABASE: " . $databaseName . " ✅\n\n";
 
 // 2. Check Database Connection
 echo "2️⃣  KIỂM TRA KỾT NỐI DATABASE\n";
 try {
-    require __DIR__ . '/bootstrap/app.php';
-    $app = require_once __DIR__ . '/bootstrap/app.php';
     $app->make('db')->connection()->getPdo();
     echo "   Database: ✅ Kết nối thành công\n";
 } catch (\Exception $e) {

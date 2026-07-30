@@ -234,10 +234,11 @@
                             @php
                                 $product = $item->product;
                                 $variant = $item->variant;
-                                $image = $product->thumbnail
-                                    ? (str_starts_with($product->thumbnail, 'http')
-                                        ? $product->thumbnail
-                                        : asset(str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? $product->thumbnail : 'storage/' . $product->thumbnail))
+                                $thumbnail = $variant?->image ?: $product->thumbnail;
+                                $image = $thumbnail
+                                    ? (str_starts_with($thumbnail, 'http')
+                                        ? $thumbnail
+                                        : asset(str_starts_with($thumbnail, 'images/') || str_starts_with($thumbnail, 'storage/') ? $thumbnail : 'storage/' . ltrim($thumbnail, '/')))
                                     : asset('images/placeholder.svg');
                             @endphp
                             <div class="flex gap-3">

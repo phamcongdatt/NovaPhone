@@ -61,6 +61,7 @@ class UpdateProductRequest extends FormRequest
             'variants.*.additional_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.sku'              => ['nullable', 'string', 'max:100'],
             'variants.*.quantity'         => ['nullable', 'integer', 'min:0'],
+            'variants.*.image'            => ['nullable', 'image','max:2048'],
 
             // Xoá biến thể (mảng id)
             'deleted_variants'   => ['nullable', 'array'],

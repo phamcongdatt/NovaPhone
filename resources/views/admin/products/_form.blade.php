@@ -16,6 +16,7 @@
             'storage' => $v->storage,
             'color' => $v->color,
             'color_code' => $v->color_code,
+            'image_url' => $v->image ? asset($v->image) : null,
             'additional_price' => (int) $v->additional_price,
             'sku' => $v->sku,
             'quantity' => $v->inventory->quantity ?? 0,
@@ -23,7 +24,14 @@
         deletedVariants: [],
         deletedImages: [],
         addVariant() {
-            this.variants.push({ id: null, name: '', storage: '', color: '', color_code: '#000000', additional_price: 0, sku: '', quantity: 0 });
+            this.variants.push({ id: null, name: '', storage: '', color: '', color_code: '#000000', image_url: null, additional_price: 0, sku: '', quantity: 0 });
+        },
+        previewVariantImage(index, event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                this.variants[index].image_url = URL.createObjectURL(file);
+            }
         },
         removeVariant(index) {
             const v = this.variants[index];
@@ -169,6 +177,24 @@
                                     <span class="sm:hidden">Xoá</span>
                                 </button>
                             </div>
+
+                            <div class="col-span-2 sm:col-span-6">
+                                <label class="mb-1 block text-[11px] text-gray-500">Ảnh biến thể</label>
+                                <template x-if="variant.image_url">
+                                    <img
+                                        :src="variant.image_url"
+                                        class="mb-2 size-24 rounded-lg border border-white/10 object-cover"
+                                        alt="Ảnh biến thể"
+                                    >
+                                </template>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    :name="`variants[${index}][image]`"
+                                    @change="previewVariantImage(index, $event)"
+                                    class="block w-full cursor-pointer rounded-lg border border-dashed border-white/15 bg-white/[0.02] px-3 py-2 text-xs text-gray-400"
+                                >
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -194,7 +220,6 @@
                     </div>
                 </div>
             </div>
-
             {{-- ═══════════ Thư viện ảnh ═══════════ --}}
             <div class="rounded-2xl border border-white/5 bg-night-soft p-5">
                 <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-400">Thư viện ảnh</h3>

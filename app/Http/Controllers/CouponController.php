@@ -95,8 +95,8 @@ class CouponController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Áp dụng mã thành công!',
-            'discount' => $coupon->discount_value,
-            'discount_type' => $coupon->discount_type,
+            'discount' => $coupon->value,
+            'discount_type' => $coupon->type,
         ]);
     }
 }

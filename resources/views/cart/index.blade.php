@@ -41,9 +41,14 @@
                         @php
                             $product = $item->product ?? null;
                             $variant = $item->variant ?? null;
+                            $thumbnail = $variant?->image ?: $product?->thumbnail;
                             $image = $product ? (
-                                $product->thumbnail
-                                    ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)))
+                                $thumbnail
+                                    ? (str_starts_with($thumbnail, 'http')
+                                        ? $thumbnail
+                                        : ((str_starts_with($thumbnail, 'images/') || str_starts_with($thumbnail, 'storage/'))
+                                            ? asset($thumbnail)
+                                            : asset('storage/' . ltrim($thumbnail, '/'))))
                                     : asset('images/placeholder.svg')
                             ) : asset('images/placeholder.svg');
                             $itemTotal = $item->price * $item->quantity;

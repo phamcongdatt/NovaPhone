@@ -20,7 +20,9 @@
 
     <section class="rounded-[28px] border border-[#ece8e2] bg-white p-4 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
         <div class="grid gap-6 lg:grid-cols-[92px_1fr_1.05fr]">
-            <div class="flex gap-2 lg:flex-col">
+            <div
+            data-product-thumbnails
+            class="flex gap-2 lg:flex-col">
                 @foreach ($gallery->take(4) as $img)
                     <button type="button" class="thumbnail-btn overflow-hidden rounded-[16px] border border-[#ece8e2] bg-[#fbfaf8] p-2 transition hover:border-black" data-image="{{ $img }}">
                         <img src="{{ $img }}" class="size-20 object-contain" alt="thumbnail" loading="lazy" decoding="async">
@@ -255,14 +257,6 @@
 </div>
 
 <script>
-    document.querySelectorAll('.thumbnail-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.remove('border-black'));
-            this.classList.add('border-black');
-            document.getElementById('main-image').src = this.dataset.image;
-        });
-    });
-
     document.querySelector('.qty-minus').addEventListener('click', function() {
         const qty = document.getElementById('quantity');
         if (qty.value > 1) qty.value = parseInt(qty.value) - 1;
@@ -284,21 +278,89 @@
     });
 
     const variants = @json($detail['variants'] ?? []);
+    const defaultGallery = @json($detail['images'] ?? []);
+    const placeholderImage = @json(asset('images/placeholder.svg'));
+    const mainImage = document.getElementById('main-image');
+    const thumbnailContainer = document.querySelector('[data-product-thumbnails]');
     let selectedColor = null;
     let selectedStorage = null;
+
+    function bindThumbnailEvents() {
+        document.querySelectorAll('.thumbnail-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document
+                    .querySelectorAll('.thumbnail-btn')
+                    .forEach(item => item.classList.remove('border-black'));
+
+                this.classList.add('border-black');
+                mainImage.src = this.dataset.image;
+            });
+        });
+    }
+
+    function renderGallery(images) {
+        const usableImages = (images || [])
+            .filter(image => image?.url)
+            .slice(0, 4);
+
+        if (!thumbnailContainer) {
+            return;
+        }
+
+        thumbnailContainer.replaceChildren();
+
+        usableImages.forEach((item, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `thumbnail-btn overflow-hidden rounded-[16px] border-2 ${index === 0 ? 'border-black' : 'border-[#ece8e2]'} bg-[#fbfaf8] p-2 transition hover:border-black`;
+            button.dataset.image = item.url;
+
+            const image = document.createElement('img');
+            image.src = item.url;
+            image.alt = 'Ảnh sản phẩm';
+            image.loading = 'lazy';
+            image.decoding = 'async';
+            image.className = 'size-20 object-contain';
+
+            button.appendChild(image);
+            thumbnailContainer.appendChild(button);
+        });
+
+        if (usableImages[0]) {
+            mainImage.src = usableImages[0].url;
+        } else {
+            mainImage.src = placeholderImage;
+        }
+
+        bindThumbnailEvents();
+    }
+
+    function renderVariantImage(variant) {
+        if (variant?.image_url) {
+            renderGallery([{ url: variant.image_url }]);
+            return;
+        }
+
+        renderGallery(defaultGallery);
+    }
 
     function syncVariant() {
         const variant = variants.find(item =>
             (!selectedColor || item.color === selectedColor) &&
             (!selectedStorage || item.storage === selectedStorage)
         );
+
         const variantId = variant?.id || '';
         document.getElementById('add-to-cart-variant').value = variantId;
         document.getElementById('buy-now-variant').value = variantId;
+
+        if (selectedColor || selectedStorage) {
+            renderVariantImage(variant);
+        }
     }
 
     document.querySelectorAll('.color-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             document.querySelectorAll('.color-btn').forEach(item => item.classList.remove('border-black', 'bg-black', 'text-white'));
             this.classList.add('border-black', 'bg-black', 'text-white');
             selectedColor = this.dataset.color;
@@ -307,12 +369,14 @@
     });
 
     document.querySelectorAll('.storage-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             document.querySelectorAll('.storage-btn').forEach(item => item.classList.remove('border-black', 'bg-black', 'text-white'));
             this.classList.add('border-black', 'bg-black', 'text-white');
             selectedStorage = this.dataset.storage;
             syncVariant();
         });
     });
+
+    renderGallery(defaultGallery);
 </script>
 @endsection

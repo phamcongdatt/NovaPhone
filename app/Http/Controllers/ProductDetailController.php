@@ -23,7 +23,6 @@ class ProductDetailController extends Controller
 
         $product->increment('view_count');
         $reviewContext = $this->reviewContext($request, $product);
-
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
@@ -106,7 +105,7 @@ class ProductDetailController extends Controller
     {
         $images = $product->images
             ->map(fn ($image) => [
-                'url' => str_starts_with($image->image_url, 'images/') ? asset($image->image_url) : asset('storage/' . $image->image_url),
+                'url' => $this->productImageUrl($image->image_url),
                 'is_primary' => $image->is_primary,
                 'sort_order' => $image->sort_order,
             ])
@@ -114,7 +113,7 @@ class ProductDetailController extends Controller
 
         if ($images->isEmpty()) {
             $images = collect([[
-                'url' => $product->thumbnail ? (str_starts_with($product->thumbnail, 'images/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail)) : asset('images/placeholder.svg'),
+                'url' => $this->productImageUrl($product->thumbnail),
                 'is_primary' => true,
                 'sort_order' => 0,
             ]]);
@@ -145,6 +144,7 @@ class ProductDetailController extends Controller
                     'storage' => $variant->storage,
                     'color' => $variant->color,
                     'color_code' => $variant->color_code,
+                    'image_url' => $variant->image ? $this->productImageUrl($variant->image) : null,
                     'additional_price' => (float) $variant->additional_price,
                     'sku' => $variant->sku,
                     'available_quantity' => $variant->inventory?->available_quantity ?? 0,
@@ -202,6 +202,25 @@ class ProductDetailController extends Controller
         }
 
         return asset('storage/' . ltrim($image, '/'));
+    }
+
+    private function productImageUrl(?string $image): string
+    {
+        $image = trim((string) $image);
+
+        if ($image === '') {
+            return asset('images/placeholder.svg');
+        }
+
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+            return $image;
+        }
+
+        $path = ltrim($image, '/');
+
+        return str_starts_with($path, 'images/') || str_starts_with($path, 'storage/')
+            ? asset($path)
+            : asset('storage/' . $path);
     }
 
     private function discountPercent(Product $product): ?int
