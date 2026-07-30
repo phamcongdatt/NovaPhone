@@ -32,13 +32,16 @@
         </div>
 
         <div class="mt-6 flex justify-center gap-3">
-            <a href="{{ route('orders.show', $order) }}" class="rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#222]">
+            <a href="{{ $guestOrderUrl ?? route('orders.show', $order) }}" class="rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#222]">
                 Xem chi tiết đơn hàng
             </a>
             <a href="{{ route('home') }}" class="rounded-full border border-[#e8e4de] px-6 py-3 text-sm font-semibold text-[#111] transition hover:bg-[#fbfaf8]">
                 Tiếp tục mua sắm
             </a>
         </div>
+        @if ($guestOrderUrl ?? false)
+            <p class="mt-4 text-xs text-[#777]">Link quản lý đơn đã được gửi tới email {{ $order->customer_email }}.</p>
+        @endif
     </section>
 </div>
 @endsection

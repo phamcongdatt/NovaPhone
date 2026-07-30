@@ -116,7 +116,7 @@ class RevenueController extends Controller
         $topCustomers = Order::select(
                 'orders.user_id',
                 'users.name as customer_name',
-                'users.email as customer_email',
+                DB::raw('COALESCE(users.email, orders.customer_email) as customer_email'),
                 'orders.shipping_full_name',
                 'orders.shipping_phone',
                 DB::raw('COUNT(orders.id) as total_orders'),
@@ -125,7 +125,7 @@ class RevenueController extends Controller
             ->leftJoin('users', 'orders.user_id', '=', 'users.id')
             ->whereIn('orders.status', self::REVENUE_STATUSES)
             ->whereBetween('orders.created_at', [$start, $end])
-            ->groupBy('orders.user_id', 'users.name', 'users.email', 'orders.shipping_full_name', 'orders.shipping_phone')
+            ->groupBy('orders.user_id', 'users.name', 'users.email', 'orders.customer_email', 'orders.shipping_full_name', 'orders.shipping_phone')
             ->orderByDesc('total_spent')
             ->limit(10)
             ->get();

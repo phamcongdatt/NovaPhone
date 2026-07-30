@@ -78,7 +78,7 @@ class ReportController extends Controller
         // Top khách hàng mua nhiều nhất
         $topCustomers = Order::select(
                 'users.name as customer_name',
-                'users.email as customer_email',
+                DB::raw('COALESCE(users.email, orders.customer_email) as customer_email'),
                 'orders.shipping_full_name',
                 'orders.shipping_phone',
                 DB::raw('COUNT(orders.id) as total_orders'),
@@ -87,14 +87,14 @@ class ReportController extends Controller
             ->leftJoin('users', 'orders.user_id', '=', 'users.id')
             ->whereIn('orders.status', self::REVENUE_STATUSES)
             ->whereBetween('orders.created_at', [$start, $end])
-            ->groupBy('orders.user_id', 'users.name', 'users.email', 'orders.shipping_full_name', 'orders.shipping_phone')
+            ->groupBy('orders.user_id', 'users.name', 'users.email', 'orders.customer_email', 'orders.shipping_full_name', 'orders.shipping_phone')
             ->orderByDesc('total_spent')
             ->limit(15)
             ->get();
 
         // Chuẩn bị file tải về
         $fileName = 'bao-cao-doanh-thu-' . $start->format('Ymd') . '-den-' . $end->format('Ymd') . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv; charset=utf-8',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
@@ -105,7 +105,7 @@ class ReportController extends Controller
 
         $callback = function() use ($start, $end, $totalRevenue, $totalOrders, $totalProductsSold, $totalCustomers, $dailyData, $topProducts, $topCustomers, $categoryStats) {
             $file = fopen('php://output', 'w');
-            
+
             // Viết UTF-8 BOM để Excel hiển thị tiếng Việt chính xác
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
@@ -338,9 +338,9 @@ class ReportController extends Controller
         while ($current->lte($end)) {
             $dateStr = $current->format('Y-m-d');
             $dateFormatted = $current->format('d/m');
-            
+
             $dayData = $dbData->get($dateStr);
-            
+
             $result[] = [
                 'date' => $dateFormatted,
                 'revenue' => $dayData ? (float) $dayData->revenue : 0.0,

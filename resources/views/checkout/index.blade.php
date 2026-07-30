@@ -118,6 +118,14 @@
                                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
+                                <div>
+                                    <label class="text-xs font-semibold text-[#8b8b8b]">Email nhận thông báo</label>
+                                    <input type="email" name="customer_email" id="customer_email" value="{{ old('customer_email', Auth::user()?->email) }}" placeholder="you@example.com" class="mt-2 w-full rounded-[12px] border {{ $errors->has('customer_email') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                    <p class="mt-2 text-xs text-[#8b8b8b]">Dùng để nhận xác nhận và link quản lý đơn hàng.</p>
+                                    @error('customer_email')
+                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
 
                                 <div class="grid gap-4 md:grid-cols-2">
                                     <div>

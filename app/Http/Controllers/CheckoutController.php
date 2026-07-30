@@ -14,6 +14,8 @@ use App\Models\ProductVariant;
 use App\Models\User;
 use App\Services\CartService;
 use App\Services\CouponService;
+use App\Services\GuestOrderAccessService;
+use App\Services\OrderCancellationService;
 use App\Services\SoldCountService;
 use App\Services\TelegramNotificationService;
 use App\Services\VnpayService;
@@ -29,19 +31,25 @@ class CheckoutController extends Controller
     protected TelegramNotificationService $telegramNotificationService;
     protected SoldCountService $soldCountService;
     protected CouponService $couponService;
+    protected OrderCancellationService $cancellationService;
+    protected GuestOrderAccessService $guestOrderAccess;
 
     public function __construct(
         CartService $cartService,
         VnpayService $vnpayService,
         TelegramNotificationService $telegramNotificationService,
         SoldCountService $soldCountService,
-        CouponService $couponService
+        CouponService $couponService,
+        OrderCancellationService $cancellationService,
+        GuestOrderAccessService $guestOrderAccess
     ) {
         $this->cartService = $cartService;
         $this->vnpayService = $vnpayService;
         $this->telegramNotificationService = $telegramNotificationService;
         $this->soldCountService = $soldCountService;
         $this->couponService = $couponService;
+        $this->cancellationService = $cancellationService;
+        $this->guestOrderAccess = $guestOrderAccess;
     }
 
     /**
@@ -340,6 +348,7 @@ class CheckoutController extends Controller
                 // 3. Tạo bản ghi đơn hàng
                 $order = Order::create([
                     'user_id' => $user?->id,
+                    'customer_email' => $request->customer_email,
                     'status' => 'pending',
                     'payment_method' => $request->payment_method,
                     'payment_status' => 'pending',
@@ -480,7 +489,38 @@ class CheckoutController extends Controller
             abort(403);
         }
 
-        return view('checkout.success', compact('order'));
+        $guestOrderUrl = $order->user_id === null
+            ? $this->guestOrderAccess->showUrl($order)
+            : null;
+
+        return view('checkout.success', compact('order', 'guestOrderUrl'));
+    }
+
+    public function guestShow(Order $order)
+    {
+        abort_unless($order->user_id === null && $order->customer_email, 403);
+
+        $order->load('items');
+        $guestCancelUrl = $order->status === 'pending'
+            ? $this->guestOrderAccess->cancelUrl($order)
+            : null;
+
+        return view('orders.guest-show', compact('order', 'guestCancelUrl'));
+    }
+
+    public function guestCancel(Order $order)
+    {
+        abort_unless($order->user_id === null && $order->customer_email, 403);
+
+        if ($order->status !== 'pending') {
+            return back()->with('error', 'Chỉ đơn hàng đang chờ xác nhận mới có thể hủy.');
+        }
+
+        if (! $this->cancellationService->cancel($order, 'Khách vãng lai hủy đơn')) {
+            return back()->with('error', 'Đơn hàng vừa được xử lý nên không thể hủy.');
+        }
+
+        return back()->with('success', 'Đơn hàng đã được hủy thành công.');
     }
 
     /**
