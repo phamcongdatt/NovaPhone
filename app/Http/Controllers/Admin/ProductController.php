@@ -95,7 +95,11 @@ class ProductController extends Controller
             $product = Product::create($data);
 
             // Tạo biến thể + tồn kho
-            $this->syncVariants($product, $request->input('variants', []));
+            $this->syncVariants(
+                $product,
+                $request->input('variants',[]),
+                $request->file('variants',[])
+            );
 
             // Nếu không có biến thể nào, tạo 1 dòng tồn kho gốc cho sản phẩm
             if (empty($request->input('variants'))) {
@@ -172,11 +176,24 @@ class ProductController extends Controller
             $product->update($data);
 
             // Đồng bộ biến thể (thêm/sửa/xoá)
-            $this->syncVariants($product, $request->input('variants', []));
+            $this->syncVariants(
+                $product,
+                $request->input('variants', []),
+                $request->file('variants', [])
+            );
 
             // Xoá biến thể đã đánh dấu xoá
             if ($deleted = $request->input('deleted_variants')) {
-                ProductVariant::whereIn('id', $deleted)->where('product_id', $product->id)->delete();
+                $variantsToDelete = ProductVariant::whereIn('id',$deleted)
+                ->where('product_id', $product->id)->get();
+                foreach($variantsToDelete as $variant)
+                    {
+                        if($variant->image && file_exists(public_path($variant->image)))
+                            {
+                                unlink(public_path($variant->image));
+                            }
+                        $variant->delete();
+                    }
                 Inventory::whereIn('variant_id', $deleted)->delete();
             }
 
@@ -301,9 +318,9 @@ class ProductController extends Controller
     /**
      * Tạo hoặc cập nhật biến thể + tồn kho tương ứng.
      */
-    private function syncVariants(Product $product, array $variants): void
+    private function syncVariants(Product $product, array $variants, array $variantFiles = []) : void
     {
-        foreach ($variants as $variantData) {
+        foreach ($variants as $index => $variantData) {
             $variantId = $variantData['id'] ?? null;
             $quantity  = (int) ($variantData['quantity'] ?? 0);
 
@@ -331,7 +348,22 @@ class ProductController extends Controller
             } else {
                 $variant = ProductVariant::create($payload);
             }
+            $uploadedImage = data_get($variantFiles, "{$index}.image");
+            if ($uploadedImage) {
+                $variantDirectory = public_path('images/products/variants');
+                File::ensureDirectoryExists($variantDirectory);
 
+                if ($variant->image && file_exists(public_path($variant->image))) {
+                    unlink(public_path($variant->image));
+                }
+
+                $imageName = time() . '_' . uniqid() . '.' . $uploadedImage->extension();
+                $uploadedImage->move($variantDirectory, $imageName);
+
+                $variant->update([
+                    'image' => 'images/products/variants/' . $imageName,
+                ]);
+            }
             // Đồng bộ tồn kho cho biến thể
             Inventory::updateOrCreate(
                 ['product_id' => $product->id, 'variant_id' => $variant->id],

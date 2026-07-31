@@ -14,6 +14,7 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'customer_email' => 'required|email|max:255',
             'shipping_full_name' => 'required|string|max:255',
             'shipping_phone' => 'required|string|max:15',
             'shipping_province' => 'required|string|max:255',
@@ -28,6 +29,8 @@ class CheckoutRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'customer_email.required' => 'Email nhận thông báo là bắt buộc.',
+            'customer_email.email' => 'Email nhận thông báo không hợp lệ.',
             'shipping_full_name.required' => 'Họ và tên người nhận là bắt buộc.',
             'shipping_phone.required' => 'Số điện thoại là bắt buộc.',
             'shipping_address.required' => 'Địa chỉ giao hàng là bắt buộc.',

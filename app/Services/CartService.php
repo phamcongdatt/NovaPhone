@@ -47,9 +47,13 @@ class CartService
 
             $variant = $item['variant_id'] ? $variants->get($item['variant_id']) : null;
 
+            if ($variant && (int) $variant->product_id !== (int) $product->id) {
+                $variant = null;
+            }
+
             $mockItem = new CartItem([
                 'product_id' => $item['product_id'],
-                'variant_id' => $item['variant_id'],
+                'variant_id' => $variant?->id,
                 'quantity'   => $item['quantity'],
                 'price'      => $item['price'],
             ]);
@@ -104,8 +108,18 @@ class CartService
     public function add(int $productId, ?int $variantId, int $quantity = 1): CartItem
     {
         $product = Product::findOrFail($productId);
+
+        if (! $product->is_active) {
+            throw new Exception('Sản phẩm hiện không khả dụng.');
+        }
+
         $variant = $variantId ? ProductVariant::findOrFail($variantId) : null;
         $variant = $this->resolveVariant($product, $variant);
+
+        if ($variant && ! $variant->is_active) {
+            throw new Exception('Biến thể sản phẩm hiện không khả dụng.');
+        }
+
         $resolvedVariantId = $variant?->id;
 
         $price = $product->effective_price;
@@ -381,11 +395,11 @@ class CartService
         $variant = $this->resolveVariant($product, $variant);
 
         if ($variant) {
-            $inventory = $variant->inventory;
-        } else {
-            $inventory = $product->inventory;
+            // Không được dùng tồn kho tổng của các biến thể khác cho biến thể đang chọn.
+            return (int) ($variant->inventory?->available_quantity ?? 0);
         }
 
+        $inventory = $product->inventory;
         if (! $inventory) {
             return (int) $product->variants()
                 ->where('is_active', true)
@@ -403,6 +417,10 @@ class CartService
     public function resolveVariant(Product $product, ?ProductVariant $variant): ?ProductVariant
     {
         if ($variant) {
+            if ((int) $variant->product_id !== (int) $product->id) {
+                throw new Exception('Biến thể không thuộc sản phẩm đã chọn.');
+            }
+
             return $variant;
         }
 

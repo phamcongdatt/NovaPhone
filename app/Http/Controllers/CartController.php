@@ -109,7 +109,15 @@ class CartController extends Controller
 
         $buyNowData = session()->get('buy_now_item');
         $product = \App\Models\Product::findOrFail($buyNowData['product_id']);
+        if (! $product->is_active) {
+            throw new Exception('Sản phẩm hiện không khả dụng.');
+        }
+
         $variant = $buyNowData['variant_id'] ? \App\Models\ProductVariant::findOrFail($buyNowData['variant_id']) : null;
+        $variant = $this->cartService->resolveVariant($product, $variant);
+        if ($variant && ! $variant->is_active) {
+            throw new Exception('Biến thể sản phẩm hiện không khả dụng.');
+        }
 
         $availableQuantity = $this->cartService->getAvailableStock($product, $variant);
         if ($availableQuantity < $quantity) {
@@ -198,8 +206,15 @@ class CartController extends Controller
             $quantity = $request->integer('quantity');
 
             $product = \App\Models\Product::findOrFail($productId);
+            if (! $product->is_active) {
+                throw new Exception('Sản phẩm hiện không khả dụng.');
+            }
+
             $variant = $variantId ? \App\Models\ProductVariant::findOrFail($variantId) : null;
             $variant = $this->cartService->resolveVariant($product, $variant);
+            if ($variant && ! $variant->is_active) {
+                throw new Exception('Biến thể sản phẩm hiện không khả dụng.');
+            }
             $variantId = $variant?->id;
 
             $price = $product->effective_price;

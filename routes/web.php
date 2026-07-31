@@ -133,13 +133,24 @@ Route::delete('/cart/remove/{item}', [CartController::class, 'destroy'])->name('
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 Route::post('/cart/set-selection', [CartController::class, 'setSelection'])->name('cart.set-selection');
 // ---------- Checkout Routes ----------
-Route::middleware('auth')->group(function () {
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-    Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
-    Route::post('/checkout/remove-coupon', [CheckoutController::class, 'removeCoupon'])->name('checkout.remove-coupon');
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
-    Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
+Route::post('/checkout/remove-coupon', [CheckoutController::class, 'removeCoupon'])->name('checkout.remove-coupon');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
+Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 
+//  Quan ly khach hang mau hang ma chua tao tai khoan 
+Route::get('/guest/orders/{order}', [CheckoutController::class, 'guestShow'])
+    ->middleware('signed')
+    ->name('guest.orders.show');
+Route::post('/guest/orders/{order}/cancel', [CheckoutController::class, 'guestCancel'])
+    ->middleware('signed')
+    ->name('guest.orders.cancel');
+Route::get('/guest/orders/{order}/payment', [CheckoutController::class, 'guestPay'])
+    ->middleware('signed')
+    ->name('guest.orders.pay');
+
+Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/confirm-received', [OrderController::class, 'confirmReceived'])->name('orders.confirm-received');
 });
@@ -185,24 +196,22 @@ Route::middleware(['auth', 'admin'])
         // Sản phẩm
         Route::patch('products/{product}/toggle-status', [AdminProductController::class, 'toggleStatus'])
             ->name('products.toggle-status');
-        Route::resource('products', AdminProductController::class);
+        Route::resource('products', AdminProductController::class)->except(['show']);
 
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
         Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class)->except(['show']);
         Route::resource('banners', \App\Http\Controllers\Admin\BannerController::class)->except(['show']);
-        
+
         // Quản lý Bài viết
         Route::resource('post-categories', \App\Http\Controllers\Admin\PostCategoryController::class)->except(['show']);
         Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
 
         // Flash Sale
-        Route::patch('flash-sales/{flashSale}/toggle-status', [FlashSaleController::class, 'toggleStatus'])
-->name('flash-sales.toggle-status');
-Route::resource('flash-sales', FlashSaleController::class);
+        Route::resource('flash-sales', FlashSaleController::class)->except(['show']);
 
         // Mã giảm giá (Coupons)
-        Route::resource('coupons', AdminCouponController::class);
+        Route::resource('coupons', AdminCouponController::class)->except(['show']);
 
 
         // Người dùng / Khách hàng (xem danh sách, chi tiết, khóa/mở khóa)

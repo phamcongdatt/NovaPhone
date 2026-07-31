@@ -110,6 +110,9 @@
             <dl class="space-y-3 text-sm">
                 <div><dt class="text-xs text-gray-500">Họ tên</dt><dd class="mt-0.5 font-semibold text-white">{{ $order->shipping_full_name }}</dd></div>
                 <div><dt class="text-xs text-gray-500">Số điện thoại</dt><dd class="mt-0.5 font-semibold text-white">{{ $order->shipping_phone }}</dd></div>
+                @if ($order->customer_email)
+                    <div><dt class="text-xs text-gray-500">Email</dt><dd class="mt-0.5 font-semibold text-white">{{ $order->customer_email }}</dd></div>
+                @endif
                 <div><dt class="text-xs text-gray-500">Địa chỉ</dt><dd class="mt-0.5 text-gray-200">{{ $order->shipping_address }}, {{ $order->shipping_ward }}, {{ $order->shipping_district }}, {{ $order->shipping_province }}</dd></div>
                 @if ($order->note)
                     <div><dt class="text-xs text-gray-500">Ghi chú khách</dt><dd class="mt-0.5 text-gray-200">{{ $order->note }}</dd></div>

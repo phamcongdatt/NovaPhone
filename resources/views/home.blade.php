@@ -4,7 +4,7 @@
 
 @push('head')
     @if ($banners->isNotEmpty() && $banners->first()->image)
-        <link rel="preload" as="image" href="{{ str_starts_with($banners->first()->image, 'http') ? $banners->first()->image : (str_starts_with($banners->first()->image, 'images/') ? asset($banners->first()->image) : asset('storage/' . $banners->first()->image)) }}" fetchpriority="high">
+        <link rel="preload" as="image" href="{{ str_starts_with($banners->first()->image, 'http') ? $banners->first()->image : ((str_starts_with($banners->first()->image, 'images/') || str_starts_with($banners->first()->image, 'storage/')) ? asset($banners->first()->image) : asset('storage/' . ltrim($banners->first()->image, '/'))) }}" fetchpriority="high">
     @endif
 @endpush
 
@@ -22,7 +22,7 @@
                 @foreach ($banners as $index => $banner)
                     @php
                         $bannerImage = $banner->image
-                            ? (str_starts_with($banner->image, 'http') ? $banner->image : (str_starts_with($banner->image, 'images/') ? asset($banner->image) : asset('storage/' . $banner->image)))
+                            ? (str_starts_with($banner->image, 'http') ? $banner->image : ((str_starts_with($banner->image, 'images/') || str_starts_with($banner->image, 'storage/')) ? asset($banner->image) : asset('storage/' . ltrim($banner->image, '/'))))
                             : asset('images/placeholder.svg');
                     @endphp
                     <article class="w-full shrink-0" data-hero-slide aria-hidden="{{ $index === 0 ? 'false' : 'true' }}">
@@ -168,7 +168,7 @@
                 <article class="group overflow-hidden rounded-[16px] border border-[#ece8e2] transition-all hover:shadow-lg">
                     @if ($post->thumbnail)
                         <div class="h-40 overflow-hidden bg-gray-200">
-                            <img src="{{ str_starts_with($post->thumbnail, 'http') ? $post->thumbnail : (str_starts_with($post->thumbnail, 'images/') ? asset($post->thumbnail) : asset('storage/' . $post->thumbnail)) }}" alt="{{ $post->title }}" loading="lazy" decoding="async" class="size-full object-cover group-hover:scale-105 transition-transform">
+                        <img src="{{ str_starts_with($post->thumbnail, 'http') ? $post->thumbnail : ((str_starts_with($post->thumbnail, 'images/') || str_starts_with($post->thumbnail, 'storage/')) ? asset($post->thumbnail) : asset('storage/' . ltrim($post->thumbnail, '/'))) }}" alt="{{ $post->title }}" loading="lazy" decoding="async" class="size-full object-cover group-hover:scale-105 transition-transform">
                         </div>
                     @endif
                     <div class="p-4">

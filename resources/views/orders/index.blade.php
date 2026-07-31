@@ -51,11 +51,17 @@
                                 <span class="rounded-full {{ $status['color'] }} px-3 py-1 text-xs font-semibold">
                                     {{ $status['label'] }}
                                 </span>
+                                @if ($order->payment_method === 'vnpay' && $order->payment_status === 'pending' && $order->status === 'pending')
+                                    <span class="mt-1 block text-xs font-semibold text-amber-700">Chưa thanh toán</span>
+                                @endif
                             </td>
                             <td class="px-4 py-4 font-semibold">{{ number_format($order->total_amount ?? 0, 0, ',', '.') }}đ</td>
                             <td class="px-4 py-4">
                                 <div class="flex flex-wrap items-center gap-3">
                                     <a href="{{ route('orders.show', $order) }}" class="text-sm font-semibold text-blue-600 hover:underline">Chi tiết</a>
+                                    @if ($order->payment_method === 'vnpay' && $order->payment_status === 'pending' && $order->status === 'pending')
+                                        <a href="{{ route('checkout.vnpay.create', $order) }}" class="text-sm font-semibold text-amber-700 hover:underline">Thanh toán VNPay</a>
+                                    @endif
                                     @if ($order->status === 'pending')
                                         <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
                                             @csrf

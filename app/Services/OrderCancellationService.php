@@ -85,6 +85,24 @@ class OrderCancellationService
                 $orderCoupon->coupon?->decrement('used_count');
             }
 
+            // Trả lại quota Flash Sale cho các item được ghi nhận với giá Flash Sale.
+            foreach ($locked->items as $item) {
+                if (! $item->flash_sale_item_id) {
+                    continue;
+                }
+
+                $flashSaleItem = \App\Models\FlashSaleItem::whereKey($item->flash_sale_item_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($flashSaleItem) {
+                    $quantityToRestore = min((int) $item->quantity, (int) $flashSaleItem->sold);
+                    if ($quantityToRestore > 0) {
+                        $flashSaleItem->decrement('sold', $quantityToRestore);
+                    }
+                }
+            }
+
             return true;
         });
 

@@ -11,13 +11,14 @@ class PostCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PostCategory::withCount('posts')->latest();
-
-        if ($request->has('search') && $request->search != '') {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
-
-        $categories = $query->paginate(15);
+        $categories = PostCategory::withCount('posts')
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = trim($request->string('search')->toString());
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.post-categories.index', compact('categories'));
     }
@@ -29,19 +30,20 @@ class PostCategoryController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'is_active' => ['boolean'],
         ]);
 
-        $category = new PostCategory();
-        $category->name = $request->name;
-        $category->slug = Str::slug($request->name) . '-' . time();
-        $category->description = $request->description;
-        $category->is_active = $request->has('is_active');
-        $category->save();
+        $validated['slug'] = $this->uniqueSlug($validated['name']);
+        $validated['is_active'] = $request->boolean('is_active');
 
-        return redirect()->route('admin.post-categories.index')->with('success', 'Thêm danh mục bài viết thành công!');
+        PostCategory::create($validated);
+
+        return redirect()
+            ->route('admin.post-categories.index')
+            ->with('success', 'Thêm danh mục bài viết thành công.');
     }
 
     public function edit(PostCategory $postCategory)
@@ -51,29 +53,46 @@ class PostCategoryController extends Controller
 
     public function update(Request $request, PostCategory $postCategory)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'is_active' => ['boolean'],
         ]);
 
-        $postCategory->name = $request->name;
-        if ($postCategory->isDirty('name')) {
-            $postCategory->slug = Str::slug($request->name) . '-' . time();
+        if ($validated['name'] !== $postCategory->name) {
+            $validated['slug'] = $this->uniqueSlug($validated['name'], $postCategory->id);
         }
-        $postCategory->description = $request->description;
-        $postCategory->is_active = $request->has('is_active');
-        $postCategory->save();
 
-        return redirect()->route('admin.post-categories.index')->with('success', 'Cập nhật danh mục bài viết thành công!');
+        $validated['is_active'] = $request->boolean('is_active');
+        $postCategory->update($validated);
+
+        return redirect()
+            ->route('admin.post-categories.index')
+            ->with('success', 'Cập nhật danh mục bài viết thành công.');
     }
 
     public function destroy(PostCategory $postCategory)
     {
-        if ($postCategory->posts()->exists()) {
-            return back()->withErrors(['message' => 'Không thể xoá danh mục đã có bài viết!']);
-        }
         $postCategory->delete();
 
-        return redirect()->route('admin.post-categories.index')->with('success', 'Xóa danh mục bài viết thành công!');
+        return redirect()
+            ->route('admin.post-categories.index')
+            ->with('success', 'Xóa danh mục bài viết thành công.');
+    }
+
+    private function uniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $base = Str::slug($name) ?: 'danh-muc';
+        $slug = $base;
+        $counter = 1;
+
+        while (PostCategory::where('slug', $slug)
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->exists()) {
+            $slug = "{$base}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
     }
 }

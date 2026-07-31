@@ -1,9 +1,9 @@
 @component('mail::message')
 # Đơn hàng đã được tạo
 
-Mã đơn hàng của bạn là **{{ $order->order_number ?? $order->id ?? '' }}**.
+Mã đơn hàng của bạn là **{{ $order->order_code }}**.
 
-@component('mail::button', ['url' => url('/orders/' . ($order->id ?? ''))])
+@component('mail::button', ['url' => $orderUrl])
 Xem đơn hàng
 @endcomponent
 
