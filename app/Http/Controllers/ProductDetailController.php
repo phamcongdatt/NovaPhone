@@ -71,8 +71,7 @@ class ProductDetailController extends Controller
         }
 
         $eligibleOrderQuery = $user->orders()
-            ->where('status', 'delivered')
-            ->where('payment_status', 'paid')
+            ->reviewable()
             ->whereHas('items', fn ($query) => $query->where('product_id', $product->id));
 
         if ($request->integer('order') > 0) {

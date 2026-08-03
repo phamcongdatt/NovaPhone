@@ -401,6 +401,16 @@
                                class="input-field" placeholder="VD: IP17PM-256" required>
                         @error('sku') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
                     </div>
+                    <div>
+    <label class="mb-1 block text-sm font-medium text-gray-300">Bảo hành (tháng)</label>
+    <div class="relative">
+        <input type="number" name="warranty_months"
+               value="{{ old('warranty_months', $product->warranty_months ?? 12) }}"
+               class="input-field pr-14" min="0" max="120" placeholder="VD: 12">
+        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">tháng</span>
+    </div>
+    @error('warranty_months') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+</div>
                 </div>
             </div>
 

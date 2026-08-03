@@ -57,11 +57,12 @@
 
                 <div class="space-y-2">
                     <div class="flex items-baseline gap-3">
-                        <div class="text-3xl font-extrabold text-[#111]">{{ number_format($activePrice, 0, ',', '.') }}đ</div>
+                        <div data-product-price class="text-3xl font-extrabold text-[#111]">{{ number_format($activePrice, 0, ',', '.') }}đ</div>
                         @if ($flashSaleDiscount)
                             <div class="rounded-full bg-[#f04c3e] px-3 py-1 text-sm font-bold text-white">-{{ $flashSaleDiscount }}%</div>
                         @endif
                     </div>
+                    <p data-variant-price-note class="hidden text-xs text-[#6f6f6f]"></p>
                     @if ($flashSaleDiscount)
                         <p class="text-xs text-[#f59e0b]">Flash Sale - Ưu đãi giới hạn</p>
                     @endif
@@ -173,7 +174,7 @@
         </section>
     @endif
 
-    <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
+    <section id="reviews" class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)]">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-bold text-[#171717]">Đánh giá từ khách hàng</h2>
         </div>
@@ -280,7 +281,10 @@
     const variants = @json($detail['variants'] ?? []);
     const defaultGallery = @json($detail['images'] ?? []);
     const placeholderImage = @json(asset('images/placeholder.svg'));
+    const basePrice = Number(@json((float) $activePrice));
     const mainImage = document.getElementById('main-image');
+    const priceElement = document.querySelector('[data-product-price]');
+    const variantPriceNote = document.querySelector('[data-variant-price-note]');
     const thumbnailContainer = document.querySelector('[data-product-thumbnails]');
     let selectedColor = null;
     let selectedStorage = null;
@@ -351,6 +355,23 @@
         );
 
         const variantId = variant?.id || '';
+        const additionalPrice = Number(variant?.additional_price || 0);
+        const variantPrice = basePrice + additionalPrice;
+
+        if (priceElement) {
+            priceElement.textContent = `${new Intl.NumberFormat('vi-VN').format(Math.round(variantPrice))}đ`;
+        }
+
+        if (variantPriceNote) {
+            if (variant && additionalPrice > 0) {
+                variantPriceNote.textContent = `Giá sản phẩm + giá cộng thêm biến thể: +${new Intl.NumberFormat('vi-VN').format(Math.round(additionalPrice))}đ`;
+                variantPriceNote.classList.remove('hidden');
+            } else {
+                variantPriceNote.textContent = '';
+                variantPriceNote.classList.add('hidden');
+            }
+        }
+
         document.getElementById('add-to-cart-variant').value = variantId;
         document.getElementById('buy-now-variant').value = variantId;
 
@@ -378,5 +399,6 @@
     });
 
     renderGallery(defaultGallery);
+    syncVariant();
 </script>
 @endsection

@@ -27,6 +27,7 @@ class Product extends Model
         'is_featured',
         'sold_count',
         'view_count',
+        'warranty_months',
     ];
 
     protected function casts(): array
@@ -71,8 +72,8 @@ class Product extends Model
         ];
 
         return collect($attrs)
-            ->filter(fn ($label, $key) => $this->performance->{$key} !== null)
-            ->map(fn ($label, $key) => ['key' => $key, 'label' => $label, 'value' => (string) $this->performance->{$key}])
+            ->filter(fn($label, $key) => $this->performance->{$key} !== null)
+            ->map(fn($label, $key) => ['key' => $key, 'label' => $label, 'value' => (string) $this->performance->{$key}])
             ->values()
             ->toArray();
     }
@@ -93,8 +94,8 @@ class Product extends Model
         return \App\Models\OrderItem::where('product_id', $this->id)
             ->whereHas('order', function ($query) use ($userId, $flashSale) {
                 $query->where('user_id', $userId)
-                      ->whereNotIn('status', ['cancelled', 'returned'])
-                      ->whereBetween('created_at', [$flashSale->start_time, $flashSale->end_time]);
+                    ->whereNotIn('status', ['cancelled', 'returned'])
+                    ->whereBetween('created_at', [$flashSale->start_time, $flashSale->end_time]);
             })
             ->sum('quantity');
     }
@@ -188,8 +189,8 @@ class Product extends Model
         return $this->hasOne(FlashSaleItem::class)
             ->whereHas('flashSale', function ($q) {
                 $q->where('is_active', true)
-                  ->where('start_time', '<=', now())
-                  ->where('end_time', '>=', now());
+                    ->where('start_time', '<=', now())
+                    ->where('end_time', '>=', now());
             })
             ->whereColumn('sold', '<', 'quantity');
     }

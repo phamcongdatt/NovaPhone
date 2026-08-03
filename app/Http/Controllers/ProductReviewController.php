@@ -26,8 +26,7 @@ class ProductReviewController extends Controller
 
         $order = $user->orders()
             ->whereKey($request->integer('order_id'))
-            ->where('status', 'delivered')
-            ->where('payment_status', 'paid')
+            ->reviewable()
             ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
             ->latest()
             ->first();

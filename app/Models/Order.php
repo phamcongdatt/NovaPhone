@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -36,6 +37,31 @@ class Order extends Model
      * Các trạng thái đơn hàng được tính vào doanh số / sản phẩm bán chạy.
      */
     public const SALES_STATUSES = ['confirmed', 'processing', 'shipping', 'delivered'];
+
+    /**
+     * Đơn hàng đã giao hoặc người dùng đã xác nhận nhận hàng đều có thể review.
+     */
+    public const REVIEWABLE_STATUSES = ['delivered', 'received'];
+
+    public function canBeReviewed(): bool
+    {
+        return in_array($this->status, self::REVIEWABLE_STATUSES, true)
+            && ($this->payment_status === 'paid'
+                || ($this->payment_method === 'cod' && $this->payment_status === 'pending'));
+    }
+
+    public function scopeReviewable(Builder $query): Builder
+    {
+        return $query
+            ->whereIn('status', self::REVIEWABLE_STATUSES)
+            ->where(function (Builder $query) {
+                $query->where('payment_status', 'paid')
+                    ->orWhere(function (Builder $query) {
+                        $query->where('payment_method', 'cod')
+                            ->where('payment_status', 'pending');
+                    });
+            });
+    }
 
     protected static function booted(): void
     {

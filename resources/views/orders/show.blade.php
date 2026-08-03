@@ -144,7 +144,7 @@
                     @endif
                 </section>
 
-                <section class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)] sm:p-6">
+                <section id="order-items" class="rounded-[28px] border border-[#ece8e2] bg-white p-5 shadow-[0_10px_35px_rgba(0,0,0,.04)] sm:p-6">
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <h2 class="text-lg font-bold text-[#171717]">Sản phẩm trong đơn</h2>
@@ -183,7 +183,7 @@
                                     @if ($item->product)
                                         <a href="{{ route('products.show', $item->product) }}" class="mt-2 inline-flex text-xs font-semibold text-[#1677d2] transition hover:text-[#095ca8]">Xem sản phẩm</a>
                                     @endif
-                                    @if ($item->product && $order->status === 'delivered' && $order->payment_status === 'paid')
+                                    @if ($item->product && $order->canBeReviewed())
                                         @if ($order->reviews->contains('product_id', $item->product_id))
                                             <p class="mt-2 text-xs font-semibold text-[#23a052]">Đã đánh giá</p>
                                         @else
