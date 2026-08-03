@@ -17,7 +17,7 @@ class UpdateProductRequest extends FormRequest
         $productId = $this->route('product')->id;
 
         return [
-            'name'         => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('products', 'name')->ignore($productId)],
             'slug'         => ['nullable', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($productId)],
             'category_id'  => ['required', 'exists:categories,id'],
             'brand_id'     => ['required', 'exists:brands,id'],
@@ -35,7 +35,7 @@ class UpdateProductRequest extends FormRequest
             'display_type'        => ['nullable', 'string', 'max:128'],
             'refresh_rate'        => ['nullable', 'string', 'max:64'],
             'main_camera_mp'      => ['nullable', 'string', 'max:64'],
-            'ultra_wide_camera_mp'=> ['nullable', 'string', 'max:64'],
+            'ultra_wide_camera_mp' => ['nullable', 'string', 'max:64'],
             'front_camera_mp'     => ['nullable', 'string', 'max:64'],
             'video_recording'     => ['nullable', 'string', 'max:128'],
             'battery_mah'         => ['nullable', 'integer', 'min:1', 'max:99999'],
@@ -47,6 +47,7 @@ class UpdateProductRequest extends FormRequest
             'price'        => ['required', 'numeric', 'min:0'],
             'sale_price'   => ['nullable', 'numeric', 'min:0', 'lt:price'],
             'sku'          => ['required', 'string', 'max:100', Rule::unique('products', 'sku')->ignore($productId)],
+            'warranty_months' => ['nullable', 'integer', 'min:0', 'max:12'],
             'thumbnail'    => ['nullable', 'image', 'max:2048'],
             'is_active'    => ['boolean'],
             'is_featured'  => ['boolean'],
@@ -61,7 +62,7 @@ class UpdateProductRequest extends FormRequest
             'variants.*.additional_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.sku'              => ['nullable', 'string', 'max:100'],
             'variants.*.quantity'         => ['nullable', 'integer', 'min:0'],
-            'variants.*.image'            => ['nullable', 'image','max:2048'],
+            'variants.*.image'            => ['nullable', 'image', 'max:2048'],
 
             // Xoá biến thể (mảng id)
             'deleted_variants'   => ['nullable', 'array'],
@@ -80,6 +81,7 @@ class UpdateProductRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'name.unique' => 'Sản phẩm này đã tồn tại (trùng tên).',
             'name.required'        => 'Vui lòng nhập tên sản phẩm.',
             'category_id.required' => 'Vui lòng chọn danh mục.',
             'category_id.exists'   => 'Danh mục không hợp lệ.',
@@ -90,6 +92,9 @@ class UpdateProductRequest extends FormRequest
             'sale_price.lt'        => 'Giá giảm phải nhỏ hơn giá bán.',
             'sku.required'         => 'Vui lòng nhập mã SKU.',
             'sku.unique'           => 'Mã SKU đã tồn tại.',
+            'warranty_months.integer' => 'Số tháng bảo hành phải là số nguyên.',
+            'warranty_months.min'     => 'Số tháng bảo hành không được âm.',
+            'warranty_months.max'     => 'Số tháng bảo hành không hợp lệ (tối đa 12 tháng).',
             'slug.unique'          => 'Slug đã tồn tại.',
             'thumbnail.image'      => 'Ảnh đại diện phải là hình ảnh.',
             'thumbnail.max'        => 'Ảnh đại diện tối đa 2MB.',
