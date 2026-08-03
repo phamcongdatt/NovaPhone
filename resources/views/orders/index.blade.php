@@ -59,6 +59,9 @@
                             <td class="px-4 py-4">
                                 <div class="flex flex-wrap items-center gap-3">
                                     <a href="{{ route('orders.show', $order) }}" class="text-sm font-semibold text-blue-600 hover:underline">Chi tiết</a>
+                                    @if ($order->canBeReviewed())
+                                        <a href="{{ route('orders.show', $order) }}#order-items" class="text-sm font-semibold text-green-700 hover:underline">Đánh giá sản phẩm</a>
+                                    @endif
                                     @if ($order->payment_method === 'vnpay' && $order->payment_status === 'pending' && $order->status === 'pending')
                                         <a href="{{ route('checkout.vnpay.create', $order) }}" class="text-sm font-semibold text-amber-700 hover:underline">Thanh toán VNPay</a>
                                     @endif

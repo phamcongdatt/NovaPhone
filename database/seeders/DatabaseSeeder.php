@@ -73,6 +73,7 @@ class DatabaseSeeder extends Seeder
             DemoProductSeeder::class,
             PerformanceSpecSeeder::class,
             RecoveryContentSeeder::class,
+            DemoAllFlowsSeeder::class,
         ]);
     }
 }
