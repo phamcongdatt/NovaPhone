@@ -46,12 +46,12 @@
                     
                     <div>
                         <label class="mb-1.5 block text-xs font-medium text-slate-400">Thời gian bắt đầu <span class="text-red-500">*</span></label>
-                        <input type="datetime-local" name="start_time" value="{{ old('start_time', $isEdit ? $flashSale->start_time->format('Y-m-d\TH:i') : '') }}" required class="w-full rounded-xl border border-white/[0.07] bg-black/10 px-3 py-2 text-sm text-white focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/10">
+                        <input type="datetime-local" name="start_time" min="{{ $isEdit && $flashSale->start_time < now() ? $flashSale->start_time->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i') }}" value="{{ old('start_time', $isEdit ? $flashSale->start_time->format('Y-m-d\TH:i') : '') }}" required class="w-full rounded-xl border border-white/[0.07] bg-black/10 px-3 py-2 text-sm text-white focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/10">
                     </div>
                     
                     <div>
                         <label class="mb-1.5 block text-xs font-medium text-slate-400">Thời gian kết thúc <span class="text-red-500">*</span></label>
-                        <input type="datetime-local" name="end_time" value="{{ old('end_time', $isEdit ? $flashSale->end_time->format('Y-m-d\TH:i') : '') }}" required class="w-full rounded-xl border border-white/[0.07] bg-black/10 px-3 py-2 text-sm text-white focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/10">
+                        <input type="datetime-local" name="end_time" min="{{ $isEdit && $flashSale->end_time < now() ? $flashSale->end_time->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i') }}" value="{{ old('end_time', $isEdit ? $flashSale->end_time->format('Y-m-d\TH:i') : '') }}" required class="w-full rounded-xl border border-white/[0.07] bg-black/10 px-3 py-2 text-sm text-white focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/10">
                     </div>
                     
                     <div class="flex items-center gap-2 pt-2">
