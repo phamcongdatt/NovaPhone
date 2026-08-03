@@ -4,7 +4,7 @@
 @section('page-title', 'Quản lý sản phẩm')
 
 @section('content')
-
+ss
 {{-- Thanh công cụ: tìm kiếm + lọc + nút thêm --}}
 <div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
     <form method="GET" action="{{ route('admin.products.index') }}" class="flex flex-1 flex-wrap items-center gap-2">
