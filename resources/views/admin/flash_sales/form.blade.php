@@ -93,8 +93,8 @@
                     
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <label class="mb-1.5 block text-xs font-medium text-slate-400">% giảm giá (1-99%)</label>
-                            <input type="number" id="bulk-discount" min="1" max="99" class="w-full rounded-lg border border-white/[0.07] bg-black/20 px-3 py-2 text-sm text-white">
+                            <label class="mb-1.5 block text-xs font-medium text-slate-400">% giảm giá (1-75%)</label>
+                            <input type="number" id="bulk-discount" min="1" max="75" class="w-full rounded-lg border border-white/[0.07] bg-black/20 px-3 py-2 text-sm text-white">
                         </div>
                         <div>
                             <label class="mb-1.5 block text-xs font-medium text-slate-400">Số lượng mở bán</label>
@@ -183,7 +183,7 @@
                     ${sold > 0 ? `<div class="text-[10px] text-emerald-400 mt-1">Đã bán: ${sold}</div>` : ''}
                 </td>
                 <td class="px-4 py-2">
-                    <input type="number" name="items[${product_id}][discount_percent]" value="${discount}" min="1" max="99" required class="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white">
+                    <input type="number" name="items[${product_id}][discount_percent]" value="${discount}" min="1" max="75" required class="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white">
                 </td>
                 <td class="px-4 py-2">
                     <input type="number" name="items[${product_id}][quantity]" value="${qty}" min="1" required class="w-full rounded-md border border-white/10 bg-black/20 px-2 py-1 text-xs text-white">

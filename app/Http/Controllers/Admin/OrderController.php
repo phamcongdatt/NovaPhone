@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OrdrerRequest;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
+use App\Events\OrderStatusUpdated;
 use App\Services\OrderCancellationService;
 use App\Services\SoldCountService;
 use Illuminate\Http\Request;
@@ -145,7 +146,10 @@ class OrderController extends Controller
             $this->soldCountService->syncOnStatusChange($order, $oldStatus, $newStatus);
         });
 
+        broadcast(new OrderStatusUpdated($order));
+
         return back()->with('success', 'Đã cập nhật trạng thái đơn sang "' . self::STATUS_LABELS[$newStatus] . '".');
+
     }
 
     // ─── Hủy đơn ────────────────────────────────────────────────
@@ -172,6 +176,9 @@ class OrderController extends Controller
             ]);
         }
 
+        broadcast(new OrderStatusUpdated($order));
+
         return back()->with('success', 'Đã hủy đơn hàng "' . $order->order_code . '".');
+
     }
 }

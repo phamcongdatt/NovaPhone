@@ -32,7 +32,7 @@ class FlashSaleController extends Controller
             'is_active' => 'boolean',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.discount_percent' => 'required|integer|min:1|max:99',
+            'items.*.discount_percent' => 'required|integer|min:1|max:75',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.max_per_user' => 'required|integer|min:1',
         ]);
@@ -74,7 +74,7 @@ class FlashSaleController extends Controller
             'is_active' => 'boolean',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.discount_percent' => 'required|integer|min:1|max:99',
+            'items.*.discount_percent' => 'required|integer|min:1|max:75',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.max_per_user' => 'required|integer|min:1',
         ]);
