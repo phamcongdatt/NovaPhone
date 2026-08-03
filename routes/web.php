@@ -196,7 +196,7 @@ Route::middleware(['auth', 'admin'])
         // Sản phẩm
         Route::patch('products/{product}/toggle-status', [AdminProductController::class, 'toggleStatus'])
             ->name('products.toggle-status');
-        Route::resource('products', AdminProductController::class)->except(['show']);
+        Route::resource('products', AdminProductController::class)->except(['destroy']);
 
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
@@ -205,7 +205,7 @@ Route::middleware(['auth', 'admin'])
 
         // Quản lý Bài viết
         Route::resource('post-categories', \App\Http\Controllers\Admin\PostCategoryController::class)->except(['show']);
-        Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
+        Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show', 'destroy']);
 
         // Flash Sale
         Route::resource('flash-sales', FlashSaleController::class)->except(['show']);

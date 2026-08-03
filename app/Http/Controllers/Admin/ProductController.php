@@ -68,7 +68,12 @@ class ProductController extends Controller
             'brands'     => Brand::orderBy('name')->get(),
         ]);
     }
-
+    // Xem chi tiết
+    public function show(Product $product)
+    {
+        $product->load(['category', 'brand', 'variants.inventory', 'images', 'inventory', 'performance']);
+        return view('admin.products.show', compact('product'));
+    }
     // ─── Lưu sản phẩm mới ──────────────────────────────────────
 
     public function store(StoreProductRequest $request)
@@ -97,8 +102,8 @@ class ProductController extends Controller
             // Tạo biến thể + tồn kho
             $this->syncVariants(
                 $product,
-                $request->input('variants',[]),
-                $request->file('variants',[])
+                $request->input('variants', []),
+                $request->file('variants', [])
             );
 
             // Nếu không có biến thể nào, tạo 1 dòng tồn kho gốc cho sản phẩm
@@ -184,16 +189,14 @@ class ProductController extends Controller
 
             // Xoá biến thể đã đánh dấu xoá
             if ($deleted = $request->input('deleted_variants')) {
-                $variantsToDelete = ProductVariant::whereIn('id',$deleted)
-                ->where('product_id', $product->id)->get();
-                foreach($variantsToDelete as $variant)
-                    {
-                        if($variant->image && file_exists(public_path($variant->image)))
-                            {
-                                unlink(public_path($variant->image));
-                            }
-                        $variant->delete();
+                $variantsToDelete = ProductVariant::whereIn('id', $deleted)
+                    ->where('product_id', $product->id)->get();
+                foreach ($variantsToDelete as $variant) {
+                    if ($variant->image && file_exists(public_path($variant->image))) {
+                        unlink(public_path($variant->image));
                     }
+                    $variant->delete();
+                }
                 Inventory::whereIn('variant_id', $deleted)->delete();
             }
 
@@ -273,12 +276,24 @@ class ProductController extends Controller
     private function extractPerformanceData(array &$data): array
     {
         $fields = [
-            'chipset', 'cpu_cores', 'gpu',
-            'antutu_score', 'geekbench_single', 'geekbench_multi',
-            'display_size_inch', 'display_type', 'refresh_rate',
-            'main_camera_mp', 'ultra_wide_camera_mp', 'front_camera_mp', 'video_recording',
-            'battery_mah', 'charging_speed_w',
-            'ram', 'os', 'network_support',
+            'chipset',
+            'cpu_cores',
+            'gpu',
+            'antutu_score',
+            'geekbench_single',
+            'geekbench_multi',
+            'display_size_inch',
+            'display_type',
+            'refresh_rate',
+            'main_camera_mp',
+            'ultra_wide_camera_mp',
+            'front_camera_mp',
+            'video_recording',
+            'battery_mah',
+            'charging_speed_w',
+            'ram',
+            'os',
+            'network_support',
         ];
 
         $performanceData = [];
@@ -318,7 +333,7 @@ class ProductController extends Controller
     /**
      * Tạo hoặc cập nhật biến thể + tồn kho tương ứng.
      */
-    private function syncVariants(Product $product, array $variants, array $variantFiles = []) : void
+    private function syncVariants(Product $product, array $variants, array $variantFiles = []): void
     {
         foreach ($variants as $index => $variantData) {
             $variantId = $variantData['id'] ?? null;
