@@ -195,7 +195,7 @@
             
             if (type === 'percent') {
                 labelValue.innerHTML = 'Phần trăm giảm (%) <span class="text-red-400">*</span>';
-                inputValue.setAttribute('max', '100');
+                inputValue.setAttribute('max', '75');
                 fieldMaxDiscount.classList.remove('hidden');
             } else {
                 labelValue.innerHTML = 'Số tiền giảm (VND) <span class="text-red-400">*</span>';

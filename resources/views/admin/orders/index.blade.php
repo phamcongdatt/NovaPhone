@@ -121,4 +121,18 @@
     {{ $orders->links() }}
 </div>
 
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.Echo) {
+            window.Echo.private(`admin.orders`)
+                .listen('OrderStatusUpdated', (e) => {
+                    // Cập nhật ngầm bảng hoặc thông báo để tải lại
+                    alert(`Đơn hàng #${e.orderId} vừa được khách hàng cập nhật (ví dụ: hủy đơn, xác nhận đã nhận). Trang sẽ tự động tải lại.`);
+                    window.location.reload();
+                });
+        }
+    });
+</script>
+@endpush
 @endsection
