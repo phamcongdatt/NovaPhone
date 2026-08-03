@@ -180,7 +180,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password), // Đảm bảo bcrypt MK mới
         ]);
 
-        return back()->with('status', 'Đổi mật khẩu thành công!');
+        return redirect()->route('home')->with('status', 'Đổi mật khẩu thành công!');
     }
 
     /**
