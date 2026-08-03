@@ -73,8 +73,8 @@ class CouponController extends Controller
         $validated['is_stackable'] = $request->has('is_stackable');
         $validated['min_order_amount'] = $validated['min_order_amount'] ?? 0;
         
-        if ($validated['type'] == 'percent' && $validated['value'] > 100) {
-            return back()->withErrors(['value' => 'Phần trăm giảm giá không được vượt quá 100%'])->withInput();
+        if ($validated['type'] == 'percent' && $validated['value'] > 75) {
+            return back()->withErrors(['value' => 'Phần trăm giảm giá không được vượt quá 75%'])->withInput();
         }
         $validated['gift_product_id'] = null; // Removed gift feature
 
@@ -139,8 +139,8 @@ class CouponController extends Controller
         $validated['is_stackable'] = $request->has('is_stackable');
         $validated['min_order_amount'] = $validated['min_order_amount'] ?? 0;
         
-        if ($validated['type'] == 'percent' && $validated['value'] > 100) {
-            return back()->withErrors(['value' => 'Phần trăm giảm giá không được vượt quá 100%'])->withInput();
+        if ($validated['type'] == 'percent' && $validated['value'] > 75) {
+            return back()->withErrors(['value' => 'Phần trăm giảm giá không được vượt quá 75%'])->withInput();
         }
         $validated['gift_product_id'] = null;
 
