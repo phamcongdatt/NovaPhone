@@ -116,7 +116,7 @@
                 @if ($order->customer_email)
                     <div><dt class="text-xs text-gray-500">Email</dt><dd class="mt-0.5 font-semibold text-white">{{ $order->customer_email }}</dd></div>
                 @endif
-                <div><dt class="text-xs text-gray-500">Địa chỉ</dt><dd class="mt-0.5 text-gray-200">{{ $order->shipping_address }}, {{ $order->shipping_ward }}, {{ $order->shipping_district }}, {{ $order->shipping_province }}</dd></div>
+                <div><dt class="text-xs text-gray-500">Địa chỉ</dt><dd class="mt-0.5 text-gray-200">{{ collect([$order->shipping_address, $order->shipping_ward, $order->shipping_district, $order->shipping_province])->filter()->join(', ') }}</dd></div>
                 @if ($order->note)
                     <div><dt class="text-xs text-gray-500">Ghi chú khách</dt><dd class="mt-0.5 text-gray-200">{{ $order->note }}</dd></div>
                 @endif

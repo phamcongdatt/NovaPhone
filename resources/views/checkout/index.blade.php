@@ -72,13 +72,16 @@
                     <div class="space-y-3 p-6">
                         @if ($defaultAddress)
                             <label class="group flex cursor-pointer gap-4 rounded-xl border-2 border-black bg-[#f8f6f2] p-4 transition-all duration-200">
-                                <input type="radio" name="shipping_address_id" value="{{ $defaultAddress->id }}" data-full-name="{{ $defaultAddress->full_name }}" data-phone="{{ $defaultAddress->phone }}" data-address="{{ $defaultAddress->address }}" data-ward="{{ $defaultAddress->ward }}" data-district="{{ $defaultAddress->district }}" data-province="{{ $defaultAddress->province }}" checked class="mt-1 size-5 cursor-pointer accent-black">
+                                <input type="radio" name="shipping_address_id" value="{{ $defaultAddress->id }}" data-full-name="{{ $defaultAddress->full_name }}" data-phone="{{ $defaultAddress->phone }}" data-address="{{ $defaultAddress->address }}" data-province-code="{{ $defaultAddress->province_code }}" data-ward-code="{{ $defaultAddress->ward_code }}" checked class="mt-1 size-5 cursor-pointer accent-black">
                                 <div class="flex-1">
                                     <div class="flex items-start justify-between">
                                         <div>
                                             <div class="font-semibold text-[#111]">{{ $defaultAddress->full_name }}</div>
                                             <div class="mt-2 text-sm text-[#666]">
-                                                <p class="leading-relaxed">{{ $defaultAddress->address }}, {{ $defaultAddress->ward }}, {{ $defaultAddress->district }}, {{ $defaultAddress->province }}</p>
+                                                <p class="leading-relaxed">{{ $defaultAddress->full_address }}</p>
+                                                @if (! $defaultAddress->province_code || ! $defaultAddress->ward_code)
+                                                    <p class="mt-1 text-xs font-medium text-amber-700">Địa chỉ cũ: vui lòng chọn lại tỉnh/thành và phường/xã trước khi đặt hàng.</p>
+                                                @endif
                                                 <p class="mt-1">{{ $defaultAddress->phone }}</p>
                                             </div>
                                         </div>
@@ -130,31 +133,28 @@
                                 <div class="grid gap-4 md:grid-cols-2">
                                     <div>
                                         <label class="text-xs font-semibold text-[#8b8b8b]">Tỉnh/Thành phố</label>
-                                        <input type="text" name="shipping_province" id="shipping_province" value="{{ old('shipping_province', $defaultAddress?->province) }}" placeholder="Nhập tỉnh/thành phố" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_province') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
-                                        @error('shipping_province')
+                                        <select name="province_code" id="province_code" data-selected="{{ old('province_code', $defaultAddress?->province_code) }}" class="mt-2 w-full rounded-[12px] border {{ $errors->has('province_code') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                            <option value="">Đang tải tỉnh/thành phố...</option>
+                                        </select>
+                                        @error('province_code')
                                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="text-xs font-semibold text-[#8b8b8b]">Quận/Huyện</label>
-                                        <input type="text" name="shipping_district" id="shipping_district" value="{{ old('shipping_district', $defaultAddress?->district) }}" placeholder="Nhập quận/huyện" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_district') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
-                                        @error('shipping_district')
+                                        <label class="text-xs font-semibold text-[#8b8b8b]">Phường/Xã</label>
+                                        <select name="ward_code" id="ward_code" data-selected="{{ old('ward_code', $defaultAddress?->ward_code) }}" class="mt-2 w-full rounded-[12px] border {{ $errors->has('ward_code') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black disabled:cursor-not-allowed disabled:opacity-60" required disabled>
+                                            <option value="">Chọn tỉnh/thành phố trước</option>
+                                        </select>
+                                        @error('ward_code')
                                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
 
-                                <div class="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label class="text-xs font-semibold text-[#8b8b8b]">Số nhà, tên đường / tòa nhà / thôn ấp</label>
                                     <div>
-                                        <label class="text-xs font-semibold text-[#8b8b8b]">Phường/Xã</label>
-                                        <input type="text" name="shipping_ward" id="shipping_ward" value="{{ old('shipping_ward', $defaultAddress?->ward) }}" placeholder="Nhập phường/xã" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_ward') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
-                                        @error('shipping_ward')
-                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-semibold text-[#8b8b8b]">Địa chỉ chi tiết</label>
-                                        <input type="text" name="shipping_address" id="shipping_address" value="{{ old('shipping_address', $defaultAddress?->address) }}" placeholder="Nhập địa chỉ chi tiết" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_address') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                                        <input type="text" name="shipping_address" id="shipping_address" value="{{ old('shipping_address', $defaultAddress?->address) }}" placeholder="Ví dụ: 12 Nguyễn Huệ, căn 08.12" class="mt-2 w-full rounded-[12px] border {{ $errors->has('shipping_address') ? 'border-red-500' : 'border-[#ece8e2]' }} bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
                                         @error('shipping_address')
                                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
@@ -385,37 +385,84 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('checkoutForm');
     const addressRadios = document.querySelectorAll('input[name="shipping_address_id"]');
+    const provinceSelect = document.getElementById('province_code');
+    const wardSelect = document.getElementById('ward_code');
+    const provincesUrl = @json(route('locations.provinces'));
+    const wardsUrlTemplate = @json(route('locations.wards', ['provinceCode' => '__province_code__']));
 
-    function updateAddressFields(radio) {
+    const replaceOptions = (select, placeholder, options = []) => {
+        select.replaceChildren(new Option(placeholder, ''));
+        options.forEach(option => select.add(new Option(option.name, option.code)));
+    };
+
+    async function loadWards(provinceCode, selectedWardCode = '') {
+        wardSelect.disabled = true;
+        replaceOptions(wardSelect, provinceCode ? 'Đang tải phường/xã...' : 'Chọn tỉnh/thành phố trước');
+
+        if (!provinceCode) return;
+
+        try {
+            const response = await fetch(wardsUrlTemplate.replace('__province_code__', encodeURIComponent(provinceCode)));
+            if (!response.ok) throw new Error('Không thể tải danh sách phường/xã.');
+
+            const { data } = await response.json();
+            replaceOptions(wardSelect, 'Chọn phường/xã', data);
+            wardSelect.value = selectedWardCode;
+            wardSelect.disabled = false;
+        } catch (error) {
+            replaceOptions(wardSelect, 'Không thể tải phường/xã');
+        }
+    }
+
+    async function loadProvinces(selectedProvinceCode = '', selectedWardCode = '') {
+        provinceSelect.disabled = true;
+        replaceOptions(provinceSelect, 'Đang tải tỉnh/thành phố...');
+
+        try {
+            const response = await fetch(provincesUrl);
+            if (!response.ok) throw new Error('Không thể tải danh sách tỉnh/thành phố.');
+
+            const { data } = await response.json();
+            replaceOptions(provinceSelect, 'Chọn tỉnh/thành phố', data);
+            provinceSelect.value = selectedProvinceCode;
+            provinceSelect.disabled = false;
+            await loadWards(selectedProvinceCode, selectedWardCode);
+        } catch (error) {
+            replaceOptions(provinceSelect, 'Không thể tải tỉnh/thành phố');
+        }
+    }
+
+    async function updateAddressFields(radio) {
         if (radio.checked) {
             document.getElementById('shipping_full_name').value = radio.dataset.fullName || '';
             document.getElementById('shipping_phone').value = radio.dataset.phone || '';
             document.getElementById('shipping_address').value = radio.dataset.address || '';
-            document.getElementById('shipping_ward').value = radio.dataset.ward || '';
-            document.getElementById('shipping_district').value = radio.dataset.district || '';
-            document.getElementById('shipping_province').value = radio.dataset.province || '';
+            await loadProvinces(radio.dataset.provinceCode || '', radio.dataset.wardCode || '');
         }
     }
 
     addressRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            updateAddressFields(this);
+        radio.addEventListener('change', async function() {
+            await updateAddressFields(this);
         });
     });
 
-    const checkedRadio = document.querySelector('input[name="shipping_address_id"]:checked');
-    if (checkedRadio) {
-        updateAddressFields(checkedRadio);
-    }
+    provinceSelect.addEventListener('change', async function() {
+        await loadWards(this.value);
+    });
+
+    const selectedProvinceCode = provinceSelect.dataset.selected || '';
+    const selectedWardCode = wardSelect.dataset.selected || '';
+    loadProvinces(selectedProvinceCode, selectedWardCode);
 
     form.addEventListener('submit', function(e) {
         const fullName = document.getElementById('shipping_full_name').value;
         const phone = document.getElementById('shipping_phone').value;
         const address = document.getElementById('shipping_address').value;
 
-        if (!fullName || !phone || !address) {
+        if (!fullName || !phone || !address || !provinceSelect.value || !wardSelect.value) {
             e.preventDefault();
-            alert('Vui lòng chọn địa chỉ giao hàng hợp lệ.');
+            alert('Vui lòng chọn tỉnh/thành phố, phường/xã và nhập địa chỉ giao hàng hợp lệ.');
             return false;
         }
     });

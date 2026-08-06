@@ -9,17 +9,27 @@ class Address extends Model
 {
     protected $fillable = [
         'user_id', 'name', 'full_name', 'phone',
-        'street', 'address', 'ward', 'district', 'province', 'is_default',
+        'street', 'address', 'ward', 'district', 'province',
+        'province_code', 'ward_code', 'administrative_version', 'validated_at',
+        'is_default',
     ];
 
     protected function casts(): array
     {
-        return ['is_default' => 'boolean'];
+        return [
+            'is_default' => 'boolean',
+            'validated_at' => 'datetime',
+        ];
     }
 
     public function getFullAddressAttribute(): string
     {
-        return "{$this->address}, {$this->ward}, {$this->district}, {$this->province}";
+        return collect([
+            $this->address,
+            $this->ward,
+            $this->district,
+            $this->province,
+        ])->filter()->implode(', ');
     }
 
     public function getNameAttribute(): ?string

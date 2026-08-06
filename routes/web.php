@@ -27,6 +27,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CompareController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\LocationController;
 use App\Models\FlashSale;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -80,6 +81,16 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
+
+Route::prefix('locations')
+    ->middleware('throttle:120,1')
+    ->group(function () {
+        Route::get('/provinces', [LocationController::class, 'provinces'])
+            ->name('locations.provinces');
+
+        Route::get('/provinces/{provinceCode}/wards', [LocationController::class, 'wards'])
+            ->name('locations.wards');
+    });
 
 
 Route::post('/logout', [AuthController::class, 'logout'])
@@ -139,7 +150,7 @@ Route::post('/checkout/remove-coupon', [CheckoutController::class, 'removeCoupon
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.place-order');
 Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 
-//  Quan ly khach hang mau hang ma chua tao tai khoan 
+//  Quan ly khach hang mau hang ma chua tao tai khoan
 Route::get('/guest/orders/{order}', [CheckoutController::class, 'guestShow'])
     ->middleware('signed')
     ->name('guest.orders.show');

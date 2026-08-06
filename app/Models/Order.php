@@ -20,6 +20,7 @@ class Order extends Model
         'coupon_id', 'coupon_code',
         'shipping_full_name', 'shipping_phone', 'shipping_address',
         'shipping_ward', 'shipping_district', 'shipping_province',
+        'shipping_province_code', 'shipping_ward_code', 'administrative_version',
         'note', 'cancelled_reason', 'cancelled_by', 'user_received_at',
     ];
 
