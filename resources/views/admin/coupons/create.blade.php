@@ -101,14 +101,14 @@
 
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-gray-300">Thời gian bắt đầu</label>
-                    <input type="datetime-local" name="starts_at" value="{{ old('starts_at') }}"
+                    <input type="datetime-local" name="starts_at" value="{{ old('starts_at') }}" min="{{ now()->format('Y-m-d\TH:i') }}"
                         class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/25"
                         style="color-scheme: dark;">
                 </div>
 
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-gray-300">Thời gian kết thúc</label>
-                    <input type="datetime-local" name="expires_at" value="{{ old('expires_at') }}"
+                    <input type="datetime-local" name="expires_at" value="{{ old('expires_at') }}" min="{{ now()->format('Y-m-d\TH:i') }}"
                         class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/25"
                         style="color-scheme: dark;">
                     @error('expires_at')<p class="mt-1 text-xs text-red-400">{{ $message }}</p>@enderror
