@@ -212,8 +212,8 @@ class DemoAllFlowsSeeder extends Seeder
 
         $products = [];
         foreach ($definitions as $key => $data) {
-            $products[$key] = Product::updateOrCreate(
-                ['sku' => $data['sku']],
+            $products[$key] = Product::withTrashed()->updateOrCreate(
+                ['slug' => $data['slug']],
                 [
                     'name' => $data['name'],
                     'slug' => $data['slug'],
@@ -230,6 +230,10 @@ class DemoAllFlowsSeeder extends Seeder
                     'view_count' => 250,
                 ],
             );
+
+            if ($products[$key]->trashed()) {
+                $products[$key]->restore();
+            }
         }
 
         return $products;
@@ -479,6 +483,7 @@ class DemoAllFlowsSeeder extends Seeder
             'shipping' => ['code' => 'NVP-DEMO-SHIP1', 'user' => 'demo', 'status' => 'shipping', 'method' => 'vnpay', 'payment' => 'paid', 'product' => 'ip15', 'variant' => 'ip15_256', 'price' => 28990000, 'subtotal' => 28990000, 'discount' => 0, 'total' => 28990000, 'created_at' => $now->copy()->subDays(5)],
             'delivered' => ['code' => 'NVP-DEMO-DELI1', 'user' => 'customer', 'status' => 'delivered', 'method' => 'vnpay', 'payment' => 'paid', 'product' => 's24', 'variant' => 's24_256', 'price' => 25990000, 'subtotal' => 25990000, 'discount' => 1000000, 'total' => 24990000, 'created_at' => $now->copy()->subDays(6), 'coupon' => 'vip'],
             'received' => ['code' => 'NVP-DEMO-RECV1', 'user' => 'customer', 'status' => 'received', 'method' => 'vnpay', 'payment' => 'paid', 'product' => 'x14', 'variant' => 'x14_512', 'price' => 16141500, 'subtotal' => 16141500, 'discount' => 500000, 'total' => 15641500, 'created_at' => $now->copy()->subDays(8), 'flash' => 'x14', 'coupon' => 'welcome'],
+            'reviewable' => ['code' => 'NVP-DEMO-REVIEW1', 'user' => 'customer', 'status' => 'received', 'method' => 'vnpay', 'payment' => 'paid', 'product' => 'ip15', 'variant' => 'ip15_256', 'price' => 28990000, 'subtotal' => 28990000, 'discount' => 0, 'total' => 28990000, 'created_at' => $now->copy()->subDays(10)],
             'cancelled' => ['code' => 'NVP-DEMO-CAN01', 'user' => 'demo', 'status' => 'cancelled', 'method' => 'vnpay', 'payment' => 'pending', 'product' => 's24', 'variant' => 's24_256', 'price' => 25592000, 'subtotal' => 25592000, 'discount' => 0, 'total' => 25592000, 'created_at' => $now->copy()->subDays(9), 'flash' => 's24'],
             'refunded' => ['code' => 'NVP-DEMO-REF01', 'user' => 'demo', 'status' => 'cancelled', 'method' => 'vnpay', 'payment' => 'refunded', 'product' => 'oppo', 'variant' => 'oppo_256', 'price' => 12000000, 'subtotal' => 12000000, 'discount' => 0, 'total' => 12000000, 'created_at' => $now->copy()->subDays(12)],
             'guest' => ['code' => 'NVP-DEMO-GUEST1', 'user' => null, 'email' => 'guest@novaphone.vn', 'status' => 'pending', 'method' => 'vnpay', 'payment' => 'pending', 'product' => 'x14', 'variant' => 'x14_512', 'price' => 16141500, 'subtotal' => 16141500, 'discount' => 0, 'total' => 16141500, 'created_at' => $now->copy()->subMinutes(3), 'flash' => 'x14'],

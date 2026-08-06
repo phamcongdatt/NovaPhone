@@ -16,7 +16,7 @@ class Order extends Model
     protected $fillable = [
         'user_id', 'customer_email', 'order_code', 'status',
         'payment_method', 'payment_status',
-        'subtotal', 'discount_amount', 'shipping_fee', 'total_amount',
+        'subtotal', 'discount_amount', 'tax_amount', 'shipping_fee', 'total_amount',
         'coupon_id', 'coupon_code',
         'shipping_full_name', 'shipping_phone', 'shipping_address',
         'shipping_ward', 'shipping_district', 'shipping_province',
@@ -28,6 +28,7 @@ class Order extends Model
         return [
             'subtotal'        => 'decimal:2',
             'discount_amount' => 'decimal:2',
+            'tax_amount'      => 'decimal:2',
             'shipping_fee'    => 'decimal:2',
             'total_amount'    => 'decimal:2',
         ];
@@ -36,7 +37,7 @@ class Order extends Model
     /**
      * Các trạng thái đơn hàng được tính vào doanh số / sản phẩm bán chạy.
      */
-    public const SALES_STATUSES = ['confirmed', 'processing', 'shipping', 'delivered'];
+    public const SALES_STATUSES = ['confirmed', 'processing', 'shipping', 'delivered', 'received'];
 
     /**
      * Đơn hàng đã giao hoặc người dùng đã xác nhận nhận hàng đều có thể review.

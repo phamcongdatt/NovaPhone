@@ -5,6 +5,8 @@ Mã đơn hàng **{{ $order->order_code }}** đã bị hủy thành công.
 
 Lý do: {{ $reason }}
 
+Hủy bởi: {{ $cancelledByName }}
+
 @component('mail::button', ['url' => $orderUrl])
 Xem đơn hàng
 @endcomponent

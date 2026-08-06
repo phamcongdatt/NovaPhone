@@ -28,11 +28,11 @@ class OrderStatisticsController extends Controller
         // ─── Tổng quan ───────────────────────────────────────
         $totalOrders = Order::whereBetween('created_at', [$startDate, $endDate])->count();
         $totalRevenue = (float) Order::whereBetween('created_at', [$startDate, $endDate])
-            ->whereIn('status', ['confirmed', 'processing', 'shipping', 'delivered'])
+            ->whereIn('status', Order::SALES_STATUSES)
             ->sum('total_amount');
         $avgOrderValue = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
         $completedOrders = Order::whereBetween('created_at', [$startDate, $endDate])
-            ->where('status', 'delivered')
+            ->whereIn('status', ['delivered', 'received'])
             ->count();
         $completionRate = $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100, 1) : 0;
 
@@ -118,7 +118,7 @@ class OrderStatisticsController extends Controller
         while ($current->lte($end)) {
             $dateStr = $current->format('d/m');
             $revenue = (float) Order::whereDate('created_at', $current)
-                ->whereIn('status', ['confirmed', 'processing', 'shipping', 'delivered'])
+                ->whereIn('status', Order::SALES_STATUSES)
                 ->sum('total_amount');
             $orderCount = Order::whereDate('created_at', $current)->count();
 
@@ -139,13 +139,14 @@ class OrderStatisticsController extends Controller
      */
     private function getOrdersByStatus(Carbon $start, Carbon $end): array
     {
-        $statuses = ['pending', 'confirmed', 'processing', 'shipping', 'delivered', 'cancelled'];
+        $statuses = ['pending', 'confirmed', 'processing', 'shipping', 'delivered', 'received', 'cancelled'];
         $labels = [
             'pending'    => 'Chờ xác nhận',
             'confirmed'  => 'Đã xác nhận',
             'processing' => 'Đang xử lý',
             'shipping'   => 'Đang giao',
             'delivered'  => 'Đã giao',
+            'received'   => 'Đã nhận hàng',
             'cancelled'  => 'Đã hủy',
         ];
         $colors = [
@@ -154,6 +155,7 @@ class OrderStatisticsController extends Controller
             'processing' => '#8b5cf6',
             'shipping'   => '#06b6d4',
             'delivered'  => '#22c55e',
+            'received'   => '#16a34a',
             'cancelled'  => '#ef4444',
         ];
 
@@ -191,7 +193,7 @@ class OrderStatisticsController extends Controller
                 ->count();
             $revenue = (float) Order::whereBetween('created_at', [$start, $end])
                 ->where('payment_method', $key)
-                ->whereIn('status', ['confirmed', 'processing', 'shipping', 'delivered'])
+                ->whereIn('status', Order::SALES_STATUSES)
                 ->sum('total_amount');
 
             $result[] = [
@@ -214,7 +216,7 @@ class OrderStatisticsController extends Controller
         return OrderItem::select('product_id', 'product_name', 'product_thumbnail', DB::raw('SUM(quantity) as total_qty'), DB::raw('SUM(subtotal) as total_revenue'))
             ->whereHas('order', function ($q) use ($start, $end) {
                 $q->whereBetween('created_at', [$start, $end])
-                  ->whereIn('status', ['confirmed', 'processing', 'shipping', 'delivered']);
+                  ->whereIn('status', Order::SALES_STATUSES);
             })
             ->groupBy('product_id', 'product_name', 'product_thumbnail')
             ->orderByDesc('total_qty')
@@ -243,7 +245,7 @@ class OrderStatisticsController extends Controller
 
             $orderCount = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
             $revenue = (float) Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
-                ->whereIn('status', ['confirmed', 'processing', 'shipping', 'delivered'])
+                ->whereIn('status', Order::SALES_STATUSES)
                 ->sum('total_amount');
 
             $months[] = [
@@ -263,7 +265,7 @@ class OrderStatisticsController extends Controller
     {
         return Order::select('shipping_province', DB::raw('COUNT(*) as order_count'), DB::raw('SUM(total_amount) as total_revenue'))
             ->whereBetween('created_at', [$start, $end])
-            ->whereIn('status', ['confirmed', 'processing', 'shipping', 'delivered'])
+            ->whereIn('status', Order::SALES_STATUSES)
             ->groupBy('shipping_province')
             ->orderByDesc('order_count')
             ->limit(10)
@@ -303,7 +305,7 @@ class OrderStatisticsController extends Controller
         return OrderItem::select('product_id', DB::raw('SUM(subtotal) as total_revenue'))
             ->whereHas('order', function ($q) use ($start, $end) {
                 $q->whereBetween('created_at', [$start, $end])
-                  ->whereIn('status', ['confirmed', 'processing', 'shipping', 'delivered']);
+                  ->whereIn('status', Order::SALES_STATUSES);
             })
             ->groupBy('product_id')
             ->orderByDesc('total_revenue')

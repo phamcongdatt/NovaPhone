@@ -38,6 +38,10 @@ class CartController extends Controller
                 $request->integer('quantity')
             );
 
+            // Thêm vào giỏ hàng là chuyển sang luồng checkout từ giỏ,
+            // không giữ lại sản phẩm của luồng "Mua ngay"/selection cũ.
+            session()->forget(['buy_now_item', 'checkout_selected_items']);
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -188,6 +192,8 @@ class CartController extends Controller
         }
 
         session()->put('checkout_selected_items', $selectedIds);
+        // Checkout từ giỏ hàng phải luôn thắng session "Mua ngay" còn sót lại.
+        session()->forget('buy_now_item');
 
         return redirect()->route('checkout');
     }
@@ -233,6 +239,7 @@ class CartController extends Controller
                 'quantity' => $quantity,
                 'price' => $price,
             ]);
+            session()->forget('checkout_selected_items');
 
             if ($request->wantsJson()) {
                 return response()->json([

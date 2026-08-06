@@ -63,6 +63,9 @@
             <dl class="mt-4 space-y-2 border-t border-white/5 pt-4 text-sm">
                 <div class="flex justify-between"><dt class="text-gray-500">Tạm tính</dt><dd class="text-gray-200">{{ number_format($order->subtotal, 0, ',', '.') }}₫</dd></div>
                 <div class="flex justify-between"><dt class="text-gray-500">Giảm giá @if($order->coupon_code)({{ $order->coupon_code }})@endif</dt><dd class="text-gray-200">-{{ number_format($order->discount_amount, 0, ',', '.') }}₫</dd></div>
+                @if ($order->tax_amount > 0)
+                    <div class="flex justify-between"><dt class="text-gray-500">Thuế VAT (10%)</dt><dd class="text-gray-200">{{ number_format($order->tax_amount, 0, ',', '.') }}₫</dd></div>
+                @endif
                 <div class="flex justify-between"><dt class="text-gray-500">Phí vận chuyển</dt><dd class="text-gray-200">{{ number_format($order->shipping_fee, 0, ',', '.') }}₫</dd></div>
                 <div class="flex justify-between border-t border-white/5 pt-2 text-base font-bold"><dt class="text-white">Tổng cộng</dt><dd class="text-brand-400">{{ number_format($order->total_amount, 0, ',', '.') }}₫</dd></div>
             </dl>

@@ -83,7 +83,7 @@
                     <label class="text-sm font-semibold text-[#171717]">Màu sắc</label>
                     <div class="mt-3 grid grid-cols-3 gap-2 md:grid-cols-4">
                         @foreach ($colors as $color)
-                            <button type="button" class="color-btn rounded-[12px] border-2 border-[#ece8e2] bg-white px-3 py-2 text-xs font-medium transition hover:border-black" data-color="{{ $color }}">
+                            <button type="button" class="color-btn rounded-[12px] border-2 border-[#ece8e2] bg-white px-3 py-2 text-xs font-medium text-[#171717] transition hover:border-black" data-color="{{ $color }}">
                                 {{ $color }}
                             </button>
                         @endforeach
@@ -96,7 +96,7 @@
                     <label class="text-sm font-semibold text-[#171717]">Dung lượng</label>
                     <div class="mt-3 grid grid-cols-3 gap-2 md:grid-cols-4">
                         @foreach ($storages as $storage)
-                            <button type="button" class="storage-btn rounded-[12px] border-2 border-[#ece8e2] bg-white px-3 py-2 text-xs font-medium transition hover:border-black" data-storage="{{ $storage }}">
+                            <button type="button" class="storage-btn rounded-[12px] border-2 border-[#ece8e2] bg-white px-3 py-2 text-xs font-medium text-[#171717] transition hover:border-black" data-storage="{{ $storage }}">
                                 {{ $storage }}
                             </button>
                         @endforeach
@@ -227,6 +227,39 @@
                             <p class="text-xs text-[#8b8b8b]">{{ $review->created_at->format('d/m/Y') }}</p>
                         </div>
                         <p class="mt-2 text-sm text-[#6f6f6f]">{{ $review->comment }}</p>
+                        @php
+                            $reviewImageUrls = collect($review->images ?? [])
+                                ->map(function ($image) {
+                                    $image = trim((string) $image);
+
+                                    if ($image === '') {
+                                        return null;
+                                    }
+
+                                    if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+                                        return $image;
+                                    }
+
+                                    $path = ltrim($image, '/');
+
+                                    return asset(
+                                        str_starts_with($path, 'images/') || str_starts_with($path, 'storage/')
+                                            ? $path
+                                            : 'storage/' . $path
+                                    );
+                                })
+                                ->filter()
+                                ->values();
+                        @endphp
+                        @if ($reviewImageUrls->isNotEmpty())
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                @foreach ($reviewImageUrls as $reviewImageUrl)
+                                    <a href="{{ $reviewImageUrl }}" target="_blank" rel="noopener noreferrer" class="block size-20 overflow-hidden rounded-[12px] border border-[#e8e4de] bg-[#fbfaf8] transition hover:border-black">
+                                        <img src="{{ $reviewImageUrl }}" alt="Ảnh đính kèm đánh giá" loading="lazy" decoding="async" class="size-full object-cover">
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -380,10 +413,21 @@
         }
     }
 
+    function setOptionState(selector, selectedButton) {
+        document.querySelectorAll(selector).forEach(item => {
+            const isSelected = item === selectedButton;
+
+            item.classList.toggle('border-black', isSelected);
+            item.classList.toggle('bg-black', isSelected);
+            item.classList.toggle('text-white', isSelected);
+            item.classList.toggle('bg-white', !isSelected);
+            item.classList.toggle('text-[#171717]', !isSelected);
+        });
+    }
+
     document.querySelectorAll('.color-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            document.querySelectorAll('.color-btn').forEach(item => item.classList.remove('border-black', 'bg-black', 'text-white'));
-            this.classList.add('border-black', 'bg-black', 'text-white');
+            setOptionState('.color-btn', this);
             selectedColor = this.dataset.color;
             syncVariant();
         });
@@ -391,8 +435,7 @@
 
     document.querySelectorAll('.storage-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            document.querySelectorAll('.storage-btn').forEach(item => item.classList.remove('border-black', 'bg-black', 'text-white'));
-            this.classList.add('border-black', 'bg-black', 'text-white');
+            setOptionState('.storage-btn', this);
             selectedStorage = this.dataset.storage;
             syncVariant();
         });

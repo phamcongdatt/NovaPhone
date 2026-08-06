@@ -127,6 +127,7 @@
         </main>
     </div>
 
+    @stack('modals')
     @stack('scripts')
 <footer class="defer-render mt-12 rounded-[28px] border border-[#e9e7e2] bg-white shadow-[0_12px_40px_rgba(0,0,0,.04)]">
     <div class="px-6 py-12">

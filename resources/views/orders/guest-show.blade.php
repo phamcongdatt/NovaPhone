@@ -53,6 +53,18 @@
                     <p class="mt-1 leading-6">Bạn còn <strong data-payment-countdown-value>{{ gmdate('H:i:s', $remainingPaymentSeconds) }}</strong> để thanh toán. Đơn sẽ tự động hủy khi hết thời gian.</p>
                     <p data-payment-countdown-expired class="mt-1 hidden font-semibold text-red-700">Đã hết thời gian thanh toán. Vui lòng tải lại trang để xem trạng thái mới nhất.</p>
                 </div>
+            @elseif ($order->status === 'cancelled')
+                @php
+                    $cancelledByLabel = $order->cancelledBy?->name
+                        ?? (str_starts_with((string) $order->cancelled_reason, 'Tự động hủy') ? 'Hệ thống' : 'Khách vãng lai');
+                @endphp
+                <div class="mt-5 rounded-[18px] border border-red-100 bg-red-50 p-4 text-sm leading-6 text-red-800">
+                    <p class="font-semibold">Đơn hàng đã được hủy.</p>
+                    @if ($order->cancelled_reason)
+                        <p class="mt-1"><span class="font-semibold">Lý do hủy:</span> {{ $order->cancelled_reason }}</p>
+                    @endif
+                    <p class="mt-1"><span class="font-semibold">Hủy bởi:</span> {{ $cancelledByLabel }}</p>
+                </div>
             @endif
         </section>
 

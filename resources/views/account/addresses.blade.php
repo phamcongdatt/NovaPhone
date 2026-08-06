@@ -104,16 +104,19 @@
         </section>
     </div>
 
-    <div id="address-modal" class="fixed inset-0 z-50 hidden bg-black/50 p-4 sm:p-6">
-        <div class="mx-auto flex max-h-[90vh] max-w-xl flex-col overflow-y-auto rounded-[28px] border border-[#ece8e2] bg-white shadow-lg">
-            <div class="sticky top-0 border-b border-[#ece8e2] bg-white p-5 sm:p-6">
+</div>
+
+@push('modals')
+    <div id="address-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 p-4 sm:p-6" aria-hidden="true">
+        <div class="my-auto flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-[28px] border border-[#ece8e2] bg-white shadow-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="shrink-0 border-b border-[#ece8e2] bg-white p-5 sm:p-6">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-bold text-[#171717]" id="modal-title">Thêm địa chỉ mới</h2>
                     <button type="button" class="text-sm font-semibold text-[#8b8b8b] hover:text-black" id="close-modal">Đóng</button>
                 </div>
             </div>
 
-            <form id="address-form" class="flex-1 space-y-4 p-5 sm:p-6" method="POST" action="{{ route('address.store') }}">
+            <form id="address-form" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 sm:p-6" method="POST" action="{{ route('address.store') }}">
                 @csrf
                 <input type="hidden" id="address-id" name="address_id">
                 <input type="hidden" name="_method" id="form-method" value="POST">
@@ -164,8 +167,9 @@
             </form>
         </div>
     </div>
-</div>
+@endpush
 
+@push('scripts')
 <script>
     const modal = document.getElementById('address-modal');
     const form = document.getElementById('address-form');
@@ -177,6 +181,21 @@
     const editButtons = document.querySelectorAll('.edit-address-btn');
     const setDefaultButtons = document.querySelectorAll('.set-default-btn');
 
+    const openModal = () => {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex', 'items-center', 'justify-center');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('overflow-hidden');
+        requestAnimationFrame(() => document.getElementById('name')?.focus());
+    };
+
+    const closeModal = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex', 'items-center', 'justify-center');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
+    };
+
     openBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             modalTitle.textContent = 'Thêm địa chỉ mới';
@@ -184,15 +203,19 @@
             form.action = '{{ route("address.store") }}';
             document.getElementById('form-method').value = 'POST';
             document.getElementById('address-id').value = '';
-            modal.classList.remove('hidden');
+            openModal();
         });
     });
 
-    closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-    cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
 
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.add('hidden');
+        if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
     });
 
     deleteButtons.forEach(btn => {
@@ -225,7 +248,7 @@
                     document.getElementById('is_default').checked = data.is_default || false;
                     form.action = `{{ route('address.update', ':id') }}`.replace(':id', addressId);
                     document.getElementById('form-method').value = 'PUT';
-                    modal.classList.remove('hidden');
+                    openModal();
                 });
         });
     });
@@ -241,4 +264,5 @@
         });
     });
 </script>
+@endpush
 @endsection

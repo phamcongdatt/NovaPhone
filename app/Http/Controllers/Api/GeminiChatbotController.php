@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -14,6 +15,8 @@ use Throwable;
 class GeminiChatbotController extends Controller
 {
     private const MODEL = 'gemini-2.5-flash';
+
+    private const MAX_MESSAGES = 20;
 
     private const SYSTEM = <<<PROMPT
 Bạn là NovaPhone, một nhân viên tư vấn điện thoại nhiệt tình, thân thiện và am hiểu sản phẩm.
@@ -65,22 +68,26 @@ PROMPT;
         ]);
 
         try {
-            $contents = collect($validated['messages'])->map(static function (array $message): array {
+            $messages = array_slice($validated['messages'], -self::MAX_MESSAGES);
+            $firstUserIndex = collect($messages)->search(
+                static fn (array $message): bool => $message['role'] === 'user'
+            );
+
+            if ($firstUserIndex === false) {
+                return response()->json([
+                    'reply' => 'Xin lỗi, chatbot không tìm thấy tin nhắn người dùng để trả lời. Vui lòng gửi tin nhắn trước khi gọi API.',
+                ], 422);
+            }
+
+            // Gemini yêu cầu contents bắt đầu bằng một tin nhắn của user.
+            $messages = array_slice($messages, $firstUserIndex);
+            $contents = collect($messages)->map(static function (array $message): array {
                 return [
                     'role' => $message['role'] === 'assistant' ? 'model' : 'user',
                     'parts' => [['text' => $message['content']]],
                 ];
             })->values()->all();
-            $messages = array_silce($validated['messages'],-self:: MAX_MESSAGES);
-            $firstUserIndex = collect($messages)->search(
-                fn(array $message) => $messages['role'] === 'user'
-            );
-            if($firsUserIndex == false)
-                {
-                    return response()->json ([
-                        'reply' => 'Xin loi, chatbot khong tim thay tin nhan nguoi dung de tra loi. Vui long gui tin nhan truoc khi goi API.',
-                    ], 422);
-                }
+
             $response = $this->callGemini($contents);
 
             for ($i = 0; $i < 5; $i++) {
@@ -118,6 +125,12 @@ PROMPT;
             return response()->json([
                 'reply' => $reply ?: 'Xin loi, minh chua xu ly duoc yeu cau nay.',
             ]);
+        } catch (ConnectionException $e) {
+            report($e);
+
+            return response()->json([
+                'reply' => 'Không thể kết nối đến Gemini lúc này. Bạn kiểm tra mạng hoặc thử lại sau nhé.',
+            ], 503);
         } catch (RequestException $e) {
             report($e);
 
@@ -127,9 +140,14 @@ PROMPT;
                 ], 503);
             }
 
-            return response()->json([
-                'reply' => 'Xin loi, chatbot dang gap loi khi goi Gemini. Ban thu lai sau nhe.',
-            ], 502);
+            $status = $e->response?->status();
+            $message = match ($status) {
+                401, 403 => 'Khóa Gemini không hợp lệ hoặc chưa có quyền sử dụng model. Bạn kiểm tra lại GEMINI_API_KEY nhé.',
+                400 => 'Gemini từ chối dữ liệu gửi lên. Bạn thử gửi câu hỏi ngắn hơn nhé.',
+                default => 'Gemini đang gặp sự cố khi xử lý yêu cầu. Bạn thử lại sau nhé.',
+            };
+
+            return response()->json(['reply' => $message], 502);
         } catch (Throwable $e) {
             report($e);
 
@@ -254,7 +272,7 @@ PROMPT;
             'compare_products' => $this->compareProducts($input),
 
             'get_revenue_stats' => Order::whereBetween('created_at', [$input['from'], $input['to']])
-                ->where('status', 'delivered')
+                ->whereIn('status', Order::SALES_STATUSES)
                 ->selectRaw('COUNT(*) as total_orders, SUM(total_amount) as revenue')
                 ->first()
                 ?->toJson() ?? json_encode(['total_orders' => 0, 'revenue' => 0], JSON_UNESCAPED_UNICODE),

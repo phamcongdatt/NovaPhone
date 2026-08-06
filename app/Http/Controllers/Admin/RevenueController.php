@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class RevenueController extends Controller
 {
-    private const REVENUE_STATUSES = ['confirmed', 'processing', 'shipping', 'delivered'];
+    private const REVENUE_STATUSES = ['confirmed', 'processing', 'shipping', 'delivered', 'received'];
 
     /**
      * Trang Dashboard thống kê doanh thu.
@@ -145,6 +145,7 @@ class RevenueController extends Controller
             'processing' => $ordersCountByStatus->get('processing', 0),
             'shipping' => $ordersCountByStatus->get('shipping', 0),
             'delivered' => $ordersCountByStatus->get('delivered', 0),
+            'received' => $ordersCountByStatus->get('received', 0),
             'cancelled' => $ordersCountByStatus->get('cancelled', 0),
         ];
 

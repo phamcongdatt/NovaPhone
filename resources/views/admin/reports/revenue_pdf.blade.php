@@ -213,6 +213,7 @@
                             'processing' => 'Đang xử lý',
                             'shipping' => 'Đang giao hàng',
                             'delivered' => 'Đã giao thành công',
+                            'received' => 'Khách đã nhận hàng',
                             'cancelled' => 'Đã huỷ'
                         ] as $key => $label)
                             <tr>

@@ -13,6 +13,9 @@ return [
     */
     'cod_max_amount' => env('COD_MAX_AMOUNT', 20000000),
 
+    /* Thuế VAT áp dụng cho đơn hàng, tính trên giá trị sau giảm giá. */
+    'tax_rate' => env('SHOP_TAX_RATE', 0.10),
+
     /*
     |--------------------------------------------------------------------------
     | Thời gian chờ thanh toán trước khi tự động hủy đơn

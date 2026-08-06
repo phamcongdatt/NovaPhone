@@ -63,7 +63,9 @@ class CheckoutController extends Controller
      */
     private function resolveCheckoutData(): array
     {
-        $isBuyNow = session()->has('buy_now_item');
+        // Hai luồng checkout không được dùng đồng thời. Nếu có selection từ giỏ,
+        // ưu tiên selection để không bị session "Mua ngay" cũ làm mất các sản phẩm.
+        $isBuyNow = session()->has('buy_now_item') && ! session()->has('checkout_selected_items');
 
         if ($isBuyNow) {
             $buyNowData = session()->get('buy_now_item');
@@ -94,6 +96,21 @@ class CheckoutController extends Controller
         $total = (float) $items->sum(fn ($item) => $item->price * $item->quantity);
 
         return compact('items', 'total', 'isBuyNow');
+    }
+
+    /**
+     * Tính số tiền phải thanh toán sau giảm giá và VAT.
+     * VAT được tính trên giá trị thực trả của hàng hóa, trước phí vận chuyển.
+     */
+    private function calculateCheckoutAmounts(float $subtotal, float $discountAmount): array
+    {
+        $taxableAmount = round(max(0, $subtotal - $discountAmount), 2);
+        $taxRate = (float) config('shop.tax_rate', 0.10);
+        $taxAmount = round($taxableAmount * $taxRate, 0);
+        $shippingFee = 0.0;
+        $finalTotal = $taxableAmount + $taxAmount + $shippingFee;
+
+        return compact('taxableAmount', 'taxRate', 'taxAmount', 'shippingFee', 'finalTotal');
     }
 
     /**
@@ -186,8 +203,13 @@ class CheckoutController extends Controller
                 });
         }
 
+        $amounts = $this->calculateCheckoutAmounts($total, $discountAmount);
+        $taxAmount = $amounts['taxAmount'];
+        $taxRate = $amounts['taxRate'];
+        $finalTotal = $amounts['finalTotal'];
+
         $codMaxAmount = (float) config('shop.cod_max_amount');
-        $disableCod = $total > $codMaxAmount;
+        $disableCod = $finalTotal > $codMaxAmount;
         $defaultPaymentMethod = $disableCod ? 'vnpay' : 'cod';
 
         // Bắt buộc trình duyệt phải gọi lại server (không phục hồi từ bfcache) khi user
@@ -196,7 +218,7 @@ class CheckoutController extends Controller
             ->view('checkout.index', compact(
                 'items', 'total', 'defaultAddress', 'disableCod', 'defaultPaymentMethod',
                 'codMaxAmount', 'discountAmount', 'appliedCouponsData', 'walletCoupons', 'isBuyNow',
-                'pendingPaymentOrder'
+                'pendingPaymentOrder', 'taxAmount', 'taxRate', 'finalTotal'
             ))
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
@@ -273,13 +295,6 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
         }
 
-        $codMaxAmount = (float) config('shop.cod_max_amount');
-
-        // Kiểm tra giới hạn COD ở backend
-        if ($total > $codMaxAmount && $request->payment_method === 'cod') {
-            return redirect()->back()->with('error', 'Đơn hàng có tổng giá trị vượt quá ' . number_format($codMaxAmount, 0, ',', '.') . 'đ không hỗ trợ phương thức thanh toán COD. Vui lòng chọn phương thức thanh toán trực tuyến.')->withInput();
-        }
-
         try {
             $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow, $user) {
                 // 1. Kiểm tra tồn kho và Flash Sale của tất cả sản phẩm
@@ -348,7 +363,16 @@ class CheckoutController extends Controller
                     }
                 }
 
-                $finalTotal = max(0, $total - $discountAmount);
+                $amounts = $this->calculateCheckoutAmounts($total, $discountAmount);
+                $taxAmount = $amounts['taxAmount'];
+                $shippingFee = $amounts['shippingFee'];
+                $finalTotal = $amounts['finalTotal'];
+
+                // Kiểm tra lại theo tổng tiền thực trả, bao gồm VAT.
+                $codMaxAmount = (float) config('shop.cod_max_amount');
+                if ($request->payment_method === 'cod' && $finalTotal > $codMaxAmount) {
+                    throw new Exception('Đơn hàng có tổng giá trị vượt quá ' . number_format($codMaxAmount, 0, ',', '.') . 'đ không hỗ trợ phương thức thanh toán COD. Vui lòng chọn phương thức thanh toán trực tuyến.');
+                }
 
                 // 3. Tạo bản ghi đơn hàng
                 $order = Order::create([
@@ -359,9 +383,10 @@ class CheckoutController extends Controller
                     'payment_status' => 'pending',
                     'subtotal' => $total,
                     'discount_amount' => $discountAmount,
+                    'tax_amount' => $taxAmount,
                     'coupon_id' => !empty($appliedCouponsList) ? $appliedCouponsList[0]['coupon']->id : null,
                     'coupon_code' => !empty($appliedCouponsList) ? $appliedCouponsList[0]['coupon']->code : null,
-                    'shipping_fee' => 0,
+                    'shipping_fee' => $shippingFee,
                     'total_amount' => $finalTotal,
                     'shipping_full_name' => $request->shipping_full_name,
                     'shipping_phone' => $request->shipping_phone,
@@ -520,7 +545,7 @@ class CheckoutController extends Controller
     {
         abort_unless($order->user_id === null && $order->customer_email, 403);
 
-        $order->load('items');
+        $order->load(['items', 'cancelledBy']);
         $guestCancelUrl = $order->status === 'pending'
             ? $this->guestOrderAccess->cancelUrl($order)
             : null;
@@ -658,13 +683,9 @@ class CheckoutController extends Controller
                     return false;
                 }
 
-                $oldStatus = $lockedOrder->status;
-                $lockedOrder->update([
-                    'payment_status' => 'paid',
-                    'status'         => 'confirmed',
-                ]);
-
-                $this->soldCountService->syncOnStatusChange($lockedOrder, $oldStatus, 'confirmed');
+                // Thanh toán thành công không đồng nghĩa admin đã xác nhận đơn.
+                // Giữ status = pending để đơn chờ admin duyệt và chuyển trạng thái.
+                $lockedOrder->update(['payment_status' => 'paid']);
 
                 return true;
             });

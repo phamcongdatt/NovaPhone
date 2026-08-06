@@ -272,6 +272,10 @@
                             </div>
                         @endif
                         <div class="flex justify-between text-[#666]">
+                            <span>Thuế VAT ({{ number_format($taxRate * 100, 0) }}%)</span>
+                            <span class="font-semibold text-[#111]">{{ number_format($taxAmount, 0, ',', '.') }}đ</span>
+                        </div>
+                        <div class="flex justify-between text-[#666]">
                             <span>Giao hàng</span>
                             <span class="font-semibold text-green-600">Miễn phí</span>
                         </div>
@@ -346,7 +350,7 @@
                         <div class="flex items-end justify-between">
                             <span class="font-bold text-[#111]">Tổng cộng</span>
                             <div class="text-right">
-                                <div class="text-3xl font-extrabold text-black">{{ number_format($total - $discountAmount, 0, ',', '.') }}đ</div>
+                                <div class="text-3xl font-extrabold text-black">{{ number_format($finalTotal, 0, ',', '.') }}đ</div>
                                 @if ($discountAmount > 0)
                                     <p class="mt-1 text-xs text-green-600">Tiết kiệm {{ number_format($discountAmount, 0, ',', '.') }}đ</p>
                                 @endif

@@ -43,7 +43,7 @@ class OrderController extends Controller
     /**
      * Huỷ đơn hàng (chỉ đơn pending).
      */
-    public function cancel(Order $order)
+    public function cancel(Request $request, Order $order)
     {
         if ($order->user_id !== Auth::id()) {
             abort(403);
@@ -53,7 +53,7 @@ class OrderController extends Controller
             return back()->with('error', 'Chỉ đơn hàng đang chờ xác nhận mới có thể hủy.');
         }
 
-        $cancelled = $this->cancellationService->cancel($order, 'Khách hàng hủy đơn');
+        $cancelled = $this->cancellationService->cancel($order, 'Khách hàng hủy đơn', $request->user());
 
         if (! $cancelled) {
             return back()->with('error', 'Đơn hàng không còn ở trạng thái có thể hủy (có thể vừa được thanh toán/xử lý).');
@@ -82,6 +82,7 @@ class OrderController extends Controller
             'items.product',
             'items.variant',
             'reviews:id,order_id,product_id',
+            'cancelledBy',
         ]);
 
         return view('orders.show', compact('order'));

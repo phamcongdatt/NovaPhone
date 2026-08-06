@@ -99,11 +99,16 @@
                     </div>
 
                     @if ($order->status === 'cancelled')
+                        @php
+                            $cancelledByLabel = $order->cancelledBy?->name
+                                ?? (str_starts_with((string) $order->cancelled_reason, 'Tự động hủy') ? 'Hệ thống' : 'Khách hàng');
+                        @endphp
                         <div class="mt-5 rounded-[18px] border border-red-100 bg-red-50 p-4 text-sm text-red-800">
                             <p class="font-semibold">Đơn hàng đã được hủy.</p>
                             @if ($order->cancelled_reason)
-                                <p class="mt-1 leading-6">{{ $order->cancelled_reason }}</p>
+                                <p class="mt-1 leading-6"><span class="font-semibold">Lý do hủy:</span> {{ $order->cancelled_reason }}</p>
                             @endif
+                            <p class="mt-1 leading-6"><span class="font-semibold">Hủy bởi:</span> {{ $cancelledByLabel }}</p>
                         </div>
                     @else
                         <ol class="mt-6 grid gap-4 sm:grid-cols-5">
@@ -262,6 +267,12 @@
                             <div class="flex items-center justify-between gap-4">
                                 <dt class="text-[#777]">Giảm giá</dt>
                                 <dd class="font-semibold text-[#d14b4b]">-{{ number_format($order->discount_amount, 0, ',', '.') }}₫</dd>
+                            </div>
+                        @endif
+                        @if ($order->tax_amount > 0)
+                            <div class="flex items-center justify-between gap-4">
+                                <dt class="text-[#777]">Thuế VAT (10%)</dt>
+                                <dd class="font-semibold text-[#222]">{{ number_format($order->tax_amount, 0, ',', '.') }}₫</dd>
                             </div>
                         @endif
                         <div class="flex items-center justify-between gap-4">

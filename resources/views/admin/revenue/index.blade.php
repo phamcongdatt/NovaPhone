@@ -165,6 +165,7 @@
                         'processing' => ['Đang xử lý', '#8b5cf6', 'processing'],
                         'shipping' => ['Đang giao hàng', '#06b6d4', 'shipping'],
                         'delivered' => ['Đã giao thành công', '#10b981', 'delivered'],
+                        'received' => ['Khách đã nhận hàng', '#16a34a', 'received'],
                         'cancelled' => ['Đã huỷ', '#ef4444', 'cancelled']
                     ] as $key => [$label, $color])
                         <div class="flex items-center justify-between text-slate-300">
@@ -447,7 +448,7 @@
         new Chart(ctxStatus, {
             type: 'doughnut',
             data: {
-                labels: ['Chờ xác nhận', 'Đã xác nhận', 'Đang xử lý', 'Đang giao hàng', 'Đã giao', 'Đã huỷ'],
+                labels: ['Chờ xác nhận', 'Đã xác nhận', 'Đang xử lý', 'Đang giao hàng', 'Đã giao', 'Đã nhận hàng', 'Đã huỷ'],
                 datasets: [{
                     data: [
                         orderStatusStats.pending,
@@ -455,9 +456,10 @@
                         orderStatusStats.processing,
                         orderStatusStats.shipping,
                         orderStatusStats.delivered,
+                        orderStatusStats.received,
                         orderStatusStats.cancelled
                     ],
-                    backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#ef4444'],
+                    backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#16a34a', '#ef4444'],
                     borderWidth: 0,
                 }]
             },

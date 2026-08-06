@@ -18,6 +18,7 @@ class OrderCancelledNotification extends Notification implements ShouldQueue
         private readonly string $reason,
         private readonly bool $isAdminCancel = false,
         private readonly ?string $adminName = null,
+        private readonly ?string $cancelledByName = null,
         private readonly ?string $guestOrderUrl = null,
     ) {
     }
@@ -44,6 +45,7 @@ class OrderCancelledNotification extends Notification implements ShouldQueue
                 'reason' => $this->reason,
                 'isAdminCancel' => $this->isAdminCancel,
                 'adminName' => $this->adminName,
+                'cancelledByName' => $this->cancelledByLabel(),
                 'cancelledAt' => $cancelledAt,
                 'orderUrl' => $orderUrl,
             ]);
@@ -57,7 +59,21 @@ class OrderCancelledNotification extends Notification implements ShouldQueue
             'reason' => $this->reason,
             'is_admin_cancel' => $this->isAdminCancel,
             'admin_name' => $this->adminName,
-            'message' => 'Đơn hàng ' . $this->order->order_code . ' đã bị hủy. Lý do: ' . $this->reason,
+            'cancelled_by_name' => $this->cancelledByLabel(),
+            'message' => 'Đơn hàng ' . $this->order->order_code . ' đã bị hủy. Lý do: ' . $this->reason . ' Hủy bởi: ' . $this->cancelledByLabel() . '.',
         ];
+    }
+
+    private function cancelledByLabel(): string
+    {
+        if ($this->cancelledByName) {
+            return $this->cancelledByName;
+        }
+
+        if (str_starts_with($this->reason, 'Tự động hủy')) {
+            return 'Hệ thống';
+        }
+
+        return $this->order->user_id ? 'Khách hàng' : 'Khách vãng lai';
     }
 }

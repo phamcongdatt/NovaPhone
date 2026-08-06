@@ -66,11 +66,16 @@
                 </div>
             </div>
         @elseif ($isCancelled)
+            @php
+                $cancelledByLabel = $order->cancelledBy?->name
+                    ?? (str_starts_with((string) $order->cancelled_reason, 'Tự động hủy') ? 'Hệ thống' : 'Khách hàng');
+            @endphp
             <div class="mx-auto mt-6 max-w-xl rounded-[20px] border border-red-100 bg-red-50 p-4 text-left text-sm leading-6 text-red-800">
                 <p class="font-semibold">Đơn hàng không còn hiệu lực.</p>
                 @if ($order->cancelled_reason)
-                    <p class="mt-1">{{ $order->cancelled_reason }}</p>
+                    <p class="mt-1"><span class="font-semibold">Lý do hủy:</span> {{ $order->cancelled_reason }}</p>
                 @endif
+                <p class="mt-1"><span class="font-semibold">Hủy bởi:</span> {{ $cancelledByLabel }}</p>
             </div>
         @endif
 
