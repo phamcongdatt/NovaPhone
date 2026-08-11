@@ -11,11 +11,35 @@
     'badge' => null,
     'isFlashSale' => false,
     'href' => null,
+    'variants' => null,
 ])
 
 @php
     $isWishlisted = $id && in_array($id, $wishlistProductIds ?? []);
     $isCompared = $id && in_array($id, $compareProductIds ?? []);
+
+    $variantOptions = collect($variants ?? [])
+        ->filter(fn ($variant) => (bool) data_get($variant, 'is_active', true))
+        ->map(function ($variant) {
+            $label = data_get($variant, 'name')
+                ?: collect([
+                    data_get($variant, 'color'),
+                    data_get($variant, 'storage'),
+                ])->filter()->join(' / ');
+
+            return [
+                'id' => (int) data_get($variant, 'id'),
+                'name' => (string) data_get($variant, 'name', ''),
+                'label' => $label ?: 'Phiên bản #' . data_get($variant, 'id'),
+                'color' => (string) data_get($variant, 'color', ''),
+                'storage' => (string) data_get($variant, 'storage', ''),
+                'additional_price' => (float) data_get($variant, 'additional_price', 0),
+                'stock' => (int) data_get($variant, 'inventory.available_quantity', 0),
+            ];
+        })
+        ->values();
+
+    $hasVariants = $variantOptions->isNotEmpty();
 @endphp
 
 <article {{ $attributes->merge(['class' => 'group rounded-[22px] border border-[#ece8e2] bg-white p-3 shadow-[0_8px_30px_rgba(0,0,0,.03)] transition hover:-translate-y-1 hover:shadow-[0_12px_35px_rgba(0,0,0,.06)]']) }}>
@@ -31,6 +55,7 @@
                 <span class="inline-flex w-fit items-center rounded-full bg-[#f2f0ec] px-2.5 py-1 text-[9px] font-semibold text-[#5c5c5c]">{{ $badge }}</span>
             @endif
         </div>
+
         @if ($id)
             <div class="flex gap-1">
                 <button type="button" class="grid size-7 place-items-center rounded-full border border-[#ece8e2] text-[#4d4d4d] transition hover:border-black hover:text-black" aria-label="Yêu thích" aria-pressed="{{ $isWishlisted ? 'true' : 'false' }}" data-wishlist-toggle data-product-id="{{ $id }}" data-wishlist-url="{{ route('wishlist.toggle') }}" data-login-url="{{ route('login') }}">
@@ -70,20 +95,18 @@
         @endif
     </div>
 
-    @if ($id)
-        <div class="mt-3 grid grid-cols-2 gap-2">
-            <form method="POST" action="{{ route('cart.store') }}" data-cart-add-form>
-                @csrf
-                <input type="hidden" name="product_id" value="{{ $id }}">
-                <input type="hidden" name="quantity" value="1">
-                <button type="submit" class="w-full rounded-full border border-[#e8e4de] px-3 py-2 text-[11px] font-semibold text-[#171717] transition hover:border-black hover:bg-[#faf9f7]">Thêm giỏ hàng</button>
-            </form>
-            <form method="POST" action="{{ route('cart.buy-now') }}" data-buy-now-form>
-                @csrf
-                <input type="hidden" name="product_id" value="{{ $id }}">
-                <input type="hidden" name="quantity" value="1">
-                <button type="submit" class="w-full rounded-full bg-black px-3 py-2 text-[11px] font-semibold text-white transition hover:bg-[#222]">Mua ngay</button>
-            </form>
+    @if ($hasVariants)
+        <div class="mt-3 flex flex-wrap gap-1.5" aria-label="Các phiên bản sản phẩm">
+            @foreach ($variantOptions->take(4) as $variant)
+                <span class="rounded-full border border-[#e8e4de] px-2.5 py-1 text-[10px] font-medium text-[#555]">
+                    {{ $variant['label'] }}
+                </span>
+            @endforeach
+            @if ($variantOptions->count() > 4)
+                <span class="rounded-full px-1.5 py-1 text-[10px] font-semibold text-[#888]">
+                    +{{ $variantOptions->count() - 4 }}
+                </span>
+            @endif
         </div>
     @endif
 

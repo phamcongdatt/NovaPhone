@@ -279,6 +279,7 @@
                     <x-product-card
                         :id="$relatedProduct->id"
                         :name="$relatedProduct->name"
+                        :variants="$relatedProduct->variants"
                         :image="$relatedProduct->thumbnail ? (str_starts_with($relatedProduct->thumbnail, 'http') ? $relatedProduct->thumbnail : (str_starts_with($relatedProduct->thumbnail, 'images/') || str_starts_with($relatedProduct->thumbnail, 'storage/') ? asset($relatedProduct->thumbnail) : asset('storage/' . $relatedProduct->thumbnail))) : asset('images/placeholder.svg')"
                         :price="$relatedProduct->effective_price"
                         :old-price="$relatedProduct->sale_price && $relatedProduct->sale_price < $relatedProduct->price ? $relatedProduct->price : null"
@@ -382,10 +383,18 @@
     }
 
     function syncVariant() {
-        const variant = variants.find(item =>
-            (!selectedColor || item.color === selectedColor) &&
-            (!selectedStorage || item.storage === selectedStorage)
-        );
+        const requiresColor = document.querySelectorAll('.color-btn').length > 0;
+        const requiresStorage = document.querySelectorAll('.storage-btn').length > 0;
+        const hasCompleteSelection =
+            (!requiresColor || selectedColor) &&
+            (!requiresStorage || selectedStorage);
+
+        const variant = hasCompleteSelection
+            ? variants.find(item =>
+                (!selectedColor || item.color === selectedColor) &&
+                (!selectedStorage || item.storage === selectedStorage)
+            )
+            : null;
 
         const variantId = variant?.id || '';
         const additionalPrice = Number(variant?.additional_price || 0);
@@ -438,6 +447,21 @@
             setOptionState('.storage-btn', this);
             selectedStorage = this.dataset.storage;
             syncVariant();
+        });
+    });
+
+    ['#add-to-cart-form', '#buy-now-form'].forEach(selector => {
+        document.querySelector(selector)?.addEventListener('submit', function (event) {
+            if (variants.length > 0 && !this.querySelector('[name="variant_id"]')?.value) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.dispatchEvent(new CustomEvent('nova-toast', {
+                    detail: {
+                        message: 'Vui lòng chọn đầy đủ biến thể sản phẩm.',
+                        type: 'error',
+                    },
+                }));
+            }
         });
     });
 

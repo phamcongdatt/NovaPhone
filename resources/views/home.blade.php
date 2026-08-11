@@ -43,7 +43,7 @@
                                     </div>
                                 @endif
                                 <div class="mt-7 flex flex-wrap items-center gap-3">
-                                    <a href="{{ $banner->buy_url ?: route('products.index') }}" class="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition-colors duration-300 hover:bg-[#222]">Mua ngay</a>
+                                    <a href="{{ $banner->buy_url ?: route('products.index') }}" class="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition-colors duration-300 hover:bg-[#222]">Xem sản phẩm</a>
                                     @if ($banner->detail_url)
                                         <a href="{{ $banner->detail_url }}" class="rounded-full border border-[#e6e2dc] bg-white px-5 py-3 text-sm font-semibold text-[#161616] transition-colors duration-300 hover:bg-[#faf9f7]">Tìm hiểu thêm</a>
                                     @endif
@@ -87,6 +87,7 @@
                 <x-product-card
                     :id="$product->id"
                     :name="$product->name"
+                    :variants="$product->variants"
                     :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail))) : asset('images/placeholder.svg')"
                     :price="$product->effective_price"
                     :oldPrice="$product->price"
@@ -115,6 +116,7 @@
                 <x-product-card
                     :id="$product->id"
                     :name="$product->name"
+                    :variants="$product->variants"
                     :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail))) : asset('images/placeholder.svg')"
                     :price="$product->effective_price"
                     :oldPrice="$product->sale_price && $product->sale_price < $product->price ? $product->price : null"
@@ -199,6 +201,7 @@
                 <x-product-card
                     :id="$product->id"
                     :name="$product->name"
+                    :variants="$product->variants"
                     :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail))) : asset('images/placeholder.svg')"
                     :price="$product->effective_price"
                     :old-price="$product->sale_price ? $product->price : null"

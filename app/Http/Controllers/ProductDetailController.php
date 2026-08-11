@@ -26,7 +26,7 @@ class ProductDetailController extends Controller
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
-            ->with(['brand', 'activeFlashSaleItem.flashSale'])
+            ->with(['brand', 'variants.inventory', 'activeFlashSaleItem.flashSale'])
             ->withAvg(['reviews as rating_average' => fn($q) => $q->where('is_visible', true)], 'rating')
             ->limit(4)
             ->get();

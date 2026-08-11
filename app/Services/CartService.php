@@ -36,7 +36,8 @@ class CartService
         $productIds = collect($sessionCart)->pluck('product_id')->unique();
         $variantIds = collect($sessionCart)->pluck('variant_id')->filter()->unique();
 
-        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        // Sản phẩm bị ẩn/xóa mềm vẫn phải được lấy ra để giỏ hiển thị cảnh báo.
+        $products = Product::withTrashed()->whereIn('id', $productIds)->get()->keyBy('id');
         $variants = ProductVariant::whereIn('id', $variantIds)->get()->keyBy('id');
 
         foreach ($sessionCart as $key => $item) {
@@ -113,8 +114,7 @@ class CartService
             throw new Exception('Sản phẩm hiện không khả dụng.');
         }
 
-        $variant = $variantId ? ProductVariant::findOrFail($variantId) : null;
-        $variant = $this->resolveVariant($product, $variant);
+        $variant = $this->getSelectedVariant($product, $variantId);
 
         if ($variant && ! $variant->is_active) {
             throw new Exception('Biến thể sản phẩm hiện không khả dụng.');
@@ -148,12 +148,12 @@ class CartService
                 if ($availableQuantity < $newQty) {
                     throw new Exception("Không thể thêm số lượng đã chọn. Kho chỉ còn lại {$availableQuantity} sản phẩm.");
                 }
-                
+
                 // Nếu chưa hết quota flash sale, chặn nếu cố tình mua vượt quota để hưởng giá rẻ
                 if ($activeSale && $remainingFlashSaleQty > 0 && $newQty > $remainingFlashSaleQty) {
                     throw new Exception("Sản phẩm đang Flash Sale. Bạn chỉ còn {$remainingFlashSaleQty} lượt mua giá sốc. Vui lòng giảm số lượng.");
                 }
-                
+
                 $cartItem->update(['quantity' => $newQty]);
             } else {
                 if ($activeSale && $remainingFlashSaleQty > 0 && $quantity > $remainingFlashSaleQty) {
@@ -225,8 +225,12 @@ class CartService
         if (str_starts_with((string)$itemIdOrKey, 'buy_now') || (session()->has('buy_now_item') && $itemIdOrKey === 'buy_now_0')) {
             $buyNowData = session()->get('buy_now_item');
             if ($buyNowData) {
-                $product = Product::findOrFail($buyNowData['product_id']);
-                $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
+                $product = Product::withTrashed()->findOrFail($buyNowData['product_id']);
+                $variant = $this->getSelectedVariant(
+                    $product,
+                    $buyNowData['variant_id'] ?? null
+                );
+                $this->ensureSellable($product, $variant);
 
                 $availableQuantity = $this->getAvailableStock($product, $variant);
                 if ($availableQuantity < $quantity) {
@@ -257,6 +261,7 @@ class CartService
             })->find($itemIdOrKey);
 
             if ($cartItem) {
+                $this->ensureSellable($cartItem->product, $cartItem->variant);
                 $availableQuantity = $this->getAvailableStock($cartItem->product, $cartItem->variant);
                 if ($availableQuantity < $quantity) {
                     throw new Exception("Kho chỉ còn lại {$availableQuantity} sản phẩm khả dụng.");
@@ -279,8 +284,12 @@ class CartService
         }
 
         $itemData = $sessionCart[$itemIdOrKey];
-        $product  = Product::findOrFail($itemData['product_id']);
-        $variant  = $itemData['variant_id'] ? ProductVariant::findOrFail($itemData['variant_id']) : null;
+        $product  = Product::withTrashed()->findOrFail($itemData['product_id']);
+        $variant = $this->getSelectedVariant(
+            $product,
+            $itemData['variant_id'] ?? null
+        );
+        $this->ensureSellable($product, $variant);
 
         $availableQuantity = $this->getAvailableStock($product, $variant);
         if ($availableQuantity < $quantity) {
@@ -289,7 +298,7 @@ class CartService
 
         $activeSale = $product->activeFlashSaleItem;
         $remainingFlashSaleQty = Auth::check() ? $product->getFlashSaleRemainingQuota() : ($activeSale ? $activeSale->max_per_user : null);
-        
+
         if ($activeSale && $remainingFlashSaleQty !== null && $remainingFlashSaleQty > 0 && $quantity > $remainingFlashSaleQty) {
             throw new Exception("Sản phẩm đang Flash Sale, chỉ được mua tối đa {$remainingFlashSaleQty} sản phẩm giá sốc.");
         }
@@ -305,6 +314,17 @@ class CartService
         }
 
         return $mockItem;
+    }
+
+    private function ensureSellable(Product $product, ?ProductVariant $variant = null): void
+    {
+        if ($product->trashed() || ! $product->is_active) {
+            throw new Exception('Sản phẩm đã ngừng bán, vui lòng xóa sản phẩm khỏi giỏ hàng.');
+        }
+
+        if ($variant && ! $variant->is_active) {
+            throw new Exception('Biến thể sản phẩm đã ngừng bán, vui lòng xóa sản phẩm khỏi giỏ hàng.');
+        }
     }
 
     /**
@@ -412,21 +432,19 @@ class CartService
     }
 
     /**
-     * Nếu không chỉ định biến thể, lấy biến thể active đầu tiên có sẵn.
+     * Kiểm tra biến thể có thuộc đúng sản phẩm hay không.
      */
     public function resolveVariant(Product $product, ?ProductVariant $variant): ?ProductVariant
     {
-        if ($variant) {
-            if ((int) $variant->product_id !== (int) $product->id) {
-                throw new Exception('Biến thể không thuộc sản phẩm đã chọn.');
-            }
-
-            return $variant;
+        if (! $variant) {
+            return null;
         }
 
-        return $product->relationLoaded('variants')
-            ? $product->variants->firstWhere('is_active', true)
-            : $product->variants()->where('is_active', true)->orderBy('id')->first();
+        if ((int) $variant->product_id !== (int) $product->id) {
+            throw new Exception('Biến thể không thuộc sản phẩm đã chọn.');
+        }
+
+        return $variant;
     }
 
     /**
@@ -435,5 +453,30 @@ class CartService
     private function generateSessionKey(int $productId, ?int $variantId): string
     {
         return $variantId ? "{$productId}-{$variantId}" : "{$productId}-0";
+    }
+
+    public function getSelectedVariant(Product $product, ?int $variantId): ?ProductVariant
+    {
+        $hasVariants = $product->variants()->exists();
+
+        if ($hasVariants && is_null($variantId)) {
+            throw new Exception('Vui lòng chọn biến thể sản phẩm.');
+        }
+
+        if (is_null($variantId)) {
+            return null;
+        }
+
+        $variant = ProductVariant::findOrFail($variantId);
+
+        if ((int) $variant->product_id !== (int) $product->id) {
+            throw new Exception('Biến thể không thuộc sản phẩm đã chọn.');
+        }
+
+        if (! $variant->is_active) {
+            throw new Exception('Biến thể sản phẩm hiện không khả dụng.');
+        }
+
+        return $variant;
     }
 }

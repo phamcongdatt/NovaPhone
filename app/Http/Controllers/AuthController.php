@@ -503,3 +503,4 @@ class AuthController extends Controller
         ]);
     }
 }
+

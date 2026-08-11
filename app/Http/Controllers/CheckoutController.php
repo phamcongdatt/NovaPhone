@@ -73,9 +73,11 @@ class CheckoutController extends Controller
 
         if ($isBuyNow) {
             $buyNowData = session()->get('buy_now_item');
-            $product = Product::findOrFail($buyNowData['product_id']);
-            $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
-            $variant = $this->cartService->resolveVariant($product, $variant);
+            $product = Product::withTrashed()->findOrFail($buyNowData['product_id']);
+            $variant = $this->cartService->getSelectedVariant(
+                $product,
+                $buyNowData['variant_id'] ?? null
+            );
 
             $items = collect();
             $mockItem = new CartItem([
@@ -158,6 +160,24 @@ class CheckoutController extends Controller
 
         if (! $isBuyNow && $items->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
+        }
+
+        $unavailableItems = $items->filter(function ($item) {
+            return ! $item->product
+                || $item->product->trashed()
+                || ! $item->product->is_active
+                || ($item->variant && ! $item->variant->is_active);
+        });
+
+        if ($unavailableItems->isNotEmpty()) {
+            if ($isBuyNow) {
+                session()->forget('buy_now_item');
+            }
+
+            return redirect()->route('cart.index')->with(
+                'error',
+                'Một hoặc nhiều sản phẩm đã ngừng bán. Vui lòng bỏ chọn hoặc xóa sản phẩm đó khỏi giỏ hàng.'
+            );
         }
 
         // Xử lý mã giảm giá (nếu có)
@@ -316,11 +336,15 @@ class CheckoutController extends Controller
                     }
 
                     // Kiểm tra sản phẩm chưa bị ẩn
-                    if (!$item->product->is_active) {
+                    if ($item->product->trashed() || ! $item->product->is_active) {
                         throw new Exception("Sản phẩm {$item->product->name} hiện không khả dụng (đã bị ẩn hoặc ngừng bán).");
                     }
 
                     // Nếu có biến thể thì kiểm tra biến thể
+                    if ($item->product->variants()->exists() && ! $item->variant_id) {
+                        throw new Exception("Vui lĂ²ng chá»n biáº¿n thá»ƒ cho sáº£n pháº©m {$item->product->name}.");
+                    }
+
                     if ($item->variant_id) {
                         if (!$item->variant) {
                             throw new Exception("Phiên bản của sản phẩm {$item->product->name} không còn tồn tại hoặc đã bị xóa.");

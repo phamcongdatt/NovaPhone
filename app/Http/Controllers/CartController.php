@@ -112,13 +112,15 @@ class CartController extends Controller
         }
 
         $buyNowData = session()->get('buy_now_item');
-        $product = \App\Models\Product::findOrFail($buyNowData['product_id']);
-        if (! $product->is_active) {
+        $product = \App\Models\Product::withTrashed()->findOrFail($buyNowData['product_id']);
+        if ($product->trashed() || ! $product->is_active) {
             throw new Exception('Sản phẩm hiện không khả dụng.');
         }
 
-        $variant = $buyNowData['variant_id'] ? \App\Models\ProductVariant::findOrFail($buyNowData['variant_id']) : null;
-        $variant = $this->cartService->resolveVariant($product, $variant);
+        $variant = $this->cartService->getSelectedVariant(
+            $product,
+            $buyNowData['variant_id'] ?? null
+        );
         if ($variant && ! $variant->is_active) {
             throw new Exception('Biến thể sản phẩm hiện không khả dụng.');
         }
@@ -181,7 +183,17 @@ class CartController extends Controller
             'selected_item_ids.required' => 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.',
         ]);
 
-        $validIds = $this->cartService->getItems()->pluck('display_id')->all();
+        $validIds = $this->cartService->getItems()
+            ->filter(function ($item) {
+                $product = $item->product;
+
+                return $product
+                    && ! $product->trashed()
+                    && $product->is_active
+                    && (! $item->variant || $item->variant->is_active);
+            })
+            ->pluck('display_id')
+            ->all();
         $selectedIds = array_values(array_intersect(
             array_map('strval', $request->input('selected_item_ids')),
             $validIds
@@ -216,8 +228,7 @@ class CartController extends Controller
                 throw new Exception('Sản phẩm hiện không khả dụng.');
             }
 
-            $variant = $variantId ? \App\Models\ProductVariant::findOrFail($variantId) : null;
-            $variant = $this->cartService->resolveVariant($product, $variant);
+            $variant = $this->cartService->getSelectedVariant($product, $variantId);
             if ($variant && ! $variant->is_active) {
                 throw new Exception('Biến thể sản phẩm hiện không khả dụng.');
             }

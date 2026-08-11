@@ -52,16 +52,29 @@
                                     : asset('images/placeholder.svg')
                             ) : asset('images/placeholder.svg');
                             $itemTotal = $item->price * $item->quantity;
+                            $productUnavailable = ! $product
+                                || $product->trashed()
+                                || ! $product->is_active
+                                || ($item->variant_id && ! $variant)
+                                || ($variant && ! $variant->is_active);
+                            $unavailableMessage = ! $product
+                                ? 'Sản phẩm không còn tồn tại.'
+                                : (($product->trashed() || ! $product->is_active)
+                                    ? 'Sản phẩm đã ngừng bán.'
+                                    : (($item->variant_id && ! $variant)
+                                        ? 'Biến thể sản phẩm không còn tồn tại.'
+                                        : 'Biến thể sản phẩm đã ngừng bán.'));
                         @endphp
                         <div
                             data-cart-item
+                            data-cart-item-unavailable="{{ $productUnavailable ? 'true' : 'false' }}"
                             data-item-id="{{ $item->display_id }}"
                             data-update-url="{{ route('cart.update', $item->display_id) }}"
                             data-unit-price="{{ (float) $item->price }}"
                             data-confirmed-quantity="{{ $item->quantity }}"
-                            class="flex gap-4 rounded-[20px] border border-[#ece8e2] p-4 transition hover:shadow-md"
+                            class="flex gap-4 rounded-[20px] border p-4 transition hover:shadow-md {{ $productUnavailable ? 'border-amber-200 bg-amber-50/40' : 'border-[#ece8e2]' }}"
                         >
-                            <input type="checkbox" checked class="mt-1 size-4 rounded border-[#d8d4cd] accent-black" data-cart-selection data-item-id="{{ $item->display_id }}">
+                            <input type="checkbox" @checked(! $productUnavailable) @disabled($productUnavailable) class="mt-1 size-4 rounded border-[#d8d4cd] accent-black disabled:cursor-not-allowed disabled:opacity-50" data-cart-selection data-item-id="{{ $item->display_id }}">
 
                             <div class="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-[16px] bg-[#fbfaf8]">
                                 <img src="{{ $image }}" class="max-h-full max-w-full object-contain" alt="{{ $product->name ?? 'Product' }}" loading="lazy" decoding="async">
@@ -70,12 +83,19 @@
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-start justify-between gap-2">
                                     <div>
-                                        @if ($product)
+                                        @if ($product && ! $productUnavailable)
                                             <a href="{{ route('products.show', $product) }}" class="text-sm font-semibold text-[#171717] hover:text-black">
                                                 {{ $product->name }}
                                             </a>
+                                        @elseif ($product)
+                                            <span class="text-sm font-semibold text-[#171717]">{{ $product->name }}</span>
                                         @else
                                             <span class="text-sm font-semibold text-[#171717]">Sản phẩm không còn khả dụng</span>
+                                        @endif
+                                        @if ($productUnavailable)
+                                            <p class="mt-2 text-xs font-semibold text-amber-700" role="alert">
+                                                ⚠ {{ $unavailableMessage }} Vui lòng xóa sản phẩm này khỏi giỏ trước khi thanh toán.
+                                            </p>
                                         @endif
                                         @if ($variant)
                                             <p class="mt-1 text-xs text-[#8b8b8b]">
@@ -109,11 +129,15 @@
                                     </p>
                                 </div>
 
-                                <div data-cart-quantity-controls class="flex items-center gap-2 rounded-[12px] border border-[#ece8e2]">
-                                    <button type="button" data-cart-quantity-change data-quantity-delta="-1" @disabled($item->quantity <= 1) class="px-3 py-1.5 text-[#8b8b8b] transition hover:text-black disabled:cursor-not-allowed disabled:opacity-35" aria-label="Giảm số lượng">-</button>
-                                    <input type="number" value="{{ $item->quantity }}" min="1" inputmode="numeric" class="w-10 border-0 bg-transparent text-center text-sm font-semibold outline-none" data-cart-quantity-input data-item-id="{{ $item->display_id }}" aria-label="Số lượng">
-                                    <button type="button" data-cart-quantity-change data-quantity-delta="1" class="px-3 py-1.5 text-[#8b8b8b] transition hover:text-black disabled:cursor-not-allowed disabled:opacity-35" aria-label="Tăng số lượng">+</button>
-                                </div>
+                                @if ($productUnavailable)
+                                    <p class="text-right text-xs font-medium text-amber-700">Không thể thay đổi số lượng</p>
+                                @else
+                                    <div data-cart-quantity-controls class="flex items-center gap-2 rounded-[12px] border border-[#ece8e2]">
+                                        <button type="button" data-cart-quantity-change data-quantity-delta="-1" @disabled($item->quantity <= 1) class="px-3 py-1.5 text-[#8b8b8b] transition hover:text-black disabled:cursor-not-allowed disabled:opacity-35" aria-label="Giảm số lượng">-</button>
+                                        <input type="number" value="{{ $item->quantity }}" min="1" inputmode="numeric" class="w-10 border-0 bg-transparent text-center text-sm font-semibold outline-none" data-cart-quantity-input data-item-id="{{ $item->display_id }}" aria-label="Số lượng">
+                                        <button type="button" data-cart-quantity-change data-quantity-delta="1" class="px-3 py-1.5 text-[#8b8b8b] transition hover:text-black disabled:cursor-not-allowed disabled:opacity-35" aria-label="Tăng số lượng">+</button>
+                                    </div>
+                                @endif
                                 <p data-cart-item-status class="min-h-4 text-right text-[11px] text-[#8b8b8b]" aria-live="polite"></p>
                             </div>
                         </div>

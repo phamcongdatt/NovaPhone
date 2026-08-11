@@ -157,30 +157,13 @@ class ProductController extends Controller
     {
         $data = $request->validated();
         $performanceData = $this->extractPerformanceData($data);
-        // ─── Chặn ẩn sản phẩm nếu đang có đơn hàng chưa hoàn tất ───
+        // Chặn ẩn sản phẩm nếu còn đơn hàng chưa thanh toán.
         $wantsToDeactivate = $product->is_active && ! $request->boolean('is_active');
 
-        if ($wantsToDeactivate) {
-            $pendingStatuses = ['pending', 'confirmed', 'processing', 'shipping'];
-            $variantIds = $product->variants()->pluck('id');
-
-            $hasPendingOrders = OrderItem::where(function ($q) use ($product, $variantIds) {
-                $q->where('product_id', $product->id);
-
-                if ($variantIds->isNotEmpty()) {
-                    $q->orWhereIn('variant_id', $variantIds);
-                }
-            })
-                ->whereHas('order', function ($q) use ($pendingStatuses) {
-                    $q->whereIn('status', $pendingStatuses);
-                })
-                ->exists();
-
-            if ($hasPendingOrders) {
-                return back()
-                    ->withInput()
-                    ->withErrors(['error' => 'Không thể ẩn sản phẩm vì đang có đơn hàng chưa hoàn tất (chờ xác nhận / đang xử lý / đang giao) chứa sản phẩm này.']);
-            }
+        if ($wantsToDeactivate && $this->hasUnpaidOpenOrders($product)) {
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Không thể ẩn sản phẩm vì đang có đơn hàng chưa thanh toán chứa sản phẩm này.']);
         }
         DB::beginTransaction();
 
@@ -286,6 +269,12 @@ class ProductController extends Controller
 
     public function toggleStatus(Product $product)
     {
+        if ($product->is_active && $this->hasUnpaidOpenOrders($product)) {
+            return back()->withErrors([
+                'error' => 'Không thể ẩn sản phẩm vì đang có đơn hàng chưa thanh toán chứa sản phẩm này.',
+            ]);
+        }
+
         $product->update(['is_active' => ! $product->is_active]);
 
         return back()->with('success', 'Đã cập nhật trạng thái sản phẩm.');
@@ -294,6 +283,29 @@ class ProductController extends Controller
     // ════════════════════════════════════════════════════════════
     //  HELPERS
     // ════════════════════════════════════════════════════════════
+
+    private function hasUnpaidOpenOrders(Product $product): bool
+    {
+        $openStatuses = ['pending', 'confirmed', 'processing', 'shipping'];
+        $variantIds = $product->variants()->pluck('id');
+
+        return OrderItem::where(function ($query) use ($product, $variantIds) {
+            $query->where('product_id', $product->id);
+
+            if ($variantIds->isNotEmpty()) {
+                $query->orWhereIn('variant_id', $variantIds);
+            }
+        })
+            ->whereHas('order', function ($query) use ($openStatuses) {
+                $query->whereIn('status', $openStatuses)
+                    ->where(function ($paymentQuery) {
+                        $paymentQuery
+                            ->whereNull('payment_status')
+                            ->orWhere('payment_status', '!=', 'paid');
+                    });
+            })
+            ->exists();
+    }
 
     /**
      * Tách dữ liệu hiệu năng khỏi payload sản phẩm để lưu vào bảng riêng.
