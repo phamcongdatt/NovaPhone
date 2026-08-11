@@ -20,14 +20,9 @@
                         <div class="mt-1 text-sm font-bold">{{ number_format($wishlist->product->sale_price ?? $wishlist->product->price ?? 0, 0, ',', '.') }}đ</div>
                     </div>
                     <div class="flex gap-2">
-                        <form method="POST" action="{{ route('cart.buy-now') }}" class="inline">
-                            @csrf
-                            <input type="hidden" name="product_id" value="{{ $wishlist->product->id }}">
-                            <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="rounded-full border border-[#e8e4de] px-4 py-2 text-sm font-semibold transition hover:bg-black hover:text-white">
-                                Mua ngay
-                            </button>
-                        </form>
+                        <a href="{{ route('products.show', $wishlist->product) }}" class="rounded-full border border-[#e8e4de] px-4 py-2 text-sm font-semibold transition hover:bg-black hover:text-white">
+                            Xem sản phẩm
+                        </a>
                         <button class="text-red-500 hover:text-red-700 transition remove-wishlist-btn" data-product-id="{{ $wishlist->product->id }}" title="Xóa">
                             ✕
                         </button>

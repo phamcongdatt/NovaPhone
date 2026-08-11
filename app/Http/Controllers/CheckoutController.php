@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\FlashSaleItem;
 use App\Models\User;
+use App\Services\AdministrativeAddressResolver;
 use App\Services\CartService;
 use App\Services\CouponService;
 use App\Services\GuestOrderAccessService;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\DB;
 class CheckoutController extends Controller
 {
     protected CartService $cartService;
+    protected AdministrativeAddressResolver $administrativeAddressResolver;
     protected VnpayService $vnpayService;
     protected TelegramNotificationService $telegramNotificationService;
     protected SoldCountService $soldCountService;
@@ -37,6 +39,7 @@ class CheckoutController extends Controller
 
     public function __construct(
         CartService $cartService,
+        AdministrativeAddressResolver $administrativeAddressResolver,
         VnpayService $vnpayService,
         TelegramNotificationService $telegramNotificationService,
         SoldCountService $soldCountService,
@@ -45,6 +48,7 @@ class CheckoutController extends Controller
         GuestOrderAccessService $guestOrderAccess
     ) {
         $this->cartService = $cartService;
+        $this->administrativeAddressResolver = $administrativeAddressResolver;
         $this->vnpayService = $vnpayService;
         $this->telegramNotificationService = $telegramNotificationService;
         $this->soldCountService = $soldCountService;
@@ -69,9 +73,11 @@ class CheckoutController extends Controller
 
         if ($isBuyNow) {
             $buyNowData = session()->get('buy_now_item');
-            $product = Product::findOrFail($buyNowData['product_id']);
-            $variant = $buyNowData['variant_id'] ? ProductVariant::findOrFail($buyNowData['variant_id']) : null;
-            $variant = $this->cartService->resolveVariant($product, $variant);
+            $product = Product::withTrashed()->findOrFail($buyNowData['product_id']);
+            $variant = $this->cartService->getSelectedVariant(
+                $product,
+                $buyNowData['variant_id'] ?? null
+            );
 
             $items = collect();
             $mockItem = new CartItem([
@@ -154,6 +160,24 @@ class CheckoutController extends Controller
 
         if (! $isBuyNow && $items->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
+        }
+
+        $unavailableItems = $items->filter(function ($item) {
+            return ! $item->product
+                || $item->product->trashed()
+                || ! $item->product->is_active
+                || ($item->variant && ! $item->variant->is_active);
+        });
+
+        if ($unavailableItems->isNotEmpty()) {
+            if ($isBuyNow) {
+                session()->forget('buy_now_item');
+            }
+
+            return redirect()->route('cart.index')->with(
+                'error',
+                'Một hoặc nhiều sản phẩm đã ngừng bán. Vui lòng bỏ chọn hoặc xóa sản phẩm đó khỏi giỏ hàng.'
+            );
         }
 
         // Xử lý mã giảm giá (nếu có)
@@ -295,8 +319,14 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
         }
 
+        $shippingAddress = $this->administrativeAddressResolver->resolve(
+            $request->province_code,
+            $request->ward_code,
+            $request->shipping_address,
+        );
+
         try {
-            $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow, $user) {
+            $order = DB::transaction(function () use ($request, $items, $total, $isBuyNow, $user, $shippingAddress) {
                 // 1. Kiểm tra tồn kho và Flash Sale của tất cả sản phẩm
 
                 foreach ($items as $item) {
@@ -306,11 +336,15 @@ class CheckoutController extends Controller
                     }
 
                     // Kiểm tra sản phẩm chưa bị ẩn
-                    if (!$item->product->is_active) {
+                    if ($item->product->trashed() || ! $item->product->is_active) {
                         throw new Exception("Sản phẩm {$item->product->name} hiện không khả dụng (đã bị ẩn hoặc ngừng bán).");
                     }
 
                     // Nếu có biến thể thì kiểm tra biến thể
+                    if ($item->product->variants()->exists() && ! $item->variant_id) {
+                        throw new Exception("Vui lĂ²ng chá»n biáº¿n thá»ƒ cho sáº£n pháº©m {$item->product->name}.");
+                    }
+
                     if ($item->variant_id) {
                         if (!$item->variant) {
                             throw new Exception("Phiên bản của sản phẩm {$item->product->name} không còn tồn tại hoặc đã bị xóa.");
@@ -390,10 +424,13 @@ class CheckoutController extends Controller
                     'total_amount' => $finalTotal,
                     'shipping_full_name' => $request->shipping_full_name,
                     'shipping_phone' => $request->shipping_phone,
-                    'shipping_address' => $request->shipping_address,
-                    'shipping_ward' => $request->shipping_ward,
-                    'shipping_district' => $request->shipping_district,
-                    'shipping_province' => $request->shipping_province,
+                    'shipping_address' => $shippingAddress['street_address'],
+                    'shipping_ward' => $shippingAddress['ward_name'],
+                    'shipping_district' => null,
+                    'shipping_province' => $shippingAddress['province_name'],
+                    'shipping_province_code' => $shippingAddress['province_code'],
+                    'shipping_ward_code' => $shippingAddress['ward_code'],
+                    'administrative_version' => $shippingAddress['administrative_version'],
                     'note' => $request->note,
                 ]);
 
@@ -450,7 +487,7 @@ class CheckoutController extends Controller
                 }
 
                 // 5. Lưu địa chỉ vào database (nếu chưa tồn tại)
-                $this->saveShippingAddress($request);
+                $this->saveShippingAddress($request, $shippingAddress);
 
                 // 6. Xóa dữ liệu tạm thời
                 if (! $user) {
@@ -728,7 +765,7 @@ class CheckoutController extends Controller
     /**
      * Lưu địa chỉ giao hàng vào database (nếu chưa tồn tại)
      */
-    private function saveShippingAddress(CheckoutRequest $request)
+    private function saveShippingAddress(CheckoutRequest $request, array $shippingAddress): void
     {
         /** @var User|null $user */
         $user = Auth::user();
@@ -741,10 +778,9 @@ class CheckoutController extends Controller
         $existingAddress = $user->addresses()
             ->where('full_name', $request->shipping_full_name)
             ->where('phone', $request->shipping_phone)
-            ->where('address', $request->shipping_address)
-            ->where('ward', $request->shipping_ward)
-            ->where('district', $request->shipping_district)
-            ->where('province', $request->shipping_province)
+            ->where('address', $shippingAddress['street_address'])
+            ->where('ward_code', $shippingAddress['ward_code'])
+            ->where('province_code', $shippingAddress['province_code'])
             ->first();
 
         // Nếu địa chỉ đã tồn tại, không cần lưu lại
@@ -760,10 +796,14 @@ class CheckoutController extends Controller
             'user_id' => $user->id,
             'full_name' => $request->shipping_full_name,
             'phone' => $request->shipping_phone,
-            'address' => $request->shipping_address,
-            'ward' => $request->shipping_ward,
-            'district' => $request->shipping_district,
-            'province' => $request->shipping_province,
+            'address' => $shippingAddress['street_address'],
+            'ward' => $shippingAddress['ward_name'],
+            'district' => null,
+            'province' => $shippingAddress['province_name'],
+            'province_code' => $shippingAddress['province_code'],
+            'ward_code' => $shippingAddress['ward_code'],
+            'administrative_version' => $shippingAddress['administrative_version'],
+            'validated_at' => now(),
             'is_default' => $isDefault,
         ]);
     }

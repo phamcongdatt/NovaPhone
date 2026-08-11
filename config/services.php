@@ -59,6 +59,11 @@ return [
         'url'         => env('VNPAY_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'),
         'return_url'  => env('VNPAY_RETURN_URL', env('APP_URL') . '/checkout/vnpay/return'),
     ],
+    'administrative' => [
+        'base_url' => env('ADMINISTRATIVE_API_BASE_URL', 'https://provinces.open-api.vn/api/v2'),
+        'source_version' => env('ADMINISTRATIVE_SOURCE_VERSION', '2025-07-01'),
+        'ca_bundle' => env('ADMINISTRATIVE_CA_BUNDLE', storage_path('certs/cacert.pem')),
+    ],
     'gemini' => ['key' =>env("GEMINI_API_KEY")],
 
 ];

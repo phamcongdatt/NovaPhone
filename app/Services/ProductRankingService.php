@@ -37,7 +37,7 @@ class ProductRankingService
     private function baseQuery(bool $onlyActive): Builder
     {
         return Product::query()
-            ->with(['brand', 'activeFlashSaleItem.flashSale'])
+            ->with(['brand', 'activeFlashSaleItem.flashSale', 'variants.inventory'])
             ->withAvg(
                 ['reviews as rating_average' => fn ($query) => $query->where('is_visible', true)],
                 'rating'

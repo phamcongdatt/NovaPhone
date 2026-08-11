@@ -12,7 +12,12 @@ class ProductController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Product::with(['brand', 'category', 'images' => fn($q) => $q->where('is_primary', true)])
+        $query = Product::with([
+                'brand',
+                'category',
+                'variants.inventory',
+                'images' => fn($q) => $q->where('is_primary', true),
+            ])
             ->where('is_active', true);
 
         // Filter by Search Term
@@ -78,7 +83,7 @@ class ProductController extends Controller
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
-            ->with(['brand', 'activeFlashSaleItem.flashSale'])
+            ->with(['brand', 'variants.inventory', 'activeFlashSaleItem.flashSale'])
             ->withAvg(['reviews as rating_average' => fn($q) => $q->where('is_visible', true)], 'rating')
             ->limit(4)
             ->get();

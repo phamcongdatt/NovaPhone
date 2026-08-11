@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Address;
+use App\Services\AdministrativeAddressResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AddressController extends Controller
 {
-    private function checkOwnership(Address $address)
+    public function __construct(private readonly AdministrativeAddressResolver $addressResolver)
+    {
+    }
+
+    private function checkOwnership(Address $address): void
     {
         if ($address->user_id !== Auth::id()) {
             abort(403, 'Không có quyền truy cập tài nguyên này.');
@@ -17,26 +22,13 @@ class AddressController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'street' => 'required|string|max:255',
-            'ward' => 'required|string|max:255',
-            'district' => 'required|string|max:255',
-            'province' => 'required|string|max:255',
-            'is_default' => 'nullable|boolean',
-        ]);
+        $data = $this->addressData($request);
 
-        $validated['user_id'] = Auth::id();
-        $validated['full_name'] = $validated['name'];
-        $validated['address'] = $validated['street'];
-        unset($validated['name'], $validated['street']);
-
-        if ($validated['is_default'] ?? false) {
+        if ($data['is_default']) {
             Auth::user()->addresses()->update(['is_default' => false]);
         }
 
-        Auth::user()->addresses()->create($validated);
+        Auth::user()->addresses()->create($data + ['user_id' => Auth::id()]);
 
         return redirect()->route('account.addresses')->with('success', 'Thêm địa chỉ thành công!');
     }
@@ -44,14 +36,14 @@ class AddressController extends Controller
     public function show(Address $address)
     {
         $this->checkOwnership($address);
+
         return response()->json([
             'id' => $address->id,
             'name' => $address->full_name,
             'phone' => $address->phone,
             'street' => $address->address,
-            'ward' => $address->ward,
-            'district' => $address->district,
-            'province' => $address->province,
+            'province_code' => $address->province_code,
+            'ward_code' => $address->ward_code,
             'is_default' => $address->is_default,
         ]);
     }
@@ -59,26 +51,13 @@ class AddressController extends Controller
     public function update(Request $request, Address $address)
     {
         $this->checkOwnership($address);
+        $data = $this->addressData($request);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'street' => 'required|string|max:255',
-            'ward' => 'required|string|max:255',
-            'district' => 'required|string|max:255',
-            'province' => 'required|string|max:255',
-            'is_default' => 'nullable|boolean',
-        ]);
-
-        $validated['full_name'] = $validated['name'];
-        $validated['address'] = $validated['street'];
-        unset($validated['name'], $validated['street']);
-
-        if ($validated['is_default'] ?? false) {
+        if ($data['is_default']) {
             Auth::user()->addresses()->where('id', '!=', $address->id)->update(['is_default' => false]);
         }
 
-        $address->update($validated);
+        $address->update($data);
 
         return redirect()->route('account.addresses')->with('success', 'Cập nhật địa chỉ thành công!');
     }
@@ -86,7 +65,6 @@ class AddressController extends Controller
     public function destroy(Address $address)
     {
         $this->checkOwnership($address);
-
         $address->delete();
 
         return redirect()->route('account.addresses')->with('success', 'Xóa địa chỉ thành công!');
@@ -100,5 +78,40 @@ class AddressController extends Controller
         $address->update(['is_default' => true]);
 
         return redirect()->route('account.addresses')->with('success', 'Đặt địa chỉ mặc định thành công!');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function addressData(Request $request): array
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'min:2', 'max:100'],
+            'phone' => ['required', 'regex:/^(?:\\+84|0)(?:3|5|7|8|9)\\d{8}$/'],
+            'street' => ['required', 'string', 'min:8', 'max:255'],
+            'province_code' => ['required', 'regex:/^\\d{2}$/'],
+            'ward_code' => ['required', 'regex:/^\\d{5}$/'],
+            'is_default' => ['nullable', 'boolean'],
+        ]);
+
+        $location = $this->addressResolver->resolve(
+            $validated['province_code'],
+            $validated['ward_code'],
+            $validated['street'],
+        );
+
+        return [
+            'full_name' => $validated['name'],
+            'phone' => $validated['phone'],
+            'address' => $location['street_address'],
+            'ward' => $location['ward_name'],
+            'district' => null,
+            'province' => $location['province_name'],
+            'province_code' => $location['province_code'],
+            'ward_code' => $location['ward_code'],
+            'administrative_version' => $location['administrative_version'],
+            'validated_at' => now(),
+            'is_default' => (bool) ($validated['is_default'] ?? false),
+        ];
     }
 }

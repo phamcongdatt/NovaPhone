@@ -130,6 +130,7 @@
                             <x-product-card
                                 :id="$product->id"
                                 :name="$product->name"
+                                :variants="$product->variants"
                                 :image="$product->thumbnail ? (str_starts_with($product->thumbnail, 'http') ? $product->thumbnail : (str_starts_with($product->thumbnail, 'images/') || str_starts_with($product->thumbnail, 'storage/') ? asset($product->thumbnail) : asset('storage/' . $product->thumbnail))) : asset('images/placeholder.svg')"
                                 :price="$product->sale_price ?? $product->price"
                                 :oldPrice="$product->sale_price && $product->sale_price < $product->price ? $product->price : null"

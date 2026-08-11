@@ -72,7 +72,10 @@
                             </div>
                             <div>
                                 <p class="text-xs text-[#8b8b8b]">Địa chỉ</p>
-                                <p class="font-semibold text-[#111]">{{ $address->street }}, {{ $address->ward }}, {{ $address->district }}, {{ $address->province }}</p>
+                                <p class="font-semibold text-[#111]">{{ $address->full_address }}</p>
+                                @if (! $address->province_code || ! $address->ward_code)
+                                    <p class="mt-1 text-xs font-medium text-amber-700">Địa chỉ cũ, cần cập nhật đơn vị hành chính mới.</p>
+                                @endif
                             </div>
                         </div>
 
@@ -131,19 +134,20 @@
                     <input type="tel" name="phone" id="phone" placeholder="Nhập số điện thoại" class="mt-2 w-full rounded-[12px] border border-[#ece8e2] bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
                 </div>
 
-                <div>
-                    <label class="text-xs font-semibold text-[#8b8b8b]">Tỉnh/Thành phố</label>
-                    <input type="text" name="province" id="province" placeholder="Nhập tỉnh/thành phố" class="mt-2 w-full rounded-[12px] border border-[#ece8e2] bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
-                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="text-xs font-semibold text-[#8b8b8b]">Tỉnh/Thành phố</label>
+                        <select name="province_code" id="province_code" class="mt-2 w-full rounded-[12px] border border-[#ece8e2] bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                            <option value="">Đang tải tỉnh/thành phố...</option>
+                        </select>
+                    </div>
 
-                <div>
-                    <label class="text-xs font-semibold text-[#8b8b8b]">Quận/Huyện</label>
-                    <input type="text" name="district" id="district" placeholder="Nhập quận/huyện" class="mt-2 w-full rounded-[12px] border border-[#ece8e2] bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
-                </div>
-
-                <div>
-                    <label class="text-xs font-semibold text-[#8b8b8b]">Phường/Xã</label>
-                    <input type="text" name="ward" id="ward" placeholder="Nhập phường/xã" class="mt-2 w-full rounded-[12px] border border-[#ece8e2] bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black" required>
+                    <div>
+                        <label class="text-xs font-semibold text-[#8b8b8b]">Phường/Xã</label>
+                        <select name="ward_code" id="ward_code" class="mt-2 w-full rounded-[12px] border border-[#ece8e2] bg-[#fbfaf8] px-4 py-2.5 text-sm outline-none transition focus:border-black disabled:cursor-not-allowed disabled:opacity-60" required disabled>
+                            <option value="">Chọn tỉnh/thành phố trước</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div>
@@ -180,6 +184,52 @@
     const deleteButtons = document.querySelectorAll('.delete-address-btn');
     const editButtons = document.querySelectorAll('.edit-address-btn');
     const setDefaultButtons = document.querySelectorAll('.set-default-btn');
+    const provinceSelect = document.getElementById('province_code');
+    const wardSelect = document.getElementById('ward_code');
+    const provincesUrl = @json(route('locations.provinces'));
+    const wardsUrlTemplate = @json(route('locations.wards', ['provinceCode' => '__province_code__']));
+
+    const replaceOptions = (select, placeholder, options = []) => {
+        select.replaceChildren(new Option(placeholder, ''));
+        options.forEach(option => select.add(new Option(option.name, option.code)));
+    };
+
+    async function loadWards(provinceCode, selectedWardCode = '') {
+        wardSelect.disabled = true;
+        replaceOptions(wardSelect, provinceCode ? 'Đang tải phường/xã...' : 'Chọn tỉnh/thành phố trước');
+
+        if (!provinceCode) return;
+
+        try {
+            const response = await fetch(wardsUrlTemplate.replace('__province_code__', encodeURIComponent(provinceCode)));
+            if (!response.ok) throw new Error('Không thể tải danh sách phường/xã.');
+
+            const { data } = await response.json();
+            replaceOptions(wardSelect, 'Chọn phường/xã', data);
+            wardSelect.value = selectedWardCode;
+            wardSelect.disabled = false;
+        } catch (error) {
+            replaceOptions(wardSelect, 'Không thể tải phường/xã');
+        }
+    }
+
+    async function loadProvinces(selectedProvinceCode = '', selectedWardCode = '') {
+        provinceSelect.disabled = true;
+        replaceOptions(provinceSelect, 'Đang tải tỉnh/thành phố...');
+
+        try {
+            const response = await fetch(provincesUrl);
+            if (!response.ok) throw new Error('Không thể tải danh sách tỉnh/thành phố.');
+
+            const { data } = await response.json();
+            replaceOptions(provinceSelect, 'Chọn tỉnh/thành phố', data);
+            provinceSelect.value = selectedProvinceCode;
+            provinceSelect.disabled = false;
+            await loadWards(selectedProvinceCode, selectedWardCode);
+        } catch (error) {
+            replaceOptions(provinceSelect, 'Không thể tải tỉnh/thành phố');
+        }
+    }
 
     const openModal = () => {
         modal.classList.remove('hidden');
@@ -197,12 +247,13 @@
     };
 
     openBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             modalTitle.textContent = 'Thêm địa chỉ mới';
             form.reset();
             form.action = '{{ route("address.store") }}';
             document.getElementById('form-method').value = 'POST';
             document.getElementById('address-id').value = '';
+            await loadProvinces();
             openModal();
         });
     });
@@ -236,21 +287,23 @@
             const addressId = btn.dataset.id;
             fetch(`{{ route('address.show', ':id') }}`.replace(':id', addressId))
                 .then(r => r.json())
-                .then(data => {
+                .then(async data => {
                     modalTitle.textContent = 'Sửa địa chỉ';
                     document.getElementById('address-id').value = addressId;
                     document.getElementById('name').value = data.name || data.full_name || '';
                     document.getElementById('phone').value = data.phone || '';
-                    document.getElementById('province').value = data.province || '';
-                    document.getElementById('district').value = data.district || '';
-                    document.getElementById('ward').value = data.ward || '';
                     document.getElementById('street').value = data.street || data.address || '';
                     document.getElementById('is_default').checked = data.is_default || false;
                     form.action = `{{ route('address.update', ':id') }}`.replace(':id', addressId);
                     document.getElementById('form-method').value = 'PUT';
+                    await loadProvinces(data.province_code || '', data.ward_code || '');
                     openModal();
                 });
         });
+    });
+
+    provinceSelect.addEventListener('change', async function() {
+        await loadWards(this.value);
     });
 
     setDefaultButtons.forEach(btn => {
