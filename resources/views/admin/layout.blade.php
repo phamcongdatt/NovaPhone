@@ -118,6 +118,7 @@
                 </svg>
                 <span class="flex-1">Quản lý đơn hàng</span><span class="text-slate-600">›</span>
             </a>
+           
             <a href="{{ route('admin.settings.notifications') }}"
                 class="{{ $navItem }} {{ request()->routeIs('admin.settings.notifications') ? $navActive : $navIdle }}">
                 <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.7"
@@ -198,6 +199,15 @@
                         d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span class="flex-1">Thống kê doanh thu</span><span class="text-slate-600">›</span>
+            </a>
+            <a href="{{ route('admin.settings.general') }}"
+                class="{{ $navItem }} {{ request()->routeIs('admin.settings.general') ? $navActive : $navIdle }}">
+                <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.7"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.4-1.12-.4-2.33 0-3.45l2.4-1.39c1.07-.62 2.38-.62 3.45 0l2.4 1.39c.95.55 1.5 1.56 1.41 2.65-.1 1.09-.8 2.01-1.83 2.38L15 18v2.66c0 1.25-1 2.27-2.25 2.27S10.5 21.91 10.5 20.66V18l-3.17-.61c-1.03-.37-1.73-1.29-1.83-2.38-.09-1.09.46-2.1 1.41-2.65l2.4-1.39" />
+                    <circle cx="12" cy="14" r="2" />
+                </svg>
+                <span class="flex-1">Cài đặt chung</span><span class="text-slate-600">›</span>
             </a>
         </nav>
     </aside>

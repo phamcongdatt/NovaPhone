@@ -262,6 +262,8 @@ Route::middleware(['auth', 'admin'])
         //   GEMMINI CHAT
 
         // Cài đặt
+        Route::get('/settings/general', [SettingController::class, 'general'])->name('settings.general');
+        Route::post('/settings/general', [SettingController::class, 'updateGeneral']);
         Route::get('/settings/notifications', [SettingController::class, 'notifications'])->name('settings.notifications');
         Route::post('/settings/notifications', [SettingController::class, 'updateNotifications']);
     });

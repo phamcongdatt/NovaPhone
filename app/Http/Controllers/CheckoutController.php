@@ -111,7 +111,9 @@ class CheckoutController extends Controller
     private function calculateCheckoutAmounts(float $subtotal, float $discountAmount): array
     {
         $taxableAmount = round(max(0, $subtotal - $discountAmount), 2);
-        $taxRate = (float) config('shop.tax_rate', 0.10);
+        // Lấy thuế VAT từ Settings (mặc định 10%), sau đó chuyển sang số thập phân (chia 100)
+        $taxRatePercentage = (float) \App\Models\Setting::get('tax_rate', 10);
+        $taxRate = $taxRatePercentage / 100;
         $taxAmount = round($taxableAmount * $taxRate, 0);
         $shippingFee = 0.0;
         $finalTotal = $taxableAmount + $taxAmount + $shippingFee;

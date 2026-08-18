@@ -19,6 +19,26 @@ class SettingController extends Controller
         return view('admin.settings.notifications', compact('settings'));
     }
 
+    public function general()
+    {
+        $settings = [
+            'tax_rate' => Setting::get('tax_rate', '10'),
+        ];
+
+        return view('admin.settings.general', compact('settings'));
+    }
+
+    public function updateGeneral(Request $request)
+    {
+        $request->validate([
+            'tax_rate' => 'required|numeric|min:0|max:100',
+        ]);
+
+        Setting::set('tax_rate', $request->input('tax_rate', '10'));
+
+        return redirect()->back()->with('success', 'Cập nhật cài đặt chung thành công!');
+    }
+
     public function updateNotifications(Request $request)
     {
         $request->validate([
