@@ -83,10 +83,26 @@
                             @csrf
                             <button type="submit" class="rounded-full bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-[#222]">Xác nhận đã nhận</button>
                         </form>
+                    @elseif ($order->status === 'received' && $order->canRequestReturn())
+                        <a href="{{ route('returns.create', $order) }}" class="rounded-full border border-orange-200 bg-orange-50 px-4 py-2.5 text-sm font-semibold text-orange-700 transition-all duration-200 hover:bg-orange-100">Yêu cầu hoàn hàng</a>
+                    @elseif ($order->returnRequest)
+                        <a href="{{ route('returns.show', $order->returnRequest) }}" class="rounded-full border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-all duration-200 hover:bg-blue-100">Theo dõi hoàn hàng</a>
                     @endif
                 </div>
             </div>
         </section>
+
+        @if ($order->status === 'received' && ! $order->returnRequest)
+            <section class="rounded-[22px] border {{ $order->canRequestReturn() ? 'border-orange-200 bg-orange-50' : 'border-stone-200 bg-stone-100' }} p-4 text-sm">
+                @if ($order->canRequestReturn())
+                    <p class="font-semibold text-orange-900">Đơn hàng được yêu cầu hoàn đến hết {{ $order->returnDeadline()?->format('d/m/Y H:i') }}.</p>
+                    <p class="mt-1 leading-6 text-orange-800">Thời hạn hoàn hàng là 30 ngày kể từ khi giao thành công. Cần cung cấp ảnh/video và mô tả tình trạng sản phẩm.</p>
+                @else
+                    <p class="font-semibold text-stone-700">Đơn hàng đã hết thời hạn hoàn hàng.</p>
+                    <p class="mt-1 leading-6 text-stone-600">NovaPhone tiếp nhận yêu cầu hoàn trong 30 ngày kể từ khi giao thành công{{ $order->returnDeadline() ? ', hạn cuối ' . $order->returnDeadline()->format('d/m/Y H:i') : '' }}.</p>
+                @endif
+            </section>
+        @endif
 
         <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div class="space-y-5">

@@ -118,6 +118,11 @@
                 </svg>
                 <span class="flex-1">Quản lý đơn hàng</span><span class="text-slate-600">›</span>
             </a>
+            <a href="{{ route('admin.returns.index') }}"
+                class="{{ $navItem }} {{ request()->routeIs('admin.returns.*') ? $navActive : $navIdle }}">
+                <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 5 5v6"/></svg>
+                <span class="flex-1">Hoàn hàng / hoàn tiền</span><span class="text-slate-600">›</span>
+            </a>
             <a href="{{ route('admin.settings.notifications') }}"
                 class="{{ $navItem }} {{ request()->routeIs('admin.settings.notifications') ? $navActive : $navIdle }}">
                 <svg class="size-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.7"
@@ -268,6 +273,11 @@
                 <div
                     class="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
                     {{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                    {{ session('error') }}
+                </div>
             @endif
             @if ($errors->any())
                 <div class="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">

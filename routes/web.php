@@ -1,38 +1,42 @@
 <?php
 
 use App\Http\Controllers\AccountController;
-
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
-
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FlashSaleController;
+use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\OrderStatisticsController;
+use App\Http\Controllers\Admin\PostCategoryController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\RevenueController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\CouponController as AdminCouponController;
-use App\Http\Controllers\Api\GeminiChatbotController;
 use App\Http\Controllers\AuthController;
-
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CompareController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductDetailController;
 use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReturnRequestController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\CompareController;
 use App\Http\Controllers\WishlistController;
-use App\Http\Controllers\CouponController;
-use App\Http\Controllers\LocationController;
-use App\Models\FlashSale;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -47,8 +51,8 @@ Route::post('/products/{product:id}/review', [ProductReviewController::class, 's
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 // ---------- Posts (Tin tức) ----------
-Route::get('/tin-tuc', [\App\Http\Controllers\PostController::class, 'index'])->name('posts.index');
-Route::get('/tin-tuc/{slug}', [\App\Http\Controllers\PostController::class, 'show'])->name('posts.show');
+Route::get('/tin-tuc', [PostController::class, 'index'])->name('posts.index');
+Route::get('/tin-tuc/{slug}', [PostController::class, 'show'])->name('posts.show');
 
 // ---------- Product Comparison ----------
 Route::get('/compare', [CompareController::class, 'index'])->name('compare.index');
@@ -60,11 +64,11 @@ Route::delete('/compare', [CompareController::class, 'clear'])->name('compare.cl
 
 // Guest routes (chưa đăng nhập)
 Route::middleware('guest')->group(function () {
-    Route::get('/register',               [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register',              [AuthController::class, 'register']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 
-    Route::get('/login',                  [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login',                 [AuthController::class, 'login']);
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
 
     // Google OAuth Routes
     Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('google.login');
@@ -92,7 +96,6 @@ Route::prefix('locations')
             ->name('locations.wards');
     });
 
-
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
@@ -111,11 +114,11 @@ Route::middleware('auth')->group(function () {
 
 // ---------- Address Routes ----------
 Route::middleware('auth')->group(function () {
-    Route::post('/addresses', [\App\Http\Controllers\AddressController::class, 'store'])->name('address.store');
-    Route::get('/addresses/{address}', [\App\Http\Controllers\AddressController::class, 'show'])->name('address.show');
-    Route::put('/addresses/{address}', [\App\Http\Controllers\AddressController::class, 'update'])->name('address.update');
-    Route::delete('/addresses/{address}', [\App\Http\Controllers\AddressController::class, 'destroy'])->name('address.destroy');
-    Route::post('/addresses/{address}/set-default', [\App\Http\Controllers\AddressController::class, 'setDefault'])->name('address.set-default');
+    Route::post('/addresses', [AddressController::class, 'store'])->name('address.store');
+    Route::get('/addresses/{address}', [AddressController::class, 'show'])->name('address.show');
+    Route::put('/addresses/{address}', [AddressController::class, 'update'])->name('address.update');
+    Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('address.destroy');
+    Route::post('/addresses/{address}/set-default', [AddressController::class, 'setDefault'])->name('address.set-default');
 });
 
 // ---------- Wishlist Routes ----------
@@ -164,6 +167,12 @@ Route::get('/guest/orders/{order}/payment', [CheckoutController::class, 'guestPa
 Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/confirm-received', [OrderController::class, 'confirmReceived'])->name('orders.confirm-received');
+    Route::get('/orders/{order}/return', [ReturnRequestController::class, 'create'])->name('returns.create');
+    Route::post('/orders/{order}/return', [ReturnRequestController::class, 'store'])->name('returns.store');
+    Route::get('/returns/{returnRequest}', [ReturnRequestController::class, 'show'])->name('returns.show');
+    Route::get('/returns/{returnRequest}/receipt', [ReturnRequestController::class, 'receipt'])->name('returns.receipt');
+    Route::post('/returns/{returnRequest}/shipped', [ReturnRequestController::class, 'markShipped'])->name('returns.shipped');
+    Route::post('/returns/{returnRequest}/refund-account', [ReturnRequestController::class, 'updateRefundAccount'])->name('returns.refund-account');
 });
 
 // VNPay - cổng thanh toán thật
@@ -185,11 +194,13 @@ Route::get('/email/verify', function () {
 
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
+
     return redirect()->route('home')->with('status', 'Email của bạn đã được xác thực thành công!');
 })->middleware(['auth', 'signed'])->name('verification.verify');
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
+
     return back()->with('status', 'verification-link-sent');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
@@ -211,12 +222,12 @@ Route::middleware(['auth', 'admin'])
 
         // Danh mục
         Route::resource('categories', CategoryController::class)->except(['show']);
-        Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class)->except(['show']);
-        Route::resource('banners', \App\Http\Controllers\Admin\BannerController::class)->except(['show']);
+        Route::resource('brands', BrandController::class)->except(['show']);
+        Route::resource('banners', BannerController::class)->except(['show']);
 
         // Quản lý Bài viết
-        Route::resource('post-categories', \App\Http\Controllers\Admin\PostCategoryController::class)->except(['show']);
-        Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show', 'destroy']);
+        Route::resource('post-categories', PostCategoryController::class)->except(['show']);
+        Route::resource('posts', App\Http\Controllers\Admin\PostController::class)->except(['show', 'destroy']);
 
         // Flash Sale
         Route::resource('flash-sales', FlashSaleController::class)->except(['show']);
@@ -224,16 +235,14 @@ Route::middleware(['auth', 'admin'])
         // Mã giảm giá (Coupons)
         Route::resource('coupons', AdminCouponController::class)->except(['show']);
 
-
         // Người dùng / Khách hàng (xem danh sách, chi tiết, khóa/mở khóa)
         Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::patch('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])
             ->name('users.toggle-status');
 
-
         // Thống kê đơn hàng (đặt TRƯỚC {order} để tránh conflict)
-        Route::get('orders/statistics', [App\Http\Controllers\Admin\OrderStatisticsController::class, 'index'])->name('orders.statistics');
+        Route::get('orders/statistics', [OrderStatisticsController::class, 'index'])->name('orders.statistics');
         // Đơn hàng (xem danh sách, chi tiết, xác nhận/cập nhật trạng thái, hủy)
         Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
@@ -242,17 +251,23 @@ Route::middleware(['auth', 'admin'])
         Route::patch('orders/{order}/cancel', [AdminOrderController::class, 'cancel'])
             ->name('orders.cancel');
 
+        Route::get('returns', [App\Http\Controllers\Admin\ReturnRequestController::class, 'index'])->name('returns.index');
+        Route::get('returns/{returnRequest}', [App\Http\Controllers\Admin\ReturnRequestController::class, 'show'])->name('returns.show');
+        Route::patch('returns/{returnRequest}/receive', [App\Http\Controllers\Admin\ReturnRequestController::class, 'receive'])->name('returns.receive');
+        Route::patch('returns/{returnRequest}/review', [App\Http\Controllers\Admin\ReturnRequestController::class, 'review'])->name('returns.review');
+        Route::patch('returns/{returnRequest}/refund', [App\Http\Controllers\Admin\ReturnRequestController::class, 'refund'])->name('returns.refund');
+
         // Quản lý tồn kho
-        Route::get('inventory', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');
-        Route::post('inventory/{inventory}/import', [App\Http\Controllers\Admin\InventoryController::class, 'import'])->name('inventory.import');
-        Route::post('inventory/{inventory}/export', [App\Http\Controllers\Admin\InventoryController::class, 'export'])->name('inventory.export');
-        Route::post('inventory/{inventory}/adjust', [App\Http\Controllers\Admin\InventoryController::class, 'adjust'])->name('inventory.adjust');
-        Route::get('inventory/history', [App\Http\Controllers\Admin\InventoryController::class, 'history'])->name('inventory.history');
+        Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
+        Route::post('inventory/{inventory}/import', [InventoryController::class, 'import'])->name('inventory.import');
+        Route::post('inventory/{inventory}/export', [InventoryController::class, 'export'])->name('inventory.export');
+        Route::post('inventory/{inventory}/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
+        Route::get('inventory/history', [InventoryController::class, 'history'])->name('inventory.history');
 
         // Thống kê doanh thu & xuất báo cáo
-        Route::get('revenue', [App\Http\Controllers\Admin\RevenueController::class, 'index'])->name('revenue.index');
-        Route::get('reports/revenue/excel', [App\Http\Controllers\Admin\ReportController::class, 'revenueExcel'])->name('reports.revenue.excel');
-        Route::get('reports/revenue/pdf', [App\Http\Controllers\Admin\ReportController::class, 'revenuePdf'])->name('reports.revenue.pdf');
+        Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
+        Route::get('reports/revenue/excel', [ReportController::class, 'revenueExcel'])->name('reports.revenue.excel');
+        Route::get('reports/revenue/pdf', [ReportController::class, 'revenuePdf'])->name('reports.revenue.pdf');
 
         // Bình luận / đánh giá (Admin Reviews management)
 

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\OrderStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OrdrerRequest;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
-use App\Events\OrderStatusUpdated;
 use App\Services\OrderCancellationService;
+use App\Services\OrderPaymentService;
 use App\Services\SoldCountService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,9 +17,9 @@ class OrderController extends Controller
 {
     public function __construct(
         private readonly SoldCountService $soldCountService,
-        private readonly OrderCancellationService $cancellationService
-    ) {
-    }
+        private readonly OrderCancellationService $cancellationService,
+        private readonly OrderPaymentService $paymentService
+    ) {}
 
     /**
      * Các bước chuyển trạng thái hợp lệ (state machine).
@@ -27,23 +28,23 @@ class OrderController extends Controller
      * Trạng thái cuối cùng: "received" hoặc "cancelled"
      */
     private const TRANSITIONS = [
-        'pending'    => ['confirmed', 'cancelled'],
-        'confirmed'  => ['processing', 'cancelled'],
+        'pending' => ['confirmed', 'cancelled'],
+        'confirmed' => ['processing', 'cancelled'],
         'processing' => ['shipping'],
-        'shipping'   => ['delivered'],
-        'delivered'  => ['received'],
-        'received'   => [],
-        'cancelled'  => [],
+        'shipping' => ['delivered'],
+        'delivered' => ['received'],
+        'received' => [],
+        'cancelled' => [],
     ];
 
     public const STATUS_LABELS = [
-        'pending'    => 'Chờ xác nhận',
-        'confirmed'  => 'Đã xác nhận',
+        'pending' => 'Chờ xác nhận',
+        'confirmed' => 'Đã xác nhận',
         'processing' => 'Đang xử lý',
-        'shipping'   => 'Đang giao hàng',
-        'delivered'  => 'Đã giao',
-        'received'   => 'Đã nhận',
-        'cancelled'  => 'Đã hủy',
+        'shipping' => 'Đang giao hàng',
+        'delivered' => 'Đã giao',
+        'received' => 'Đã nhận',
+        'cancelled' => 'Đã hủy',
     ];
 
     // ─── Danh sách đơn hàng ─────────────────────────────────────
@@ -74,8 +75,8 @@ class OrderController extends Controller
         $orders = $query->latest()->paginate(15)->withQueryString();
 
         return view('admin.orders.index', [
-            'orders'       => $orders,
-            'filters'      => $request->only(['search', 'status', 'payment_status']),
+            'orders' => $orders,
+            'filters' => $request->only(['search', 'status', 'payment_status']),
             'statusLabels' => self::STATUS_LABELS,
         ]);
     }
@@ -93,9 +94,9 @@ class OrderController extends Controller
         ]);
 
         return view('admin.orders.show', [
-            'order'           => $order,
-            'statusLabels'    => self::STATUS_LABELS,
-            'nextStatuses'    => self::TRANSITIONS[$order->status] ?? [],
+            'order' => $order,
+            'statusLabels' => self::STATUS_LABELS,
+            'nextStatuses' => self::TRANSITIONS[$order->status] ?? [],
         ]);
     }
 
@@ -105,12 +106,12 @@ class OrderController extends Controller
     {
         $validated = $request->validated();
         $newStatus = $validated['status'];
-        $allowed   = self::TRANSITIONS[$order->status] ?? [];
+        $allowed = self::TRANSITIONS[$order->status] ?? [];
 
         if (! in_array($newStatus, $allowed, true)) {
             return back()->withErrors([
-                'status' => "Không thể chuyển đơn từ \"" . self::STATUS_LABELS[$order->status]
-                    . "\" sang \"" . (self::STATUS_LABELS[$newStatus] ?? $newStatus) . "\".",
+                'status' => 'Không thể chuyển đơn từ "'.self::STATUS_LABELS[$order->status]
+                    .'" sang "'.(self::STATUS_LABELS[$newStatus] ?? $newStatus).'".',
             ]);
         }
 
@@ -124,19 +125,26 @@ class OrderController extends Controller
         DB::transaction(function () use ($order, $newStatus, $validated, $request) {
             $oldStatus = $order->status;
 
-            $order->update(['status' => $newStatus]);
+            $order->update([
+                'status' => $newStatus,
+                'delivered_at' => $newStatus === 'delivered' ? now() : $order->delivered_at,
+            ]);
+
+            if ($newStatus === 'delivered') {
+                $this->paymentService->markCodAsPaid($order);
+            }
 
             $historyData = [
-                'order_id'   => $order->id,
-                'status'     => $newStatus,
-                'note'       => $validated['note'] ?? null,
+                'order_id' => $order->id,
+                'status' => $newStatus,
+                'note' => $validated['note'] ?? null,
                 'created_by' => $request->user()->id,
             ];
 
             // Lưu hình ảnh chứng minh giao hàng
             if ($newStatus === 'delivered' && $request->hasFile('delivery_proof_image')) {
                 $file = $request->file('delivery_proof_image');
-                $filename = 'delivery_' . $order->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $filename = 'delivery_'.$order->id.'_'.time().'.'.$file->getClientOriginalExtension();
                 $path = $file->storeAs('deliveries', $filename, 'public');
                 $historyData['delivery_proof_image'] = $path;
             }
@@ -148,7 +156,7 @@ class OrderController extends Controller
 
         broadcast(new OrderStatusUpdated($order));
 
-        return back()->with('success', 'Đã cập nhật trạng thái đơn sang "' . self::STATUS_LABELS[$newStatus] . '".');
+        return back()->with('success', 'Đã cập nhật trạng thái đơn sang "'.self::STATUS_LABELS[$newStatus].'".');
 
     }
 
@@ -178,7 +186,7 @@ class OrderController extends Controller
 
         broadcast(new OrderStatusUpdated($order));
 
-        return back()->with('success', 'Đã hủy đơn hàng "' . $order->order_code . '".');
+        return back()->with('success', 'Đã hủy đơn hàng "'.$order->order_code.'".');
 
     }
 }
