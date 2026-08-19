@@ -46,6 +46,7 @@ class UpdateProductRequest extends FormRequest
 
             'price'        => ['required', 'numeric', 'min:0'],
             'sale_price'   => ['nullable', 'numeric', 'min:0', 'lt:price'],
+            'tax_rate'     => ['required', 'numeric', 'in:0,5,8,10'],
             'sku'          => ['required', 'string', 'max:100', Rule::unique('products', 'sku')->ignore($productId)],
             'warranty_months' => ['nullable', 'integer', 'min:0', 'max:12'],
             'thumbnail'    => ['nullable', 'image', 'max:2048'],

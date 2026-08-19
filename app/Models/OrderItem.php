@@ -10,7 +10,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id', 'product_id', 'variant_id', 'flash_sale_item_id',
         'product_name', 'variant_name', 'product_thumbnail',
-        'price', 'quantity', 'subtotal',
+        'price', 'quantity', 'subtotal', 'tax_rate', 'taxable_amount', 'tax_amount',
     ];
 
     protected function casts(): array
@@ -18,6 +18,9 @@ class OrderItem extends Model
         return [
             'price'    => 'decimal:2',
             'subtotal' => 'decimal:2',
+            'tax_rate' => 'decimal:2',
+            'taxable_amount' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
         ];
     }
 

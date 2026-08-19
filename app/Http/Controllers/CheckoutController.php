@@ -108,15 +108,40 @@ class CheckoutController extends Controller
      * Tính số tiền phải thanh toán sau giảm giá và VAT.
      * VAT được tính trên giá trị thực trả của hàng hóa, trước phí vận chuyển.
      */
-    private function calculateCheckoutAmounts(float $subtotal, float $discountAmount): array
+    private function calculateCheckoutAmounts($items, float $subtotal, float $discountAmount): array
     {
         $taxableAmount = round(max(0, $subtotal - $discountAmount), 2);
-        $taxRate = (float) config('shop.tax_rate', 0.10);
-        $taxAmount = round($taxableAmount * $taxRate, 0);
+        $remainingDiscount = min($discountAmount, $subtotal);
+        $itemTaxes = [];
+        $taxBreakdown = [];
+
+        foreach ($items->values() as $index => $item) {
+            $lineSubtotal = round((float) $item->price * (int) $item->quantity, 2);
+            $isLast = $index === $items->count() - 1;
+            $lineDiscount = $isLast
+                ? $remainingDiscount
+                : round($subtotal > 0 ? $discountAmount * $lineSubtotal / $subtotal : 0, 2);
+            $lineDiscount = min($lineDiscount, $lineSubtotal, $remainingDiscount);
+            $remainingDiscount = round($remainingDiscount - $lineDiscount, 2);
+            $lineTaxable = round(max(0, $lineSubtotal - $lineDiscount), 2);
+            $rate = (float) ($item->product->tax_rate ?? 8);
+            $lineTax = round($lineTaxable * $rate / 100, 0);
+
+            $itemTaxes[$index] = [
+                'tax_rate' => $rate,
+                'taxable_amount' => $lineTaxable,
+                'tax_amount' => $lineTax,
+            ];
+            $taxBreakdown[(string) $rate] = ($taxBreakdown[(string) $rate] ?? 0) + $lineTax;
+        }
+
+        $taxAmount = array_sum($taxBreakdown);
         $shippingFee = 0.0;
         $finalTotal = $taxableAmount + $taxAmount + $shippingFee;
 
-        return compact('taxableAmount', 'taxRate', 'taxAmount', 'shippingFee', 'finalTotal');
+        ksort($taxBreakdown, SORT_NUMERIC);
+
+        return compact('taxableAmount', 'taxAmount', 'taxBreakdown', 'itemTaxes', 'shippingFee', 'finalTotal');
     }
 
     /**
@@ -227,9 +252,9 @@ class CheckoutController extends Controller
                 });
         }
 
-        $amounts = $this->calculateCheckoutAmounts($total, $discountAmount);
+        $amounts = $this->calculateCheckoutAmounts($items, $total, $discountAmount);
         $taxAmount = $amounts['taxAmount'];
-        $taxRate = $amounts['taxRate'];
+        $taxBreakdown = $amounts['taxBreakdown'];
         $finalTotal = $amounts['finalTotal'];
 
         $codMaxAmount = (float) config('shop.cod_max_amount');
@@ -242,7 +267,7 @@ class CheckoutController extends Controller
             ->view('checkout.index', compact(
                 'items', 'total', 'defaultAddress', 'disableCod', 'defaultPaymentMethod',
                 'codMaxAmount', 'discountAmount', 'appliedCouponsData', 'walletCoupons', 'isBuyNow',
-                'pendingPaymentOrder', 'taxAmount', 'taxRate', 'finalTotal'
+                'pendingPaymentOrder', 'taxAmount', 'taxBreakdown', 'finalTotal'
             ))
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
@@ -397,8 +422,9 @@ class CheckoutController extends Controller
                     }
                 }
 
-                $amounts = $this->calculateCheckoutAmounts($total, $discountAmount);
+                $amounts = $this->calculateCheckoutAmounts($items, $total, $discountAmount);
                 $taxAmount = $amounts['taxAmount'];
+                $itemTaxes = $amounts['itemTaxes'];
                 $shippingFee = $amounts['shippingFee'];
                 $finalTotal = $amounts['finalTotal'];
 
@@ -446,7 +472,7 @@ class CheckoutController extends Controller
                 }
 
                 // 4. Tạo chi tiết đơn hàng & trừ kho
-                foreach ($items as $item) {
+                foreach ($items->values() as $itemIndex => $item) {
                     $product = $item->product;
                     $variant = $item->variant;
                     $flashSaleItem = $this->matchingFlashSaleItem($product, $variant, (float) $item->price);
@@ -462,6 +488,9 @@ class CheckoutController extends Controller
                         'price' => $item->price,
                         'quantity' => $item->quantity,
                         'subtotal' => $item->price * $item->quantity,
+                        'tax_rate' => $itemTaxes[$itemIndex]['tax_rate'],
+                        'taxable_amount' => $itemTaxes[$itemIndex]['taxable_amount'],
+                        'tax_amount' => $itemTaxes[$itemIndex]['tax_amount'],
                     ]);
 
                     // Trừ tồn kho tương ứng

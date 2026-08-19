@@ -287,7 +287,7 @@
                         @endif
                         @if ($order->tax_amount > 0)
                             <div class="flex items-center justify-between gap-4">
-                                <dt class="text-[#777]">Thuế VAT (10%)</dt>
+                                <dt class="text-[#777]">Thuế VAT theo sản phẩm</dt>
                                 <dd class="font-semibold text-[#222]">{{ number_format($order->tax_amount, 0, ',', '.') }}₫</dd>
                             </div>
                         @endif

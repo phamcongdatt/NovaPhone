@@ -13,8 +13,8 @@ return [
     */
     'cod_max_amount' => env('COD_MAX_AMOUNT', 20000000),
 
-    /* Thuế VAT áp dụng cho đơn hàng, tính trên giá trị sau giảm giá. */
-    'tax_rate' => env('SHOP_TAX_RATE', 0.10),
+    /* Giá trị tham khảo cũ; VAT thực tế được lưu và tính theo từng sản phẩm. */
+    'tax_rate' => env('SHOP_TAX_RATE', 0.08),
 
     /*
     |--------------------------------------------------------------------------

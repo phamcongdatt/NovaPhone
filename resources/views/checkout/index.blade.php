@@ -271,10 +271,12 @@
                                 <span class="font-semibold text-red-600">-{{ number_format($discountAmount, 0, ',', '.') }}đ</span>
                             </div>
                         @endif
-                        <div class="flex justify-between text-[#666]">
-                            <span>Thuế VAT ({{ number_format($taxRate * 100, 0) }}%)</span>
-                            <span class="font-semibold text-[#111]">{{ number_format($taxAmount, 0, ',', '.') }}đ</span>
-                        </div>
+                        @foreach ($taxBreakdown as $rate => $amount)
+                            <div class="flex justify-between text-[#666]">
+                                <span>Thuế VAT ({{ number_format((float) $rate, 0) }}%)</span>
+                                <span class="font-semibold text-[#111]">{{ number_format($amount, 0, ',', '.') }}đ</span>
+                            </div>
+                        @endforeach
                         <div class="flex justify-between text-[#666]">
                             <span>Giao hàng</span>
                             <span class="font-semibold text-green-600">Miễn phí</span>

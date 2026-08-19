@@ -21,6 +21,7 @@ class Product extends Model
         'brand_id',
         'price',
         'sale_price',
+        'tax_rate',
         'thumbnail',
         'sku',
         'is_active',
@@ -35,6 +36,7 @@ class Product extends Model
         return [
             'price' => 'decimal:2',
             'sale_price' => 'decimal:2',
+            'tax_rate' => 'decimal:2',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];

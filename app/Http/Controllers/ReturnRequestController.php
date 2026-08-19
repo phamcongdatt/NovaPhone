@@ -68,11 +68,14 @@ class ReturnRequestController extends Controller
 
             foreach ($quantities as $itemId => $quantity) {
                 $item = $order->items->firstWhere('id', (int) $itemId);
-                $selectedSubtotal = (float) $item->price * $quantity;
+                $snapshottedLineTotal = (float) $item->taxable_amount + (float) $item->tax_amount;
+                $refundAmount = $snapshottedLineTotal > 0
+                    ? $snapshottedLineTotal * $quantity / max(1, (int) $item->quantity)
+                    : ((float) $item->price * $quantity) / $orderItemsTotal * $refundableOrderTotal;
                 $returnRequest->items()->create([
                     'order_item_id' => $item->id,
                     'quantity' => $quantity,
-                    'refund_amount' => round($selectedSubtotal / $orderItemsTotal * $refundableOrderTotal, 2),
+                    'refund_amount' => round($refundAmount, 2),
                 ]);
             }
 
