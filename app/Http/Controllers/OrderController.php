@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
 use App\Events\OrderStatusUpdated;
+use App\Models\Order;
+use App\Models\OrderStatusHistory;
 use App\Services\OrderCancellationService;
+use App\Services\OrderPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
     public function __construct(
-        private readonly OrderCancellationService $cancellationService
+        private readonly OrderCancellationService $cancellationService,
+        private readonly OrderPaymentService $paymentService
     ) {
         $this->middleware('auth');
     }
@@ -28,7 +32,7 @@ class OrderController extends Controller
         }
 
         if ($orderCode = request('search')) {
-            $query->where('order_code', 'like', '%' . trim($orderCode) . '%');
+            $query->where('order_code', 'like', '%'.trim($orderCode).'%');
         }
 
         if ($orderDate = request('order_date')) {
@@ -83,6 +87,7 @@ class OrderController extends Controller
             'items.variant',
             'reviews:id,order_id,product_id',
             'cancelledBy',
+            'returnRequest',
         ]);
 
         return view('orders.show', compact('order'));
@@ -101,17 +106,21 @@ class OrderController extends Controller
             return back()->with('error', 'Chỉ đơn hàng đã giao mới có thể xác nhận nhận.');
         }
 
-        $order->update([
-            'status' => 'received',
-            'user_received_at' => now(),
-        ]);
+        DB::transaction(function () use ($order) {
+            $order->update([
+                'status' => 'received',
+                'user_received_at' => now(),
+            ]);
 
-        \App\Models\OrderStatusHistory::create([
-            'order_id' => $order->id,
-            'status' => 'received',
-            'note' => 'Khách hàng xác nhận đã nhận hàng',
-            'created_by' => Auth::id(),
-        ]);
+            $this->paymentService->markCodAsPaid($order);
+
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'status' => 'received',
+                'note' => 'Khách hàng xác nhận đã nhận hàng',
+                'created_by' => Auth::id(),
+            ]);
+        });
 
         broadcast(new OrderStatusUpdated($order));
 

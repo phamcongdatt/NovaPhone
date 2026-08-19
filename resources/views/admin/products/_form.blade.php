@@ -396,6 +396,17 @@
                     </div>
 
                     <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-300">Thuế suất VAT <span class="text-red-400">*</span></label>
+                        <select name="tax_rate" class="input-field" required>
+                            @foreach ([0, 5, 8, 10] as $rate)
+                                <option value="{{ $rate }}" @selected((float) old('tax_rate', $product->tax_rate ?? 8) === (float) $rate)>{{ $rate }}%</option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">Chọn theo nhóm hàng hóa; không tự áp mức thấp hơn.</p>
+                        @error('tax_rate') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
                         <label class="mb-1 block text-sm font-medium text-gray-300">SKU <span class="text-red-400">*</span></label>
                         <input type="text" name="sku" value="{{ old('sku', $product->sku ?? '') }}"
                                class="input-field" placeholder="VD: IP17PM-256" required>
