@@ -85,6 +85,10 @@ class ReturnRequestController extends Controller
             $returnRequest->update([
                 'original_shipping_refund' => $isFullReturn ? $order->shipping_fee : 0,
             ]);
+            $returnRequest->load('items');
+            $returnRequest->update([
+                'refund_amount' => $returnRequest->calculatedRefundAmount(),
+            ]);
 
             foreach ($request->file('evidence', []) as $file) {
                 $path = $file->store('returns/'.$returnRequest->return_code, 'public');

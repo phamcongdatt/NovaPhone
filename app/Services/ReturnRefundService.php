@@ -22,6 +22,9 @@ class ReturnRefundService
 
             $locked->load('items.orderItem', 'order.items');
             $refundAmount = $locked->calculatedRefundAmount();
+            if ($refundAmount <= 0) {
+                throw new \RuntimeException('Số tiền hoàn phải lớn hơn 0; phiếu chưa được đóng và chưa gửi thông báo.');
+            }
 
             foreach ($locked->items as $returnItem) {
                 $orderItem = $returnItem->orderItem;
