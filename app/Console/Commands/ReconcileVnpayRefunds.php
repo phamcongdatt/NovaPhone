@@ -49,7 +49,7 @@ class ReconcileVnpayRefunds extends Command
                 $type = (string) ($result['vnp_TransactionType'] ?? '');
                 $status = (string) ($result['vnp_TransactionStatus'] ?? '');
 
-                if (in_array($type, ['02', '03'], true) && $status === '00') {
+                if ($vnpayService->isRefundCompleted($result)) {
                     $admin = $returnRequest->reviewer ?? User::where('role', 'admin')->first();
                     if (! $admin) {
                         throw new \RuntimeException('Không tìm thấy tài khoản admin để hoàn tất đối soát.');

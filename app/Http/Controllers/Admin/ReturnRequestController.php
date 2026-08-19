@@ -107,8 +107,7 @@ class ReturnRequestController extends Controller
                 return back()->with('error', $exception->getMessage());
             }
 
-            $isCompletedRefund = in_array((string) ($result['vnp_TransactionType'] ?? ''), ['02', '03'], true)
-                && (string) ($result['vnp_TransactionStatus'] ?? '') === '00';
+            $isCompletedRefund = $this->vnpayService->isRefundCompleted($result);
             if (! $isCompletedRefund) {
                 return back()->with('success', 'VNPay chưa xác nhận hoàn thành. Hệ thống tiếp tục đối soát theo lịch.');
             }
@@ -161,7 +160,13 @@ class ReturnRequestController extends Controller
                 return back()->with('error', $exception->getMessage());
             }
             $transactionStatus = (string) ($result['vnp_TransactionStatus'] ?? '');
-            if (in_array($transactionStatus, ['01', '02', '04', '05', '06', '07'], true)) {
+            if ($this->vnpayService->isRefundCompleted($result)) {
+                $method = 'vnpay';
+                $reference = (string) ($result['vnp_TransactionNo'] ?? $result['vnp_ResponseId'] ?? '');
+                if ($reference === '') {
+                    return back()->with('error', 'VNPay đã báo hoàn tiền thành công nhưng phản hồi thiếu mã tham chiếu.');
+                }
+            } elseif (in_array($transactionStatus, ['01', '02', '04', '05', '06', '07'], true)) {
                 $returnRequest->update([
                     'status' => 'refund_processing',
                     'refund_requested_at' => $returnRequest->refund_requested_at ?? now(),
@@ -169,9 +174,7 @@ class ReturnRequestController extends Controller
                 ]);
 
                 return back()->with('success', 'VNPay đã tiếp nhận và đang xử lý hoàn tiền. Hệ thống sẽ tiếp tục đối soát tự động.');
-            }
-
-            if ($transactionStatus === '') {
+            } elseif ($transactionStatus === '') {
                 $returnRequest->update([
                     'status' => 'refund_review_required',
                     'refund_requested_at' => $returnRequest->refund_requested_at ?? now(),
@@ -180,14 +183,12 @@ class ReturnRequestController extends Controller
                 ]);
 
                 return back()->with('error', 'VNPay chưa xác nhận trạng thái hoàn tiền. Phiếu đã chuyển sang đối soát.');
-            }
-
-            if ($transactionStatus !== '' && $transactionStatus !== '00') {
+            } elseif ($transactionStatus !== '00') {
                 return back()->with('error', 'VNPay từ chối hoàn tiền: '.($result['vnp_Message'] ?? 'Trạng thái '.$transactionStatus));
             }
 
-            $method = 'vnpay';
-            $reference = (string) ($result['vnp_TransactionNo'] ?? $result['vnp_ResponseId'] ?? '');
+            $method ??= 'vnpay';
+            $reference ??= (string) ($result['vnp_TransactionNo'] ?? $result['vnp_ResponseId'] ?? '');
             if ($reference === '') {
                 return back()->with('error', 'VNPay đã báo hoàn tiền thành công nhưng phản hồi thiếu mã tham chiếu.');
             }

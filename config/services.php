@@ -63,6 +63,7 @@ return [
         'server_ip' => env('VNPAY_SERVER_IP', '127.0.0.1'),
         'refund_query_interval_minutes' => (int) env('VNPAY_REFUND_QUERY_INTERVAL_MINUTES', 15),
         'refund_review_after_hours' => (int) env('VNPAY_REFUND_REVIEW_AFTER_HOURS', 24),
+        'sandbox_complete_on_status_05' => (bool) env('VNPAY_SANDBOX_COMPLETE_ON_STATUS_05', false),
     ],
     'administrative' => [
         'base_url' => env('ADMINISTRATIVE_API_BASE_URL', 'https://provinces.open-api.vn/api/v2'),

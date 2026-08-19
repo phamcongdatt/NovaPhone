@@ -106,6 +106,37 @@ class VnpayService
     }
 
     /**
+     * Sandbox VNPay có thể giữ giao dịch hoàn ở 05 vô thời hạn. Cho phép môi trường
+     * local/testing coi 05 là kết quả cuối để chạy trọn luồng nghiệp vụ thử nghiệm.
+     * Production luôn chỉ chấp nhận trạng thái 00.
+     *
+     * @param array<string, mixed> $result
+     */
+    public function isRefundCompleted(array $result): bool
+    {
+        $type = (string) ($result['vnp_TransactionType'] ?? '');
+        $status = (string) ($result['vnp_TransactionStatus'] ?? '');
+
+        if (! in_array($type, ['02', '03'], true)) {
+            return false;
+        }
+
+        if ($status === '00') {
+            return true;
+        }
+
+        $refundHost = strtolower((string) parse_url(
+            (string) config('services.vnpay.refund_url'),
+            PHP_URL_HOST,
+        ));
+
+        return $status === '05'
+            && (bool) config('services.vnpay.sandbox_complete_on_status_05', false)
+            && app()->environment(['local', 'testing'])
+            && $refundHost === 'sandbox.vnpayment.vn';
+    }
+
+    /**
      * Hoàn tiền về đúng phương thức thanh toán VNPay gốc.
      *
      * @return array<string, mixed>

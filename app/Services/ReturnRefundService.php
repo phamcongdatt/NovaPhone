@@ -16,7 +16,7 @@ class ReturnRefundService
     {
         $completed = DB::transaction(function () use ($returnRequest, $admin, $method, $reference) {
             $locked = ReturnRequest::whereKey($returnRequest->id)->lockForUpdate()->first();
-            if (! $locked || ! in_array($locked->status, ['approved', 'refund_processing'], true)) {
+            if (! $locked || ! in_array($locked->status, ['approved', 'refund_processing', 'refund_review_required'], true)) {
                 return false;
             }
 
