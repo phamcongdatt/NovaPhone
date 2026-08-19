@@ -23,6 +23,55 @@
         ])->toJson() : '[]' }},
         deletedVariants: [],
         deletedImages: [],
+        storageSpec: '',
+        colorSpec: '',
+        defaultQuantity: 0,
+        generatorMessage: '',
+        parseSpec(value, fallback) {
+            return value.split(/[,\n]+/).map(item => item.trim()).filter(Boolean).map(item => {
+                const parts = item.split(':');
+                return { name: parts.shift().trim(), value: (parts.join(':').trim() || fallback) };
+            });
+        },
+        skuPart(value) {
+            return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd')
+                .toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+        },
+        generateMatrix() {
+            const storages = this.parseSpec(this.storageSpec, '0');
+            const colors = this.parseSpec(this.colorSpec, '#000000');
+            if (!storages.length || !colors.length) {
+                this.generatorMessage = 'Nhập ít nhất một dung lượng và một màu.';
+                return;
+            }
+
+            const baseSku = document.querySelector('[name=sku]')?.value?.trim() || 'SP';
+            const existing = new Set(this.variants.map(v => `${(v.storage || '').toLowerCase()}|${(v.color || '').toLowerCase()}`));
+            let added = 0;
+            storages.forEach(storage => colors.forEach(color => {
+                const key = `${storage.name.toLowerCase()}|${color.name.toLowerCase()}`;
+                if (existing.has(key)) return;
+                this.variants.push({
+                    id: null,
+                    name: `${storage.name} - ${color.name}`,
+                    storage: storage.name,
+                    color: color.name,
+                    color_code: /^#[0-9a-f]{6}$/i.test(color.value) ? color.value : '#000000',
+                    image_url: null,
+                    additional_price: Math.max(0, Number(storage.value.replace(/[^0-9.-]/g, '')) || 0),
+                    sku: `${this.skuPart(baseSku)}-${this.skuPart(storage.name)}-${this.skuPart(color.name)}`,
+                    quantity: Math.max(0, Number(this.defaultQuantity) || 0),
+                });
+                existing.add(key);
+                added++;
+            }));
+            this.generatorMessage = added ? `Đã tạo ${added} biến thể mới; các tổ hợp có sẵn được giữ nguyên.` : 'Không có tổ hợp mới cần tạo.';
+        },
+        applyStockToAll() {
+            const quantity = Math.max(0, Number(this.defaultQuantity) || 0);
+            this.variants.forEach(variant => variant.quantity = quantity);
+            this.generatorMessage = `Đã đặt tồn kho ${quantity} cho ${this.variants.length} biến thể.`;
+        },
         addVariant() {
             this.variants.push({ id: null, name: '', storage: '', color: '', color_code: '#000000', image_url: null, additional_price: 0, sku: '', quantity: 0 });
         },
@@ -118,6 +167,32 @@
                         <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                         Thêm biến thể
                     </button>
+                </div>
+
+                <div class="mb-4 rounded-xl border border-brand-500/20 bg-brand-500/5 p-4">
+                    <div class="mb-3">
+                        <h4 class="text-sm font-bold text-white">Tạo ma trận biến thể tự động</h4>
+                        <p class="mt-1 text-xs leading-5 text-gray-400">Dung lượng dùng dạng <code>256GB:3000000</code> (giá cộng thêm); màu dùng dạng <code>Titan Đen:#242424</code>. Phân cách bằng dấu phẩy hoặc xuống dòng.</p>
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-2">
+                        <div>
+                            <label class="mb-1 block text-xs font-medium text-gray-300">Dung lượng : giá cộng thêm</label>
+                            <textarea x-model="storageSpec" rows="3" class="input-field" placeholder="128GB:0, 256GB:3000000, 512GB:6000000"></textarea>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-medium text-gray-300">Tên màu : mã màu</label>
+                            <textarea x-model="colorSpec" rows="3" class="input-field" placeholder="Đen:#202020, Trắng:#f5f5f5, Titan:#9b9589"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-end gap-3">
+                        <div class="w-40">
+                            <label class="mb-1 block text-xs font-medium text-gray-300">Tồn kho mặc định</label>
+                            <input type="number" x-model="defaultQuantity" class="input-field-sm" min="0">
+                        </div>
+                        <button type="button" @click="generateMatrix()" class="rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-500">Tạo các tổ hợp</button>
+                        <button type="button" @click="applyStockToAll()" :disabled="variants.length === 0" class="rounded-lg bg-white/10 px-4 py-2 text-xs font-bold text-gray-200 hover:bg-white/15 disabled:opacity-40">Áp tồn kho cho tất cả</button>
+                    </div>
+                    <p x-show="generatorMessage" x-text="generatorMessage" class="mt-3 text-xs font-medium text-brand-300"></p>
                 </div>
 
                 <template x-if="variants.length === 0">
