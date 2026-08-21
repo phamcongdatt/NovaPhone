@@ -7,39 +7,50 @@
     $isEdit  = isset($product) && $product->exists;
     $variants = $isEdit ? $product->variants : collect();
     $performance = $isEdit ? $product->performance : null;
+    $variantFormData = old('variants') !== null
+        ? collect(old('variants'))->map(fn ($variant) => array_merge($variant, ['image_url' => null, 'expanded' => true]))
+        : $variants->map(fn ($variant) => [
+            'id' => $variant->id,
+            'name' => $variant->name,
+            'storage' => $variant->storage,
+            'color' => $variant->color,
+            'color_code' => $variant->color_code,
+            'image_url' => $variant->image ? asset($variant->image) : null,
+            'additional_price' => (int) $variant->additional_price,
+            'sku' => $variant->sku,
+            'quantity' => $variant->inventory->quantity ?? 0,
+            'expanded' => false,
+        ]);
 @endphp
 
 <div x-data="{
-        variants: {{ $isEdit ? $variants->map(fn($v) => [
-            'id' => $v->id,
-            'name' => $v->name,
-            'storage' => $v->storage,
-            'color' => $v->color,
-            'color_code' => $v->color_code,
-            'image_url' => $v->image ? asset($v->image) : null,
-            'additional_price' => (int) $v->additional_price,
-            'sku' => $v->sku,
-            'quantity' => $v->inventory->quantity ?? 0,
-        ])->toJson() : '[]' }},
+        variants: {{ Illuminate\Support\Js::from($variantFormData) }},
         deletedVariants: [],
         deletedImages: [],
         storageSpec: '',
         colorSpec: '',
         defaultQuantity: 0,
+        defaultAdditionalPrice: 0,
         generatorMessage: '',
-        parseSpec(value, fallback) {
-            return value.split(/[,\n]+/).map(item => item.trim()).filter(Boolean).map(item => {
-                const parts = item.split(':');
-                return { name: parts.shift().trim(), value: (parts.join(':').trim() || fallback) };
-            });
+        parseList(value) {
+            return [...new Set(value.split(/[,\n]+/).map(item => item.trim()).filter(Boolean))];
+        },
+        colorCode(name) {
+            const presets = {
+                'den': '#202020', 'trang': '#f5f5f5', 'xam': '#808080', 'bac': '#c0c0c0',
+                'do': '#ef4444', 'xanh duong': '#3b82f6', 'xanh la': '#22c55e',
+                'vang': '#eab308', 'hong': '#ec4899', 'tim': '#8b5cf6', 'cam': '#f97316'
+            };
+            const normalized = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
+            return presets[normalized] || '#64748b';
         },
         skuPart(value) {
             return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd')
                 .toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '');
         },
         generateMatrix() {
-            const storages = this.parseSpec(this.storageSpec, '0');
-            const colors = this.parseSpec(this.colorSpec, '#000000');
+            const storages = this.parseList(this.storageSpec);
+            const colors = this.parseList(this.colorSpec);
             if (!storages.length || !colors.length) {
                 this.generatorMessage = 'Nhập ít nhất một dung lượng và một màu.';
                 return;
@@ -49,18 +60,19 @@
             const existing = new Set(this.variants.map(v => `${(v.storage || '').toLowerCase()}|${(v.color || '').toLowerCase()}`));
             let added = 0;
             storages.forEach(storage => colors.forEach(color => {
-                const key = `${storage.name.toLowerCase()}|${color.name.toLowerCase()}`;
+                const key = `${storage.toLowerCase()}|${color.toLowerCase()}`;
                 if (existing.has(key)) return;
                 this.variants.push({
                     id: null,
-                    name: `${storage.name} - ${color.name}`,
-                    storage: storage.name,
-                    color: color.name,
-                    color_code: /^#[0-9a-f]{6}$/i.test(color.value) ? color.value : '#000000',
+                    name: `${storage} - ${color}`,
+                    storage: storage,
+                    color: color,
+                    color_code: this.colorCode(color),
                     image_url: null,
-                    additional_price: Math.max(0, Number(storage.value.replace(/[^0-9.-]/g, '')) || 0),
-                    sku: `${this.skuPart(baseSku)}-${this.skuPart(storage.name)}-${this.skuPart(color.name)}`,
+                    additional_price: Math.max(0, Number(this.defaultAdditionalPrice) || 0),
+                    sku: `${this.skuPart(baseSku)}-${this.skuPart(storage)}-${this.skuPart(color)}`,
                     quantity: Math.max(0, Number(this.defaultQuantity) || 0),
+                    expanded: false,
                 });
                 existing.add(key);
                 added++;
@@ -73,7 +85,7 @@
             this.generatorMessage = `Đã đặt tồn kho ${quantity} cho ${this.variants.length} biến thể.`;
         },
         addVariant() {
-            this.variants.push({ id: null, name: '', storage: '', color: '', color_code: '#000000', image_url: null, additional_price: 0, sku: '', quantity: 0 });
+            this.variants.push({ id: null, name: '', storage: '', color: '', color_code: '#000000', image_url: null, additional_price: 0, sku: '', quantity: 0, expanded: true });
         },
         previewVariantImage(index, event) {
             const file = event.target.files[0];
@@ -160,37 +172,36 @@
 
             {{-- ═══════════ Biến thể sản phẩm ═══════════ --}}
             <div class="rounded-2xl border border-white/5 bg-night-soft p-5">
-                <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">Biến thể (Màu sắc / Dung lượng)</h3>
-                    <button type="button" @click="addVariant()"
-                            class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600/15 px-3 py-1.5 text-xs font-bold text-brand-400 transition-all duration-200 hover:bg-brand-600/25">
-                        <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                        Thêm biến thể
-                    </button>
+                <div class="mb-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">Biến thể sản phẩm</h3>
+                    <p class="mt-1 text-xs text-gray-500">Nhập danh sách một lần, hệ thống tự tạo tên, SKU và mọi tổ hợp màu × dung lượng.</p>
                 </div>
 
                 <div class="mb-4 rounded-xl border border-brand-500/20 bg-brand-500/5 p-4">
                     <div class="mb-3">
-                        <h4 class="text-sm font-bold text-white">Tạo ma trận biến thể tự động</h4>
-                        <p class="mt-1 text-xs leading-5 text-gray-400">Dung lượng dùng dạng <code>256GB:3000000</code> (giá cộng thêm); màu dùng dạng <code>Titan Đen:#242424</code>. Phân cách bằng dấu phẩy hoặc xuống dòng.</p>
+                        <h4 class="text-sm font-bold text-white">1. Nhập thuộc tính</h4>
+                        <p class="mt-1 text-xs leading-5 text-gray-400">Chỉ cần ngăn cách bằng dấu phẩy. Không cần nhập tên biến thể, SKU hay mã màu.</p>
                     </div>
                     <div class="grid gap-3 md:grid-cols-2">
                         <div>
-                            <label class="mb-1 block text-xs font-medium text-gray-300">Dung lượng : giá cộng thêm</label>
-                            <textarea x-model="storageSpec" rows="3" class="input-field" placeholder="128GB:0, 256GB:3000000, 512GB:6000000"></textarea>
+                            <label class="mb-1 block text-xs font-medium text-gray-300">Các dung lượng</label>
+                            <input x-model="storageSpec" class="input-field" placeholder="128GB, 256GB, 512GB">
                         </div>
                         <div>
-                            <label class="mb-1 block text-xs font-medium text-gray-300">Tên màu : mã màu</label>
-                            <textarea x-model="colorSpec" rows="3" class="input-field" placeholder="Đen:#202020, Trắng:#f5f5f5, Titan:#9b9589"></textarea>
+                            <label class="mb-1 block text-xs font-medium text-gray-300">Các màu sắc</label>
+                            <input x-model="colorSpec" class="input-field" placeholder="Đen, Trắng, Titan tự nhiên">
                         </div>
                     </div>
-                    <div class="mt-3 flex flex-wrap items-end gap-3">
-                        <div class="w-40">
-                            <label class="mb-1 block text-xs font-medium text-gray-300">Tồn kho mặc định</label>
+                    <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-[10rem_12rem_auto] lg:items-end">
+                        <div>
+                            <label class="mb-1 block text-xs font-medium text-gray-300">Tồn kho mỗi loại</label>
                             <input type="number" x-model="defaultQuantity" class="input-field-sm" min="0">
                         </div>
-                        <button type="button" @click="generateMatrix()" class="rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white hover:bg-brand-500">Tạo các tổ hợp</button>
-                        <button type="button" @click="applyStockToAll()" :disabled="variants.length === 0" class="rounded-lg bg-white/10 px-4 py-2 text-xs font-bold text-gray-200 hover:bg-white/15 disabled:opacity-40">Áp tồn kho cho tất cả</button>
+                        <div>
+                            <label class="mb-1 block text-xs font-medium text-gray-300">Giá cộng mặc định</label>
+                            <input type="number" x-model="defaultAdditionalPrice" class="input-field-sm" min="0" step="1000">
+                        </div>
+                        <button type="button" @click="generateMatrix()" class="rounded-lg bg-brand-600 px-5 py-2 text-xs font-bold text-white transition-all duration-200 hover:bg-brand-500">2. Tự động tạo biến thể</button>
                     </div>
                     <p x-show="generatorMessage" x-text="generatorMessage" class="mt-3 text-xs font-medium text-brand-300"></p>
                 </div>
@@ -201,74 +212,46 @@
                     </p>
                 </template>
 
-                <div class="space-y-3">
+                <div x-show="variants.length" class="mb-2 flex items-center justify-between gap-3">
+                    <p class="text-xs text-gray-400"><strong class="text-white" x-text="variants.length"></strong> biến thể đã sẵn sàng</p>
+                    <div class="flex gap-2">
+                        <button type="button" @click="applyStockToAll()" class="text-xs font-semibold text-brand-400 hover:text-brand-300">Áp lại tồn kho</button>
+                        <button type="button" @click="addVariant()" class="text-xs font-semibold text-gray-400 hover:text-white">+ Thêm thủ công</button>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
                     <template x-for="(variant, index) in variants" :key="index">
-                        <div class="grid grid-cols-2 gap-2.5 rounded-xl border border-white/5 bg-white/[0.02] p-3.5 sm:grid-cols-6">
+                        <div class="rounded-xl border border-white/5 bg-white/[0.02] p-3.5">
                             <input type="hidden" :name="`variants[${index}][id]`" x-model="variant.id">
-
-                            <div class="col-span-2 sm:col-span-2">
-                                <label class="mb-1 block text-[11px] text-gray-500">Tên biến thể</label>
-                                <input type="text" :name="`variants[${index}][name]`" x-model="variant.name"
-                                       class="input-field-sm" placeholder="256GB - Titan Đen" required>
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-[11px] text-gray-500">Dung lượng</label>
-                                <input type="text" :name="`variants[${index}][storage]`" x-model="variant.storage"
-                                       class="input-field-sm" placeholder="256GB">
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-[11px] text-gray-500">Màu</label>
-                                <input type="text" :name="`variants[${index}][color]`" x-model="variant.color"
-                                       class="input-field-sm" placeholder="Titan Đen">
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-[11px] text-gray-500">Mã màu</label>
-                                <div class="flex items-center gap-1.5">
-                                    <input type="color" :name="`variants[${index}][color_code]`" x-model="variant.color_code"
-                                           class="h-9 w-9 cursor-pointer rounded-lg border border-white/10 bg-transparent">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <input type="color" :name="`variants[${index}][color_code]`" x-model="variant.color_code" class="h-9 w-9 cursor-pointer rounded-lg border border-white/10 bg-transparent" title="Mã màu">
+                                <div class="min-w-40 flex-1">
+                                    <p class="text-sm font-semibold text-white" x-text="variant.name || 'Biến thể mới'"></p>
+                                    <p class="text-[11px] text-gray-500" x-text="variant.sku || 'SKU sẽ được nhập trong chi tiết'"></p>
                                 </div>
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-[11px] text-gray-500">Giá cộng thêm</label>
-                                <input type="number" :name="`variants[${index}][additional_price]`" x-model="variant.additional_price"
-                                       class="input-field-sm" min="0" step="1000">
-                            </div>
-
-                            <div>
-                                <label class="mb-1 block text-[11px] text-gray-500">SKU biến thể</label>
-                                <input type="text" :name="`variants[${index}][sku]`" x-model="variant.sku"
-                                       class="input-field-sm">
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-[11px] text-gray-500">Tồn kho</label>
-                                <input type="number" :name="`variants[${index}][quantity]`" x-model="variant.quantity"
-                                       class="input-field-sm" min="0">
+                                <label class="flex items-center gap-2 text-xs text-gray-400">Tồn kho
+                                    <input type="number" :name="`variants[${index}][quantity]`" x-model="variant.quantity" class="input-field-sm w-20" min="0">
+                                </label>
+                                <label class="flex items-center gap-2 text-xs text-gray-400">Giá cộng
+                                    <input type="number" :name="`variants[${index}][additional_price]`" x-model="variant.additional_price" class="input-field-sm w-32" min="0" step="1000">
+                                </label>
+                                <button type="button" @click="variant.expanded = !variant.expanded" class="rounded-lg px-2 py-2 text-xs font-semibold text-gray-400 hover:bg-white/5 hover:text-white" x-text="variant.expanded ? 'Thu gọn' : 'Chi tiết'"></button>
+                                <button type="button" @click="removeVariant(index)" class="rounded-lg px-2 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10">Xoá</button>
                             </div>
 
-                            <div class="col-span-2 flex items-end justify-end sm:col-span-1">
-                                <button type="button" @click="removeVariant(index)"
-                                        class="flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-red-500/10 text-xs font-semibold text-red-400 transition-all duration-200 hover:bg-red-500/20 sm:w-9">
-                                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/></svg>
-                                    <span class="sm:hidden">Xoá</span>
-                                </button>
-                            </div>
-
-                            <div class="col-span-2 sm:col-span-6">
-                                <label class="mb-1 block text-[11px] text-gray-500">Ảnh biến thể</label>
+                            <div x-show="variant.expanded" class="mt-3 grid gap-3 border-t border-white/5 pt-3 sm:grid-cols-2 lg:grid-cols-4">
+                                <label class="text-[11px] text-gray-500">Tên biến thể<input type="text" :name="`variants[${index}][name]`" x-model="variant.name" class="input-field-sm mt-1" required></label>
+                                <label class="text-[11px] text-gray-500">Dung lượng<input type="text" :name="`variants[${index}][storage]`" x-model="variant.storage" class="input-field-sm mt-1"></label>
+                                <label class="text-[11px] text-gray-500">Màu sắc<input type="text" :name="`variants[${index}][color]`" x-model="variant.color" class="input-field-sm mt-1"></label>
+                                <label class="text-[11px] text-gray-500">SKU<input type="text" :name="`variants[${index}][sku]`" x-model="variant.sku" class="input-field-sm mt-1"></label>
+                                <div class="sm:col-span-2 lg:col-span-4">
+                                    <label class="mb-1 block text-[11px] text-gray-500">Ảnh riêng (không bắt buộc)</label>
                                 <template x-if="variant.image_url">
-                                    <img
-                                        :src="variant.image_url"
-                                        class="mb-2 size-24 rounded-lg border border-white/10 object-cover"
-                                        alt="Ảnh biến thể"
-                                    >
+                                        <img :src="variant.image_url" class="mb-2 size-20 rounded-lg border border-white/10 object-cover" alt="Ảnh biến thể">
                                 </template>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    :name="`variants[${index}][image]`"
-                                    @change="previewVariantImage(index, $event)"
-                                    class="block w-full cursor-pointer rounded-lg border border-dashed border-white/15 bg-white/[0.02] px-3 py-2 text-xs text-gray-400"
-                                >
+                                    <input type="file" accept="image/*" :name="`variants[${index}][image]`" @change="previewVariantImage(index, $event)" class="block w-full cursor-pointer rounded-lg border border-dashed border-white/15 bg-white/[0.02] px-3 py-2 text-xs text-gray-400">
+                                </div>
                             </div>
                         </div>
                     </template>
