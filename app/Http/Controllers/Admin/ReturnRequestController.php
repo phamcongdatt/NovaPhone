@@ -76,6 +76,12 @@ class ReturnRequestController extends Controller
                 : 0,
             'completed_at' => $validated['decision'] === 'rejected' ? now() : null,
         ]);
+        if ($validated['decision'] === 'approved') {
+            $returnRequest->refresh()->load('items');
+            $returnRequest->update([
+                'refund_amount' => $returnRequest->calculatedRefundAmount(),
+            ]);
+        }
 
         return back()->with('success', $validated['decision'] === 'approved' ? 'Đã duyệt yêu cầu hoàn hàng.' : 'Đã từ chối và đóng yêu cầu.');
     }
@@ -83,6 +89,13 @@ class ReturnRequestController extends Controller
     public function refund(Request $request, ReturnRequest $returnRequest)
     {
         $returnRequest->loadMissing(['order.payments', 'items']);
+        $refundAmount = $returnRequest->calculatedRefundAmount();
+        if ($refundAmount <= 0) {
+            return back()->with('error', 'Số tiền hoàn không hợp lệ (0₫). Hệ thống chưa gửi yêu cầu tới VNPay và chưa đóng phiếu.');
+        }
+        if (abs((float) $returnRequest->refund_amount - $refundAmount) >= 0.01) {
+            $returnRequest->update(['refund_amount' => $refundAmount]);
+        }
 
         if (in_array($returnRequest->status, ['refund_processing', 'refund_review_required'], true)) {
             $queryInterval = (int) config('services.vnpay.refund_query_interval_minutes', 15);
@@ -142,7 +155,7 @@ class ReturnRequestController extends Controller
             try {
                 $result = $this->vnpayService->refund(
                     $returnRequest->order,
-                    $returnRequest->calculatedRefundAmount(),
+                    $refundAmount,
                     $returnRequest->return_code,
                     $request->user()->name,
                     $request->ip(),

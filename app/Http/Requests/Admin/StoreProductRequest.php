@@ -57,7 +57,7 @@ class StoreProductRequest extends FormRequest
             'variants.*.color'            => ['nullable', 'string', 'max:50'],
             'variants.*.color_code'       => ['nullable', 'string', 'max:20'],
             'variants.*.additional_price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.sku'              => ['nullable', 'string', 'max:100'],
+            'variants.*.sku'              => ['nullable', 'string', 'max:100', 'distinct', 'unique:product_variants,sku'],
             'variants.*.quantity'         => ['nullable', 'integer', 'min:0'],
             'variants.*.image'            => ['nullable', 'image', 'max:2048'],
 

@@ -18,7 +18,23 @@ class ReturnCompletedNotification extends Notification implements ShouldQueue
     /** @var array<int, int> */
     public array $backoff = [60, 300, 900, 3600];
 
-    public function __construct(private readonly ReturnRequest $returnRequest) {}
+    private readonly string $returnCode;
+
+    private readonly string $orderCode;
+
+    private readonly float $refundAmount;
+
+    private readonly string $refundReference;
+
+    public function __construct(private readonly ReturnRequest $returnRequest)
+    {
+        // Notification được xử lý bất đồng bộ. Chụp lại dữ liệu tài chính ngay lúc
+        // đóng phiếu để email không đọc phải model đã bị thay đổi/reset về sau.
+        $this->returnCode = (string) $returnRequest->return_code;
+        $this->orderCode = (string) $returnRequest->order->order_code;
+        $this->refundAmount = (float) $returnRequest->refund_amount;
+        $this->refundReference = (string) $returnRequest->refund_reference;
+    }
 
     public function via(object $notifiable): array
     {
@@ -27,16 +43,19 @@ class ReturnCompletedNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $receipt = app(RefundReceiptService::class)->pdf($this->returnRequest);
+        $receiptReturn = clone $this->returnRequest;
+        $receiptReturn->refund_amount = $this->refundAmount;
+        $receiptReturn->refund_reference = $this->refundReference;
+        $receipt = app(RefundReceiptService::class)->pdf($receiptReturn);
 
         return (new MailMessage)
-            ->subject('Đã hoàn tiền yêu cầu '.$this->returnRequest->return_code)
+            ->subject('Đã hoàn tiền yêu cầu '.$this->returnCode)
             ->greeting('Xin chào '.$notifiable->name.',')
-            ->line('NovaPhone đã hoàn tiền cho yêu cầu trả hàng của đơn '.$this->returnRequest->order->order_code.'.')
-            ->line('Số tiền: '.number_format((float) $this->returnRequest->refund_amount, 0, ',', '.').'₫')
-            ->line('Mã giao dịch hoàn tiền: '.$this->returnRequest->refund_reference)
+            ->line('NovaPhone đã hoàn tiền cho yêu cầu trả hàng của đơn '.$this->orderCode.'.')
+            ->line('Số tiền: '.number_format($this->refundAmount, 0, ',', '.').'₫')
+            ->line('Mã giao dịch hoàn tiền: '.$this->refundReference)
             ->action('Xem yêu cầu hoàn hàng', route('returns.show', $this->returnRequest))
-            ->attachData($receipt, 'hoa-don-hoan-tien-'.$this->returnRequest->return_code.'.pdf', [
+            ->attachData($receipt, 'hoa-don-hoan-tien-'.$this->returnCode.'.pdf', [
                 'mime' => 'application/pdf',
             ])
             ->line('Yêu cầu đã hoàn tất và được đóng.');
@@ -46,10 +65,10 @@ class ReturnCompletedNotification extends Notification implements ShouldQueue
     {
         return [
             'return_request_id' => $this->returnRequest->id,
-            'return_code' => $this->returnRequest->return_code,
+            'return_code' => $this->returnCode,
             'order_id' => $this->returnRequest->order_id,
-            'refund_amount' => $this->returnRequest->refund_amount,
-            'message' => 'Đã hoàn '.number_format((float) $this->returnRequest->refund_amount, 0, ',', '.').'₫ cho yêu cầu '.$this->returnRequest->return_code.'.',
+            'refund_amount' => $this->refundAmount,
+            'message' => 'Đã hoàn '.number_format($this->refundAmount, 0, ',', '.').'₫ cho yêu cầu '.$this->returnCode.'.',
         ];
     }
 }
